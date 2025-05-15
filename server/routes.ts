@@ -240,7 +240,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
       
-      const result = await storage.getSurveyDashboardSummary(page, limit);
+      // Filter parameters
+      const source = req.query.source as string;
+      const survey = req.query.survey as string;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+
+      // Create filter object based on provided parameters
+      const filter: any = {};
+      
+      // Only add parameters that are provided (not undefined or 'all')
+      if (source && source !== 'all') {
+        filter.source = source;
+      }
+      
+      if (survey && survey !== 'all') {
+        filter.survey = survey;
+      }
+      
+      // Date range filter
+      if (startDate && endDate) {
+        filter.dateRange = {
+          start: new Date(startDate),
+          end: new Date(endDate),
+        };
+      }
+      
+      const result = await storage.getSurveyDashboardSummary(page, limit, filter);
       res.json(result);
     } catch (error) {
       console.error("Error fetching survey dashboard summary:", error);

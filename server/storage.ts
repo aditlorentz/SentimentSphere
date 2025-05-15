@@ -806,7 +806,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getSurveyDashboardSummary(page: number = 1, limit: number = 10): Promise<{
+  async getSurveyDashboardSummary(
+    page: number = 1, 
+    limit: number = 10, 
+    filter?: { 
+      source?: string, 
+      survey?: string, 
+      dateRange?: { 
+        start: Date, 
+        end: Date 
+      } 
+    }
+  ): Promise<{
     data: SurveyDashboardSummary[],
     total: number
   }> {
@@ -814,22 +825,92 @@ export class DatabaseStorage implements IStorage {
       // Calculate offset
       const offset = (page - 1) * limit;
       
-      // Get total count
-      const [totalResult] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(surveyDashboardSummary);
-      
-      // Get paginated data
-      const data = await db
+      // Start with a base query
+      let baseQuery = db
         .select()
-        .from(surveyDashboardSummary)
+        .from(surveyDashboardSummary);
+     
+      // Apply filters if provided
+      if (filter) {
+        // We need to join with employee_insights to get source and date information
+        // Using subquery for efficiency and to avoid duplicate joins
+        
+        // Source filter
+        if (filter.source) {
+          console.log(`Filtering by source: ${filter.source}`);
+          
+          // This is a subquery approach - we find all word insights that appear in records with the specified source
+          const wordInsightsWithSource = db
+            .selectDistinct({ wordInsight: employeeInsights.wordInsight })
+            .from(employeeInsights)
+            .where(sql`LOWER(${employeeInsights.source}) = LOWER(${filter.source})`);
+          
+          baseQuery = baseQuery
+            .where(
+              inArray(
+                surveyDashboardSummary.wordInsight, 
+                wordInsightsWithSource.mapSelect((subq) => subq.wordInsight)
+              )
+            );
+        }
+        
+        // Survey/category filter
+        if (filter.survey) {
+          console.log(`Filtering by survey/category: ${filter.survey}`);
+          
+          // Similar approach for survey/category filter
+          const wordInsightsWithCategory = db
+            .selectDistinct({ wordInsight: employeeInsights.wordInsight })
+            .from(employeeInsights)
+            .where(sql`LOWER(${employeeInsights.category}) = LOWER(${filter.survey})`);
+          
+          baseQuery = baseQuery
+            .where(
+              inArray(
+                surveyDashboardSummary.wordInsight, 
+                wordInsightsWithCategory.mapSelect((subq) => subq.wordInsight)
+              )
+            );
+        }
+        
+        // Date range filter
+        if (filter.dateRange) {
+          console.log(`Filtering by date range: ${filter.dateRange.start} to ${filter.dateRange.end}`);
+          
+          // Get word insights that appear in date range
+          const wordInsightsInDateRange = db
+            .selectDistinct({ wordInsight: employeeInsights.wordInsight })
+            .from(employeeInsights)
+            .where(
+              and(
+                gte(employeeInsights.timestamp, filter.dateRange.start),
+                lte(employeeInsights.timestamp, filter.dateRange.end)
+              )
+            );
+          
+          baseQuery = baseQuery
+            .where(
+              inArray(
+                surveyDashboardSummary.wordInsight, 
+                wordInsightsInDateRange.mapSelect((subq) => subq.wordInsight)
+              )
+            );
+        }
+      }
+      
+      // Count total with filters applied
+      const [totalResult] = await baseQuery.select({ count: sql<number>`count(*)` });
+      
+      // Get paginated data with filters applied
+      const data = await baseQuery
+        .select()
         .orderBy(desc(surveyDashboardSummary.totalCount))
         .limit(limit)
         .offset(offset);
       
       return {
         data,
-        total: totalResult.count
+        total: totalResult?.count || 0
       };
     } catch (error) {
       console.error("Error getting survey dashboard summary:", error);
