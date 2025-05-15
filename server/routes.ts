@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema } from "@shared/schema";
+import { registerSummaryRegenerationRoutes } from "./api-generate-summary";
 import { compareSync, hashSync } from "bcryptjs";
 
 // Simple middleware to log requests
@@ -14,6 +15,9 @@ const logRequests = (req: Request, res: Response, next: NextFunction) => {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Use the logging middleware
   app.use(logRequests);
+  
+  // Register survey dashboard regeneration routes
+  registerSummaryRegenerationRoutes(app);
   // PostgreSQL API routes - untuk data insight dari database
   app.get("/api/postgres/insights", async (req: Request, res: Response) => {
     try {
