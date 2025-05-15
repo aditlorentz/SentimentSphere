@@ -90,33 +90,7 @@ export default function Header({
     logout();
   };
   
-  // Handle source change
-  const handleSourceChange = (value: string) => {
-    if (onSourceChange) {
-      onSourceChange(value);
-    }
-  };
-  
-  // Handle survey change
-  const handleSurveyChange = (value: string) => {
-    if (onSurveyChange) {
-      onSurveyChange(value);
-    }
-  };
-  
-  // Handle date range change
-  const handleDateRangeChange = (range: DateRange | undefined) => {
-    if (onDateRangeChange) {
-      onDateRangeChange(range);
-    }
-  };
-  
-  // Handle reset filters
-  const handleResetFilters = () => {
-    if (onResetFilters) {
-      onResetFilters();
-    }
-  };
+  // Semua fungsi handler telah dipindahkan ke inline function dalam component
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200 py-4 px-6 flex flex-col lg:flex-row lg:items-center lg:justify-between shadow-sm">
@@ -134,7 +108,12 @@ export default function Header({
 
           {/* Source Filter */}
           <div className="relative w-full sm:w-auto">
-            <Select value={source} onValueChange={handleSourceChange}>
+            <Select 
+              value={source} 
+              onValueChange={(value) => {
+                if (onSourceChange) onSourceChange(value);
+              }}
+            >
               <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
                 <div className="flex items-center">
                   <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
@@ -180,7 +159,9 @@ export default function Header({
                 <Calendar
                   mode="range"
                   selected={dateRange}
-                  onSelect={handleDateRangeChange}
+                  onSelect={(range) => {
+                    if (onDateRangeChange) onDateRangeChange(range);
+                  }}
                   initialFocus
                   numberOfMonths={2}
                   defaultMonth={dateRange?.from || new Date()}
@@ -194,10 +175,12 @@ export default function Header({
                     size="sm" 
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs rounded-full px-3"
                     onClick={() => {
-                      handleDateRangeChange({
-                        from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
-                        to: today
-                      } as DateRange);
+                      if (onDateRangeChange) {
+                        onDateRangeChange({
+                          from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
+                          to: today
+                        } as DateRange);
+                      }
                     }}
                   >
                     Last 30 Days
@@ -209,7 +192,12 @@ export default function Header({
 
           {/* Survey Type Filter */}
           <div className="relative w-full sm:w-auto">
-            <Select value={survey} onValueChange={handleSurveyChange}>
+            <Select 
+              value={survey} 
+              onValueChange={(value) => {
+                if (onSurveyChange) onSurveyChange(value);
+              }}
+            >
               <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
                 <div className="flex items-center">
                   <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
@@ -230,7 +218,9 @@ export default function Header({
           {/* Reset Button */}
           <Button 
             className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm rounded-full px-4 py-1 h-8"
-            onClick={handleResetFilters}
+            onClick={() => {
+              if (onResetFilters) onResetFilters();
+            }}
           >
             <RefreshCcw className="h-4 w-4 mr-1.5 flex-shrink-0" /> Reset
           </Button>
