@@ -12,6 +12,8 @@ const logRequests = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Use the logging middleware
+  app.use(logRequests);
   // PostgreSQL API routes - untuk data insight dari database
   app.get("/api/postgres/insights", async (req: Request, res: Response) => {
     try {
