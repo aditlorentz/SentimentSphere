@@ -191,6 +191,9 @@ export const surveyDashboardSummary = pgTable("survey_dashboard_summary", {
   positiveCount: integer("positive_count").notNull(),
   negativeCount: integer("negative_count").notNull(),
   neutralCount: integer("neutral_count").notNull(),
+  positivePercentage: integer("positive_percentage").default(0),
+  negativePercentage: integer("negative_percentage").default(0),
+  neutralPercentage: integer("neutral_percentage").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

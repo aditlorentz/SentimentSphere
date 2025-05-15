@@ -776,13 +776,26 @@ export class DatabaseStorage implements IStorage {
             eq(employeeInsights.sentimen, 'netral')
           ));
         
-        // Insert summary record
+        // Calculate percentages (rounded to the nearest integer)
+        const totalCount = totalResult.count;
+        const positiveCount = positiveResult.count;
+        const negativeCount = negativeResult.count;
+        const neutralCount = neutralResult.count;
+        
+        const positivePercentage = totalCount > 0 ? Math.round((positiveCount / totalCount) * 100) : 0;
+        const negativePercentage = totalCount > 0 ? Math.round((negativeCount / totalCount) * 100) : 0;
+        const neutralPercentage = totalCount > 0 ? Math.round((neutralCount / totalCount) * 100) : 0;
+        
+        // Insert summary record with calculated percentages
         await db.insert(surveyDashboardSummary).values({
           wordInsight,
-          totalCount: totalResult.count,
-          positiveCount: positiveResult.count,
-          negativeCount: negativeResult.count,
-          neutralCount: neutralResult.count
+          totalCount,
+          positiveCount,
+          negativeCount,
+          neutralCount,
+          positivePercentage,
+          negativePercentage,
+          neutralPercentage
         });
       }
       

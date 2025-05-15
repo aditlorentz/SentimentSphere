@@ -102,13 +102,28 @@ export default function SurveySummaryPage() {
                         <TableCell className="font-medium">{item.wordInsight}</TableCell>
                         <TableCell className="text-right">{item.totalCount}</TableCell>
                         <TableCell className="text-right">
-                          {item.positiveCount} ({calculatePercentage(item.positiveCount, item.totalCount)}%)
+                          <div className="flex items-center justify-end space-x-1">
+                            <span className="font-semibold">{item.positiveCount}</span>
+                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                              {calculatePercentage(item.positiveCount, item.totalCount)}%
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          {item.negativeCount} ({calculatePercentage(item.negativeCount, item.totalCount)}%)
+                          <div className="flex items-center justify-end space-x-1">
+                            <span className="font-semibold">{item.negativeCount}</span>
+                            <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                              {calculatePercentage(item.negativeCount, item.totalCount)}%
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          {item.neutralCount} ({calculatePercentage(item.neutralCount, item.totalCount)}%)
+                          <div className="flex items-center justify-end space-x-1">
+                            <span className="font-semibold">{item.neutralCount}</span>
+                            <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                              {calculatePercentage(item.neutralCount, item.totalCount)}%
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="w-full bg-gray-200 rounded-full h-2.5">
