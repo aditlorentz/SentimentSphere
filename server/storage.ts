@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, InsightData, CategoryInsights, TopInsightData, AnalyticsFullData, UrlsResponse, EmployeeInsightType, InsertEmployeeInsight, employeeInsights } from "@shared/schema";
+import { users, type User, type InsertUser, InsightData, CategoryInsights, TopInsightData, AnalyticsFullData, UrlsResponse, EmployeeInsightType, InsertEmployeeInsight, employeeInsights, surveyDashboardSummary, SurveyDashboardSummary, InsertSurveyDashboardSummary } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, sql, or } from "drizzle-orm";
 
@@ -35,6 +35,13 @@ export interface IStorage {
     bySource: {source: string, count: number}[],
     byWitel: {witel: string, count: number}[],
     byWord: {word: string, count: number}[]
+  }>;
+  
+  // Survey Dashboard Summary operations
+  generateSurveyDashboardSummary(): Promise<void>;
+  getSurveyDashboardSummary(page: number, limit: number): Promise<{
+    data: SurveyDashboardSummary[],
+    total: number
   }>;
 }
 

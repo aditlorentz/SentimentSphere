@@ -182,3 +182,24 @@ export interface UrlsResponse {
   urls: Url[];
   total: number;
 }
+
+// Survey dashboard summary table
+export const surveyDashboardSummary = pgTable("survey_dashboard_summary", {
+  id: serial("id").primaryKey().notNull(),
+  wordInsight: text("word_insight").notNull(),
+  totalCount: integer("total_count").notNull(),
+  positiveCount: integer("positive_count").notNull(),
+  negativeCount: integer("negative_count").notNull(),
+  neutralCount: integer("neutral_count").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSurveyDashboardSummarySchema = createInsertSchema(surveyDashboardSummary).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SurveyDashboardSummary = typeof surveyDashboardSummary.$inferSelect;
+export type InsertSurveyDashboardSummary = z.infer<typeof insertSurveyDashboardSummarySchema>;
