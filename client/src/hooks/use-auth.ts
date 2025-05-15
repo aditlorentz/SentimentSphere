@@ -40,12 +40,12 @@ export function useAuth() {
     try {
       setLoading(true);
       
-      // Simple validation - in real app would call API
-      if (username && password) {
-        // Success - in a real app this would be from API response
+      // Simplified auth check - only allow specific admin credentials
+      if (username === "admin@nlp" && password === "12345") {
+        // Success with admin credentials
         const userData: User = {
           username: username,
-          role: "user",
+          role: "admin",
         };
         
         localStorage.setItem("user", JSON.stringify(userData));

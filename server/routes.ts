@@ -205,6 +205,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Server error" });
     }
   });
+  
+  // Endpoint for logging out
+  app.get("/api/logout", (req: Request, res: Response) => {
+    try {
+      // In a real app with sessions, you would destroy the session here
+      res.status(200).json({ message: "Logout successful" });
+    } catch (error) {
+      res.status(500).json({ message: "Logout failed" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
