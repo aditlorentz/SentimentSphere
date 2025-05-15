@@ -39,7 +39,14 @@ export interface IStorage {
   
   // Survey Dashboard Summary operations
   generateSurveyDashboardSummary(): Promise<void>;
-  getSurveyDashboardSummary(page: number, limit: number): Promise<{
+  getSurveyDashboardSummary(page: number, limit: number, filter?: { 
+    source?: string, 
+    survey?: string, 
+    dateRange?: { 
+      start: Date, 
+      end: Date 
+    } 
+  }): Promise<{
     data: SurveyDashboardSummary[],
     total: number
   }>;
