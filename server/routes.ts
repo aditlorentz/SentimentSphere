@@ -1,9 +1,15 @@
-import express, { type Express } from "express";
+import express, { type Express, NextFunction } from "express";
 import type { Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema } from "@shared/schema";
 import { compareSync, hashSync } from "bcryptjs";
+
+// Simple middleware to log requests
+const logRequests = (req: Request, res: Response, next: NextFunction) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // PostgreSQL API routes - untuk data insight dari database
