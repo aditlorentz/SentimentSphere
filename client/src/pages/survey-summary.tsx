@@ -37,7 +37,15 @@ export default function SurveySummaryPage() {
   
   // Mutation to generate summary data
   const generateMutation = useMutation({
-    mutationFn: () => apiRequest('/api/survey-dashboard/generate', { method: 'POST' }),
+    mutationFn: async () => {
+      const response = await fetch('/api/survey-dashboard/generate', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.json();
+    },
     onSuccess: () => {
       // Invalidate and refetch the summary data
       queryClient.invalidateQueries({ queryKey: ["/api/survey-dashboard/summary"] });

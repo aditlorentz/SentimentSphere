@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
-import { Brain, ChartLine, Star, BarChart3, Settings } from "lucide-react";
+import { Brain, ChartLine, Star, BarChart3, Settings, BarChart2 } from "lucide-react";
 import nlpLogo from "../../assets/logo-nlp.webp";
 
 interface SidebarItemProps {
@@ -78,6 +78,9 @@ export default function Sidebar() {
           </SidebarItem>
           <SidebarItem href="/survey-dashboard" icon={<BarChart3 size={18} />}>
             Survey Dashboard
+          </SidebarItem>
+          <SidebarItem href="/survey-summary" icon={<BarChart2 size={18} />}>
+            Survey Summary
           </SidebarItem>
           <SidebarItem href="/top-insights" icon={<Star size={18} />}>
             Top Insight

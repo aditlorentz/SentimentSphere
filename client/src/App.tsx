@@ -53,6 +53,11 @@ function Router() {
               <Settings />
             </ProtectedRoute>
           </Route>
+          <Route path="/survey-summary">
+            <ProtectedRoute>
+              <SurveySummary />
+            </ProtectedRoute>
+          </Route>
           <Route component={NotFound} />
         </Switch>
       </div>
