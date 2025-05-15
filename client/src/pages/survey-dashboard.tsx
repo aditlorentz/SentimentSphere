@@ -51,6 +51,8 @@ function generateAIConclusionText(stats: any): string {
 }
 
 export default function SurveyDashboard() {
+  const [limit] = useState(10);
+  
   // Fetch insights
   const { data: insights, isLoading: insightsLoading } = useQuery<CategoryInsights>({
     queryKey: ['/api/insights'],
@@ -69,9 +71,8 @@ export default function SurveyDashboard() {
     queryKey: ['/api/postgres/stats'],
   });
   
-  // State for infinite scroll
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  // Create a ref for the loader element
+  const loaderRef = useRef<HTMLDivElement>(null);
   
   // Fetch survey dashboard summary data with pagination
   const { 
@@ -79,17 +80,15 @@ export default function SurveyDashboard() {
     fetchNextPage, 
     hasNextPage, 
     isFetchingNextPage,
-    isLoading: summaryLoading,
-    isError: summaryError
+    isLoading: summaryLoading 
   } = useInfiniteQuery({
     queryKey: ['/api/survey-dashboard/summary'],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await fetch(`/api/survey-dashboard/summary?page=${pageParam}&limit=${limit}`);
-      if (!res.ok) {
-        throw new Error("Network response was not ok");
+      const response = await fetch(`/api/survey-dashboard/summary?page=${pageParam}&limit=${limit}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
       }
-      const data = await res.json();
-      return data;
+      return response.json();
     },
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage || !lastPage.data || lastPage.data.length < limit) {
@@ -98,99 +97,86 @@ export default function SurveyDashboard() {
       return allPages.length + 1;
     },
     initialPageParam: 1,
-    refetchOnWindowFocus: false,
-    retry: 1
   });
   
-  // Set up infinite scroll with Intersection Observer
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadingRef = useRef<HTMLDivElement>(null);
-  
-  // Set up the observer
+  // Set up intersection observer for infinite scrolling
   useEffect(() => {
-    const currentRef = loadingRef.current;
+    const currentLoaderRef = loaderRef.current;
     
-    if (currentRef && !isFetchingNextPage && hasNextPage) {
-      if (observerRef.current) observerRef.current.disconnect();
-      
-      observerRef.current = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting) {
+    if (!currentLoaderRef || isFetchingNextPage || !hasNextPage) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage) {
           fetchNextPage();
         }
-      });
-      
-      observerRef.current.observe(currentRef);
-    }
+      },
+      { threshold: 0.5 }
+    );
+    
+    observer.observe(currentLoaderRef);
     
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
+      if (currentLoaderRef) {
+        observer.unobserve(currentLoaderRef);
       }
     };
-  }, [loadingRef, isFetchingNextPage, fetchNextPage, hasNextPage]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
   
-  // Convert infinite query survey dashboard summary data to insights format
-  const summaryInsights = useMemo(() => {
-    if (!summaryData?.pages) {
-      return {
-        positive: [],
-        negative: [],
-        neutral: []
-      } as CategoryInsights;
-    }
+  // Convert survey dashboard summary data to sentiment categories
+  const categories = useMemo(() => {
+    const result = {
+      positive: [] as InsightData[],
+      negative: [] as InsightData[],
+      neutral: [] as InsightData[],
+    };
     
-    const positive: InsightData[] = [];
-    const negative: InsightData[] = [];
-    const neutral: InsightData[] = [];
+    if (!summaryData?.pages) return result;
     
-    // Flatten the pages data
+    // Process each page of data
     summaryData.pages.forEach(page => {
-      if (page && page.data) {
-        page.data.forEach((item: SurveyDashboardSummary) => {
-          // Determine the dominant sentiment based on the highest percentage
-          const posPercent = item.positivePercentage || 0;
-          const negPercent = item.negativePercentage || 0;
-          const neutPercent = item.neutralPercentage || 0;
-          
-          const maxPercentage = Math.max(posPercent, negPercent, neutPercent);
-          
-          // Create insight data object
-          const insightData: InsightData = {
-            id: item.id,
-            title: item.wordInsight,
-            positivePercentage: posPercent,
-            negativePercentage: negPercent,
-            neutralPercentage: neutPercent,
-            views: item.totalCount,
-            comments: 0
-          };
-          
-          // Add to appropriate category based on dominant sentiment
-          if (maxPercentage === posPercent && maxPercentage > 0) {
-            positive.push(insightData);
-          } else if (maxPercentage === negPercent && maxPercentage > 0) {
-            negative.push(insightData);
-          } else if (maxPercentage === neutPercent && maxPercentage > 0) {
-            neutral.push(insightData);
-          }
-        });
-      }
+      if (!page.data) return;
+      
+      page.data.forEach((item: SurveyDashboardSummary) => {
+        const posPercent = item.positivePercentage || 0;
+        const negPercent = item.negativePercentage || 0;
+        const neutPercent = item.neutralPercentage || 0;
+        
+        // Find the highest percentage
+        const maxPercent = Math.max(posPercent, negPercent, neutPercent);
+        
+        // Create insight object
+        const insight: InsightData = {
+          id: item.id,
+          title: item.wordInsight,
+          positivePercentage: posPercent,
+          negativePercentage: negPercent,
+          neutralPercentage: neutPercent,
+          views: item.totalCount,
+          comments: 0
+        };
+        
+        // Add to appropriate category based on highest percentage
+        if (maxPercent === posPercent && maxPercent > 0) {
+          result.positive.push(insight);
+        } else if (maxPercent === negPercent && maxPercent > 0) {
+          result.negative.push(insight);
+        } else if (maxPercent === neutPercent && maxPercent > 0) {
+          result.neutral.push(insight);
+        }
+      });
     });
     
-    return {
-      positive,
-      negative,
-      neutral
-    } as CategoryInsights;
+    return result;
   }, [summaryData]);
   
-  // Handler for removing insights (would call API in a real app)
+  // Handler for removing insights
   const handleRemoveInsight = (id: number) => {
     console.log(`Removing insight with ID: ${id}`);
-    // In a real app, we would call API and then invalidate the query
+    // In a real app, we would call an API and then invalidate the query
   };
   
-  // Check if all data is still loading
+  // Overall loading state
   const isLoading = insightsLoading || statsLoading || summaryLoading;
   
   if (isLoading) {
@@ -219,32 +205,32 @@ export default function SurveyDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <SentimentCategoryCard
             title="Netral Insight dari Survey"
-            badge={summaryInsights.neutral.length}
+            badge={categories.neutral.length}
             type="neutral"
-            insights={summaryInsights.neutral}
+            insights={categories.neutral}
             onRemoveInsight={handleRemoveInsight}
           />
           
           <SentimentCategoryCard
             title="Negative Insight dari Survey"
-            badge={summaryInsights.negative.length}
+            badge={categories.negative.length}
             type="negative"
-            insights={summaryInsights.negative}
+            insights={categories.negative}
             onRemoveInsight={handleRemoveInsight}
           />
           
           <SentimentCategoryCard
             title="Positif Insight dari Survey"
-            badge={summaryInsights.positive.length}
+            badge={categories.positive.length}
             type="positive"
-            insights={summaryInsights.positive}
+            insights={categories.positive}
             onRemoveInsight={handleRemoveInsight}
           />
         </div>
         
-        {/* Infinite Scroll Trigger */}
+        {/* Load more trigger for infinite scroll */}
         {hasNextPage && (
-          <div className="flex justify-center my-8" ref={loadingRef}>
+          <div className="flex justify-center my-8" ref={loaderRef}>
             <Button
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
