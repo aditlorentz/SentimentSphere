@@ -106,7 +106,7 @@ export default function Header({
                 onSelect={(range) => setDateRange(range)}
                 initialFocus
                 numberOfMonths={2}
-                defaultMonth={dateRange?.from}
+                defaultMonth={dateRange?.from || new Date()}
                 className="p-2"
               />
               <div className="p-3 border-t border-border flex justify-between items-center">
