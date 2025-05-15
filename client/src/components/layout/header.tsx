@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useState } from "react";
-import { ChevronDown, RefreshCcw, Calendar as CalendarIcon, Filter, Layers } from "lucide-react";
+import { ChevronDown, RefreshCcw, Calendar as CalendarIcon, Filter, Layers, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
@@ -18,6 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // We've replaced HeaderFilter with more modern Select and Popover components
 
@@ -42,6 +48,12 @@ export default function Header({
     from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
     to: today
   });
+  
+  // Handler for logout action
+  const handleLogout = () => {
+    // Redirect to logout endpoint
+    window.location.href = "/api/logout";
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200 py-4 px-6 flex flex-col lg:flex-row lg:items-center lg:justify-between shadow-sm">
@@ -166,9 +178,19 @@ export default function Header({
               <p className="font-medium text-gray-800">Tester</p>
               <p className="text-xs text-gray-500">User</p>
             </div>
-            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-              <ChevronDown className="h-4 w-4 text-gray-400" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
+                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <LogOut className="h-4 w-4 mr-2 text-gray-500" />
+                  <span>Keluar</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       )}
