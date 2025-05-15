@@ -858,11 +858,14 @@ export class DatabaseStorage implements IStorage {
           
           if (wordsList.length > 0) {
             baseQuery = baseQuery.where(
-              sql`${surveyDashboardSummary.wordInsight} IN (${wordsList.join(',')})`
+              inArray(surveyDashboardSummary.wordInsight, wordsList)
             );
           } else {
-            // If no matching words found, return empty result
-            return { data: [], total: 0 };
+            // If no matching words found, return empty result with total count for UI pagination
+            const [totalCount] = await db
+              .select({ count: sql<number>`count(*)` })
+              .from(surveyDashboardSummary);
+            return { data: [], total: String(totalCount.count) };
           }
         }
         
