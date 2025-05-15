@@ -48,7 +48,7 @@ export default function Header({
       <h1 className="text-2xl font-display font-bold text-black tracking-tight">{title}</h1>
 
       {showFilters && (
-        <div className="flex flex-wrap items-center gap-3 mt-4 lg:mt-0 overflow-x-auto pb-2 lg:pb-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:flex lg:flex-wrap items-center gap-3 mt-4 lg:mt-0 pb-2 lg:pb-0">
           {/* Total Insights Counter */}
           <div className="flex items-center bg-gradient-to-r from-blue-50 to-blue-100 rounded-full py-1 px-4 shadow-sm border border-blue-200">
             <span className="text-sm font-medium text-blue-800">
@@ -58,12 +58,12 @@ export default function Header({
           </div>
 
           {/* Source Filter */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Select value={source} onValueChange={setSource}>
-              <SelectTrigger className="min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
+              <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
                 <div className="flex items-center">
-                  <Filter className="h-4 w-4 mr-1.5 text-gray-400" />
-                  <SelectValue placeholder="Source" className="text-sm" />
+                  <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                  <SelectValue placeholder="Source" className="text-sm truncate" />
                 </div>
               </SelectTrigger>
               <SelectContent>
@@ -81,10 +81,10 @@ export default function Header({
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
-                className="min-w-[230px] justify-start bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto"
+                className="w-full sm:w-auto min-w-[140px] sm:min-w-[230px] justify-start bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto"
               >
-                <CalendarIcon className="h-4 w-4 mr-1.5 text-gray-400" />
-                <span className="text-sm font-normal">
+                <CalendarIcon className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                <span className="text-sm font-normal truncate">
                   {dateRange && dateRange.from ? (
                     dateRange.to ? (
                       <>
@@ -100,42 +100,44 @@ export default function Header({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={(range) => setDateRange(range)}
-                initialFocus
-                numberOfMonths={2}
-                defaultMonth={dateRange?.from || new Date()}
-                className="p-2"
-              />
-              <div className="p-3 border-t border-border flex justify-between items-center">
-                <div className="text-sm text-muted-foreground">
-                  Select a date range
+              <div className="overflow-hidden">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={(range) => setDateRange(range)}
+                  initialFocus
+                  numberOfMonths={2}
+                  defaultMonth={dateRange?.from || new Date()}
+                  className="p-2"
+                />
+                <div className="p-3 border-t border-border flex justify-between items-center">
+                  <div className="text-sm text-muted-foreground">
+                    Select a date range
+                  </div>
+                  <Button 
+                    size="sm" 
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs rounded-full px-3"
+                    onClick={() => {
+                      setDateRange({
+                        from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
+                        to: today
+                      } as DateRange);
+                    }}
+                  >
+                    Last 30 Days
+                  </Button>
                 </div>
-                <Button 
-                  size="sm" 
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs rounded-full px-3"
-                  onClick={() => {
-                    setDateRange({
-                      from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
-                      to: today
-                    } as DateRange);
-                  }}
-                >
-                  Last 30 Days
-                </Button>
               </div>
             </PopoverContent>
           </Popover>
 
           {/* Survey Type Filter */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Select value={survey} onValueChange={setSurvey}>
-              <SelectTrigger className="min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
+              <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
                 <div className="flex items-center">
-                  <Filter className="h-4 w-4 mr-1.5 text-gray-400" />
-                  <SelectValue placeholder="Survey" className="text-sm" />
+                  <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                  <SelectValue placeholder="Survey" className="text-sm truncate" />
                 </div>
               </SelectTrigger>
               <SelectContent>
@@ -148,12 +150,12 @@ export default function Header({
           </div>
 
           {/* Reset Button */}
-          <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm rounded-full px-4 py-1 h-8">
-            <RefreshCcw className="h-4 w-4 mr-1.5" /> Reset
+          <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm rounded-full px-4 py-1 h-8">
+            <RefreshCcw className="h-4 w-4 mr-1.5 flex-shrink-0" /> Reset
           </Button>
 
           {/* User Profile */}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2 md:col-span-3 lg:ml-auto">
             <Avatar className="h-8 w-8 border-2 border-blue-100">
               <AvatarImage src="" />
               <AvatarFallback className="bg-gradient-to-br from-blue-400 to-indigo-500 text-white text-xs">
