@@ -33,6 +33,7 @@ interface InsightItemProps {
 
 export function InsightItem({ insight, onRemove }: InsightItemProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const [selectedInsight, setSelectedInsight] = useState<string | null>(null);
   
   // Fetch detailed data from employee_insights when dialog is opened
   const { data: insightDetails, isLoading } = useQuery({
@@ -174,41 +175,81 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
             {!isLoading && insightDetails && insightDetails.data && insightDetails.data.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium mb-2">Data dari Database</h4>
-                <div className="overflow-auto max-h-60 border rounded-md">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50 sticky top-0">
-                      <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sumber</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Karyawan</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Witel</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sentimen</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {insightDetails.data.map((item: any) => (
-                        <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="px-3 py-2 whitespace-nowrap text-xs">{item.sourceData}</td>
-                          <td className="px-3 py-2 whitespace-nowrap text-xs">{item.employeeName}</td>
-                          <td className="px-3 py-2 whitespace-nowrap text-xs">
-                            {format(new Date(item.date), 'dd/MM/yyyy')}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-xs">{item.witel}</td>
-                          <td className="px-3 py-2 whitespace-nowrap text-xs">
-                            <span className={`px-2 py-1 text-xs rounded-full ${
-                              item.sentimen === 'positif' 
-                                ? 'bg-green-100 text-green-800' 
-                                : item.sentimen === 'negatif'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {item.sentimen}
-                            </span>
-                          </td>
+                <div className="space-y-4">
+                  <div className="overflow-auto max-h-60 border rounded-md">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sumber</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Karyawan</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Witel</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sentimen</th>
                         </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {insightDetails.data.map((item: any) => (
+                          <tr key={item.id} className="hover:bg-gray-50">
+                            <td className="px-3 py-2 whitespace-nowrap text-xs">{item.sourceData}</td>
+                            <td className="px-3 py-2 whitespace-nowrap text-xs">{item.employeeName}</td>
+                            <td className="px-3 py-2 whitespace-nowrap text-xs">
+                              {format(new Date(item.date), 'dd/MM/yyyy')}
+                            </td>
+                            <td className="px-3 py-2 whitespace-nowrap text-xs">{item.witel}</td>
+                            <td className="px-3 py-2 whitespace-nowrap text-xs">
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                item.sentimen === 'positif' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : item.sentimen === 'negatif'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {item.sentimen}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <h4 className="text-sm font-medium mb-2">Sentence Insights</h4>
+                  <div className="overflow-auto max-h-60 border rounded-md">
+                    <div className="divide-y divide-gray-200">
+                      {insightDetails.data.map((item: any) => (
+                        <div key={`sentence-${item.id}`} className="p-3 hover:bg-gray-50">
+                          <div className="flex items-start space-x-2 mb-1">
+                            <div className="flex-shrink-0 mt-0.5">
+                              <span className={`inline-block w-2 h-2 rounded-full ${
+                                item.sentimen === 'positif' 
+                                  ? 'bg-green-500' 
+                                  : item.sentimen === 'negatif'
+                                  ? 'bg-red-500'
+                                  : 'bg-yellow-500'
+                              }`}></span>
+                            </div>
+                            <p className="text-xs text-gray-700">{item.sentenceInsight}</p>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-gray-500 mt-1 pl-4">
+                            <div>
+                              <span>{item.employeeName}</span>
+                              <span className="mx-2">•</span>
+                              <span>{item.sourceData}</span>
+                            </div>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedInsight(item.originalInsight);
+                              }} 
+                              className="text-blue-500 hover:text-blue-700 text-xs font-medium"
+                            >
+                              Lihat Lengkap
+                            </button>
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
+                    </div>
+                  </div>
                 </div>
                 <div className="mt-2 text-xs text-right text-gray-500">
                   Menampilkan {insightDetails.data.length} dari {insightDetails.total} data
@@ -221,6 +262,18 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
                 Tidak ada data detail untuk ditampilkan.
               </div>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog to display original insight */}
+      <Dialog open={!!selectedInsight} onOpenChange={() => setSelectedInsight(null)}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Komentar Lengkap</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 p-4 bg-gray-50 rounded-md text-sm text-gray-700 max-h-[60vh] overflow-y-auto">
+            {selectedInsight}
           </div>
         </DialogContent>
       </Dialog>
