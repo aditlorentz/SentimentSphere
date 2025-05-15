@@ -106,7 +106,7 @@ export default function Sidebar() {
 
       <div className="p-4 flex-1 overflow-auto">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          TOP INSIGHTS
+          TOP ENTRIES
         </p>
         <nav className="mt-4 space-y-1">
           {isLoading ? (
