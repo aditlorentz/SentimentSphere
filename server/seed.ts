@@ -2,11 +2,10 @@ import { db } from "./db";
 import { insightsData, InsertInsightData } from "@shared/schema";
 
 // Data contoh untuk ditambahkan ke tabel insights_data
-const sampleInsights: InsertInsightData[] = [
+const sampleInsights: Omit<InsertInsightData, 'date'>[] = [
   {
     sourceData: "Bud HC",
     employeeName: "Muhammad Khairi",
-    date: new Date("2024-08-18"),
     witel: "Kalimantan Barat",
     kota: "Ketapang",
     originalInsight: "Saya ingin memberikan masukan tentang program pelatihan kerja jarak jauh yang diadakan bulan lalu. Materinya bagus, tetapi saya pikir akan lebih baik jika waktu diskusi diperpanjang",
@@ -17,7 +16,6 @@ const sampleInsights: InsertInsightData[] = [
   {
     sourceData: "Bud HC",
     employeeName: "Suryadi Priatna",
-    date: new Date("2024-12-01"),
     witel: "Sulawesi Selatan",
     kota: "Marus",
     originalInsight: "Berikut adalah tanggapan saya mengenai kebijakan evaluasi kinerja karyawan. Saya sangat senang karena hasil evaluasi menjadi lebih transparan dan adil",
@@ -28,7 +26,6 @@ const sampleInsights: InsertInsightData[] = [
   {
     sourceData: "HR",
     employeeName: "Vina Sari",
-    date: new Date("2025-03-28"),
     witel: "Jawa Barat",
     kota: "Tambun",
     originalInsight: "Dengan berat hati saya menyampaikan bahwa fasilitas kantor di cabang kami sangat kurang memadai. Meja kerja banyak yang rusak dan koneksi internet sering terputus",
@@ -39,7 +36,6 @@ const sampleInsights: InsertInsightData[] = [
   {
     sourceData: "Bud HC",
     employeeName: "Riski Darmawan",
-    date: new Date("2025-01-10"),
     witel: "Jawa Barat",
     kota: "Bekasi",
     originalInsight: "Berikut adalah tanggapan saya tentang program pengembangan karir. Saya merasa program ini belum sepenuhnya mengakomodasi kebutuhan karyawan di level menengah",
@@ -50,7 +46,6 @@ const sampleInsights: InsertInsightData[] = [
   {
     sourceData: "IT",
     employeeName: "Laila Sari",
-    date: new Date("2025-03-19"),
     witel: "Papua Barat",
     kota: "Sorong",
     originalInsight: "Saya ingin menyampaikan apresiasi atas inisiatif perusahaan dalam menerapkan sistem manajemen proyek baru. Sangat membantu efisiensi tim kami",
@@ -61,7 +56,6 @@ const sampleInsights: InsertInsightData[] = [
   {
     sourceData: "Bud HC",
     employeeName: "Joko Anwar",
-    date: new Date("2025-02-02"),
     witel: "Sumatera Utara",
     kota: "Tebing Tinggi",
     originalInsight: "Saya ingin memberikan kritik terhadap proses administrasi cuti yang terlalu berbelit-belit. Kami harus melalui 5 tahap persetujuan yang sangat tidak efisien",
@@ -72,7 +66,6 @@ const sampleInsights: InsertInsightData[] = [
   {
     sourceData: "Dikleum",
     employeeName: "Gunawan Irawan",
-    date: new Date("2025-05-14"),
     witel: "Jawa Timur",
     kota: "Surabaya",
     originalInsight: "Dengan ini saya ingin mengemukakan kepada manajemen tentang kebijakan baru terkait jam kerja fleksibel. Menurut saya sangat membantu keseimbangan hidup karyawan",
@@ -83,7 +76,6 @@ const sampleInsights: InsertInsightData[] = [
   {
     sourceData: "Dikleum",
     employeeName: "Surya Yudha",
-    date: new Date("2025-05-14"),
     witel: "Jawa Barat",
     kota: "Bandung",
     originalInsight: "Program pengembangan karir yang ditawarkan sangat membantu saya memahami jalur karir yang bisa saya tempuh di perusahaan ini. Terima kasih atas inisiatifnya",
@@ -94,7 +86,6 @@ const sampleInsights: InsertInsightData[] = [
   {
     sourceData: "Feedback",
     employeeName: "Anita Budiman",
-    date: new Date("2025-05-14"),
     witel: "DKI Jakarta",
     kota: "Jakarta",
     originalInsight: "Sistem kerja hybrid memberikan fleksibilitas yang baik bagi saya untuk mengatur waktu antara pekerjaan dan keluarga. Produktivitas saya justru meningkat",
@@ -105,7 +96,6 @@ const sampleInsights: InsertInsightData[] = [
   {
     sourceData: "Dikleum",
     employeeName: "Mira Nuraini",
-    date: new Date("2025-05-14"),
     witel: "Jawa Timur",
     kota: "Surabaya",
     originalInsight: "Perlu adanya peningkatan fasilitas kerja di kantor cabang. Komputer yang disediakan sudah ketinggalan spesifikasi dan sering lambat",
@@ -120,12 +110,44 @@ async function seedDatabase() {
   console.log("Menambahkan data contoh ke database...");
   
   try {
-    // Menghapus data lama jika ada
-    await db.delete(insightsData);
+    // Menghapus tabel dan membuatnya ulang
+    await db.execute(`DROP TABLE IF EXISTS insights_data;`);
+    await db.execute(`
+      CREATE TABLE insights_data (
+        id SERIAL PRIMARY KEY,
+        source_data TEXT NOT NULL,
+        employee_name TEXT NOT NULL,
+        date TIMESTAMP NOT NULL,
+        witel TEXT NOT NULL,
+        kota TEXT NOT NULL,
+        original_insight TEXT NOT NULL,
+        sentence_insight TEXT NOT NULL,
+        word_insight TEXT NOT NULL,
+        sentimen TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
     
-    // Menambahkan data baru
-    for (const insight of sampleInsights) {
-      await db.insert(insightsData).values(insight);
+    // Menambahkan data baru dengan tanggal
+    const dates = [
+      new Date("2024-08-18T10:30:00"),
+      new Date("2024-12-01T14:15:00"),
+      new Date("2025-03-28T09:45:00"),
+      new Date("2025-01-10T16:20:00"),
+      new Date("2025-03-19T11:05:00"),
+      new Date("2025-02-02T13:40:00"),
+      new Date("2025-05-14T08:30:00"),
+      new Date("2025-05-14T10:15:00"),
+      new Date("2025-05-14T15:20:00"),
+      new Date("2025-05-14T17:45:00")
+    ];
+    
+    for (let i = 0; i < sampleInsights.length; i++) {
+      const insight = sampleInsights[i];
+      await db.insert(insightsData).values({
+        ...insight,
+        date: dates[i]
+      });
     }
     
     console.log(`Berhasil menambahkan ${sampleInsights.length} data ke database.`);
