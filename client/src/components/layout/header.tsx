@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Popover,
   PopoverContent,
@@ -49,10 +50,12 @@ export default function Header({
     to: today
   });
   
+  // Import useAuth hook
+  const { logout } = useAuth();
+  
   // Handler for logout action
   const handleLogout = () => {
-    // Redirect to logout endpoint
-    window.location.href = "/api/logout";
+    logout();
   };
 
   return (

@@ -14,6 +14,7 @@ import Settings from "@/pages/settings";
 
 import Sidebar from "@/components/layout/sidebar";
 import { ThemeProvider } from "next-themes";
+import ProtectedRoute from "@/components/auth/protected-route";
 
 function Router() {
   const [location] = useLocation();
@@ -26,11 +27,31 @@ function Router() {
         <Switch>
           <Route path="/" component={Login} />
           <Route path="/login" component={Login} />
-          <Route path="/survey-dashboard" component={SurveyDashboard} />
-          <Route path="/my-insights" component={MyInsights} />
-          <Route path="/top-insights" component={TopInsights} />
-          <Route path="/smart-analytics" component={SmartAnalytics} />
-          <Route path="/settings" component={Settings} />
+          <Route path="/survey-dashboard">
+            <ProtectedRoute>
+              <SurveyDashboard />
+            </ProtectedRoute>
+          </Route>
+          <Route path="/my-insights">
+            <ProtectedRoute>
+              <MyInsights />
+            </ProtectedRoute>
+          </Route>
+          <Route path="/top-insights">
+            <ProtectedRoute>
+              <TopInsights />
+            </ProtectedRoute>
+          </Route>
+          <Route path="/smart-analytics">
+            <ProtectedRoute>
+              <SmartAnalytics />
+            </ProtectedRoute>
+          </Route>
+          <Route path="/settings">
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          </Route>
           <Route component={NotFound} />
         </Switch>
       </div>
