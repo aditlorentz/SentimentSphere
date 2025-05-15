@@ -1,4 +1,6 @@
-import { users, type User, type InsertUser, InsightData, CategoryInsights, TopInsightData, AnalyticsFullData, UrlsResponse } from "@shared/schema";
+import { users, type User, type InsertUser, InsightData, CategoryInsights, TopInsightData, AnalyticsFullData, UrlsResponse, InsightDataType, InsertInsightData, insightsData } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc, and, like, sql, or } from "drizzle-orm";
 
 // Modify the interface with any CRUD methods
 // you might need
@@ -18,24 +20,29 @@ export interface IStorage {
   getUrls(page: number, limit: number): Promise<UrlsResponse>;
   addUrl(url: string): Promise<any>;
   deleteUrl(id: number): Promise<void>;
+  
+  // Insights Data operations (from database)
+  getInsightsData(page: number, limit: number, filter?: object): Promise<{data: InsightDataType[], total: number}>;
+  addInsightData(data: InsertInsightData): Promise<InsightDataType>;
+  getInsightDataById(id: number): Promise<InsightDataType | undefined>;
+  updateInsightData(id: number, data: Partial<InsertInsightData>): Promise<InsightDataType | undefined>;
+  deleteInsightData(id: number): Promise<void>;
+  getInsightStats(): Promise<{
+    totalInsights: number,
+    positiveCount: number,
+    negativeCount: number,
+    neutralCount: number,
+    bySource: {source: string, count: number}[],
+    byWitel: {witel: string, count: number}[],
+    byWord: {word: string, count: number}[]
+  }>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
+export class DatabaseStorage implements IStorage {
   private wordCloudSvg: string;
-  currentId: number;
 
   constructor() {
-    this.users = new Map();
-    this.currentId = 1;
-    
-    // Initialize with a demo user
-    this.createUser({
-      username: "demo",
-      password: "$2a$10$zHw3Nq3WubIX.H9YD7HBJ.aJ8yqXZy7s3s9QRKPRk3n9ZPtX5fhQ6", // "password"
-    });
-    
-    // Define a word cloud SVG for visualization
+    // Initialize word cloud SVG
     this.wordCloudSvg = `<svg width="500" height="300" xmlns="http://www.w3.org/2000/svg">
       <text x="250" y="150" font-size="50" text-anchor="middle" fill="#333">program</text>
       <text x="160" y="100" font-size="35" text-anchor="middle" fill="#444">karyawan</text>
@@ -48,32 +55,209 @@ export class MemStorage implements IStorage {
     </svg>`;
   }
 
-  // User CRUD operations
+  // User operations
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId++;
-    const user: User = { 
-      ...insertUser, 
-      id, 
-      role: "user", 
-      createdAt: new Date() 
-    };
-    this.users.set(id, user);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
-  // Insights operations
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  // Insights Data operations from database
+  async getInsightsData(page: number, limit: number, filter?: any): Promise<{data: InsightDataType[], total: number}> {
+    let query = db.select().from(insightsData);
+    
+    if (filter) {
+      const conditions = [];
+      
+      if (filter.sourceData) {
+        conditions.push(eq(insightsData.sourceData, filter.sourceData));
+      }
+      
+      if (filter.witel) {
+        conditions.push(eq(insightsData.witel, filter.witel));
+      }
+      
+      if (filter.kota) {
+        conditions.push(eq(insightsData.kota, filter.kota));
+      }
+      
+      if (filter.sentimen) {
+        conditions.push(eq(insightsData.sentimen, filter.sentimen));
+      }
+      
+      if (filter.wordInsight) {
+        conditions.push(eq(insightsData.wordInsight, filter.wordInsight));
+      }
+      
+      if (filter.search) {
+        conditions.push(
+          or(
+            like(insightsData.originalInsight, `%${filter.search}%`),
+            like(insightsData.sentenceInsight, `%${filter.search}%`),
+            like(insightsData.employeeName, `%${filter.search}%`)
+          )
+        );
+      }
+
+      if (filter.dateFrom && filter.dateTo) {
+        conditions.push(
+          and(
+            sql`${insightsData.date} >= ${filter.dateFrom}`,
+            sql`${insightsData.date} <= ${filter.dateTo}`
+          )
+        );
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    // Get total count
+    const totalCountResult = await db.select({ count: sql`COUNT(*)` }).from(insightsData);
+    const total = Number(totalCountResult[0].count);
+    
+    // Apply pagination
+    const data = await query
+      .orderBy(desc(insightsData.date))
+      .limit(limit)
+      .offset((page - 1) * limit);
+      
+    return { data, total };
+  }
+  
+  async addInsightData(data: InsertInsightData): Promise<InsightDataType> {
+    const [result] = await db
+      .insert(insightsData)
+      .values(data)
+      .returning();
+    return result;
+  }
+  
+  async getInsightDataById(id: number): Promise<InsightDataType | undefined> {
+    const [result] = await db
+      .select()
+      .from(insightsData)
+      .where(eq(insightsData.id, id));
+    return result;
+  }
+  
+  async updateInsightData(id: number, data: Partial<InsertInsightData>): Promise<InsightDataType | undefined> {
+    const [result] = await db
+      .update(insightsData)
+      .set(data)
+      .where(eq(insightsData.id, id))
+      .returning();
+    return result;
+  }
+  
+  async deleteInsightData(id: number): Promise<void> {
+    await db
+      .delete(insightsData)
+      .where(eq(insightsData.id, id));
+  }
+  
+  async getInsightStats(): Promise<{
+    totalInsights: number,
+    positiveCount: number,
+    negativeCount: number,
+    neutralCount: number,
+    bySource: {source: string, count: number}[],
+    byWitel: {witel: string, count: number}[],
+    byWord: {word: string, count: number}[]
+  }> {
+    // Get total counts
+    const totalCountResult = await db.select({ count: sql`COUNT(*)` }).from(insightsData);
+    const totalInsights = Number(totalCountResult[0].count);
+    
+    // Get sentiment counts
+    const posCountResult = await db
+      .select({ count: sql`COUNT(*)` })
+      .from(insightsData)
+      .where(eq(insightsData.sentimen, 'positif'));
+    const positiveCount = Number(posCountResult[0].count);
+    
+    const negCountResult = await db
+      .select({ count: sql`COUNT(*)` })
+      .from(insightsData)
+      .where(eq(insightsData.sentimen, 'negatif'));
+    const negativeCount = Number(negCountResult[0].count);
+    
+    const neutCountResult = await db
+      .select({ count: sql`COUNT(*)` })
+      .from(insightsData)
+      .where(eq(insightsData.sentimen, 'netral'));
+    const neutralCount = Number(neutCountResult[0].count);
+    
+    // Get counts by source
+    const bySourceResult = await db
+      .select({
+        source: insightsData.sourceData,
+        count: sql`COUNT(*)`
+      })
+      .from(insightsData)
+      .groupBy(insightsData.sourceData);
+    
+    const bySource = bySourceResult.map(r => ({
+      source: r.source,
+      count: Number(r.count)
+    }));
+    
+    // Get counts by witel
+    const byWitelResult = await db
+      .select({
+        witel: insightsData.witel,
+        count: sql`COUNT(*)`
+      })
+      .from(insightsData)
+      .groupBy(insightsData.witel);
+    
+    const byWitel = byWitelResult.map(r => ({
+      witel: r.witel,
+      count: Number(r.count)
+    }));
+    
+    // Get counts by word insight
+    const byWordResult = await db
+      .select({
+        word: insightsData.wordInsight,
+        count: sql`COUNT(*)`
+      })
+      .from(insightsData)
+      .groupBy(insightsData.wordInsight);
+    
+    const byWord = byWordResult.map(r => ({
+      word: r.word,
+      count: Number(r.count)
+    }));
+    
+    return {
+      totalInsights,
+      positiveCount,
+      negativeCount,
+      neutralCount,
+      bySource,
+      byWitel,
+      byWord
+    };
+  }
+  
+  // Legacy methods that we need to keep for compatibility
+  
   async getInsights(): Promise<CategoryInsights> {
-    // In a real application, this would fetch from a database
+    // In a real application, this would fetch from a database with real data
     return {
       neutral: [
         {
@@ -436,7 +620,7 @@ export class MemStorage implements IStorage {
   async addUrl(url: string): Promise<any> {
     // In a real application, this would add a URL to the database
     return {
-      id: this.currentId++,
+      id: Date.now(),
       url,
       totalNumbers: 0,
       totalInsights: 0,
@@ -453,4 +637,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

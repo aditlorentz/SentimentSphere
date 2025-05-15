@@ -6,7 +6,65 @@ import { insertUserSchema } from "@shared/schema";
 import { compareSync, hashSync } from "bcryptjs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // API routes
+  // PostgreSQL API routes - untuk data insight dari database
+  app.get("/api/postgres/insights", async (req: Request, res: Response) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      // Memproses filter dari query params
+      const filter: any = {};
+      if (req.query.source) filter.sourceData = req.query.source;
+      if (req.query.witel) filter.witel = req.query.witel;
+      if (req.query.kota) filter.kota = req.query.kota;
+      if (req.query.sentimen) filter.sentimen = req.query.sentimen;
+      if (req.query.search) filter.search = req.query.search;
+      if (req.query.wordInsight) filter.wordInsight = req.query.wordInsight;
+      if (req.query.dateFrom && req.query.dateTo) {
+        filter.dateFrom = new Date(req.query.dateFrom as string);
+        filter.dateTo = new Date(req.query.dateTo as string);
+      }
+      
+      const result = await storage.getInsightsData(page, limit, Object.keys(filter).length > 0 ? filter : undefined);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching insights data from PostgreSQL:", error);
+      res.status(500).json({ error: "Failed to fetch insights data" });
+    }
+  });
+  
+  // Endpoint untuk mendapatkan data insight berdasarkan ID
+  app.get("/api/postgres/insights/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid insight ID" });
+      }
+      
+      const insight = await storage.getInsightDataById(id);
+      if (!insight) {
+        return res.status(404).json({ error: "Insight not found" });
+      }
+      
+      res.json(insight);
+    } catch (error) {
+      console.error("Error fetching insight data by ID:", error);
+      res.status(500).json({ error: "Failed to fetch insight data" });
+    }
+  });
+  
+  // Endpoint untuk mendapatkan statistik dari data insights di PostgreSQL
+  app.get("/api/postgres/stats", async (req: Request, res: Response) => {
+    try {
+      const stats = await storage.getInsightStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching insight stats:", error);
+      res.status(500).json({ error: "Failed to fetch insight stats" });
+    }
+  });
+
+  // API routes legacy
   app.get("/api/insights", async (req: Request, res: Response) => {
     try {
       const insights = await storage.getInsights();

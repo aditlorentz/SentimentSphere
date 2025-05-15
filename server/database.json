@@ -1,0 +1,178 @@
+[
+  {
+    "sourceData": "Diarium",
+    "employeeName": "Andi Wijaya",
+    "date": "2025-01-20",
+    "witel": "Jakarta Inner",
+    "kota": "Jakarta Pusat",
+    "originalInsight": "Saya ingin menyampaikan keluhan terkait program medical check up yang diselenggarakan perusahaan bulan lalu. Pengalaman saya sangat mengecewakan karena beberapa alasan. Pertama, waktu tunggu di rumah sakit sangat lama, saya harus menunggu hampir 3 jam meskipun sudah memiliki jadwal yang ditentukan. Kedua, fasilitas yang disediakan tidak memadai, ruang tunggu sempit dan tidak nyaman untuk jumlah karyawan yang hadir. Ketiga, staf rumah sakit terlihat kewalahan dan tidak responsif terhadap pertanyaan. Saya menyarankan agar ke depannya perusahaan dapat bekerjasama dengan rumah sakit yang lebih profesional dan memiliki kapasitas lebih baik.",
+    "sentenceInsight": "Program medical check up perusahaan memiliki waktu tunggu yang sangat lama dan fasilitas yang tidak memadai.",
+    "wordInsight": "Program Wellness",
+    "sentimen": "negatif"
+  },
+  {
+    "sourceData": "Instagram HC",
+    "employeeName": "Ratna Dewi",
+    "date": "2025-02-03",
+    "witel": "Bandung",
+    "kota": "Bandung",
+    "originalInsight": "Program wellness yang baru diluncurkan sungguh luar biasa! Saya sangat mengapresiasi inisiatif perusahaan untuk memperhatikan kesehatan mental karyawan. Webinar mingguan dengan psikolog profesional sangat membantu saya mengelola stres kerja. Aplikasi meditasi yang disediakan juga sangat berguna, saya menggunakannya hampir setiap hari. Fasilitas konsultasi psikologi secara online membuat saya merasa didukung, terutama selama masa-masa sulit. Terima kasih HC team, program ini benar-benar menunjukkan bahwa perusahaan peduli dengan kesejahteraan holistik karyawannya, tidak hanya produktivitas kerja.",
+    "sentenceInsight": "Program wellness baru dengan webinar psikolog, aplikasi meditasi, dan konsultasi psikologi online sangat membantu mengelola stres kerja dan menunjukkan kepedulian perusahaan terhadap kesehatan mental karyawan.",
+    "wordInsight": "Program Wellness",
+    "sentimen": "positif"
+  },
+  {
+    "sourceData": "Komplain Helpdesk HC",
+    "employeeName": "Hendra Wijaya",
+    "date": "2025-01-27",
+    "witel": "Suramadu",
+    "kota": "Surabaya",
+    "originalInsight": "Saya sangat kecewa dengan proses klaim asuransi kesehatan yang rumit dan lambat. Sudah 2 bulan saya menunggu penggantian biaya operasi yang seharusnya ditanggung 100% sesuai polis. Setiap kali saya menghubungi helpdesk HC, saya hanya mendapat jawaban bahwa proses sedang berjalan tanpa kejelasan kapan akan selesai. Dokumen yang diminta juga terus bertambah meskipun di awal sudah dijelaskan persyaratannya. Ini sangat memberatkan secara finansial karena saya sudah mengeluarkan dana pribadi yang cukup besar. Saya harap perusahaan dapat memperbaiki sistem klaim asuransi agar lebih cepat dan transparan.",
+    "sentenceInsight": "Proses klaim asuransi kesehatan sangat rumit, lambat, dan tidak transparan dengan permintaan dokumen yang terus bertambah meskipun seharusnya ditanggung 100% sesuai polis.",
+    "wordInsight": "Klaim Asuransi",
+    "sentimen": "negatif"
+  },
+  {
+    "sourceData": "Berita HC",
+    "employeeName": "Siti Rahayu",
+    "date": "2025-03-12",
+    "witel": "Bali",
+    "kota": "Denpasar",
+    "originalInsight": "Saya ingin memberi masukan mengenai program pelatihan digital yang baru diluncurkan. Meskipun materinya sangat relevan dengan perkembangan teknologi saat ini, namun durasi pelatihan terlalu singkat untuk materi yang kompleks. Banyak peserta termasuk saya merasa kewalahan dengan padatnya materi dalam waktu 2 hari. Selain itu, koneksi internet di tempat pelatihan sering tidak stabil sehingga mengganggu praktik langsung. Saya menyarankan agar pelatihan dibagi menjadi beberapa sesi dengan jeda waktu yang cukup untuk mempraktikkan materi, serta memastikan infrastruktur pendukung berfungsi dengan baik.",
+    "sentenceInsight": "Program pelatihan digital memiliki materi yang relevan namun durasi terlalu singkat untuk materi kompleks dan infrastruktur internet tidak mendukung sehingga mengganggu praktik langsung.",
+    "wordInsight": "Pelatihan Digital",
+    "sentimen": "netral"
+  },
+  {
+    "sourceData": "Diarium",
+    "employeeName": "Ahmad Fauzi",
+    "date": "2025-02-18",
+    "witel": "Jawa Timur Timur",
+    "kota": "Malang",
+    "originalInsight": "Saya sangat menghargai kebijakan baru tentang flexible working arrangement yang memungkinkan karyawan bekerja dari rumah 2 hari dalam seminggu. Ini sangat membantu keseimbangan hidup-kerja saya, terutama karena jarak rumah ke kantor cukup jauh. Produktivitas saya justru meningkat karena waktu yang biasanya terbuang di jalan bisa digunakan untuk bekerja. Sistem monitoring yang diterapkan juga sangat baik dan tidak terlalu mengekang. Saya berharap kebijakan ini dapat terus berlanjut bahkan setelah situasi pandemi berakhir, karena manfaatnya sangat nyata bagi karyawan dan perusahaan.",
+    "sentenceInsight": "Kebijakan flexible working arrangement yang memungkinkan bekerja dari rumah 2 hari seminggu sangat membantu keseimbangan hidup-kerja dan meningkatkan produktivitas.",
+    "wordInsight": "Flexible Working",
+    "sentimen": "positif"
+  },
+  {
+    "sourceData": "Bot HC",
+    "employeeName": "Budi Santoso",
+    "date": "2025-01-15",
+    "witel": "Jakarta Inner",
+    "kota": "Jakarta Pusat",
+    "originalInsight": "Saya ingin memberikan masukan terkait sistem penilaian kinerja yang baru diterapkan. Menurut saya, sistem ini kurang transparan dan tidak memberikan ruang bagi karyawan untuk mendiskusikan hasil penilaian dengan atasan. Kriteria penilaian juga terlalu umum dan tidak mencerminkan beban kerja yang sebenarnya. Saya mengalami kesulitan memahami bagaimana skor akhir dihitung dan merasa ada ketidakadilan dalam proses ini. Beberapa rekan kerja saya juga mengalami hal serupa. Saya berharap HC dapat meninjau kembali sistem ini dan membuat proses penilaian lebih terbuka, spesifik, dan memberikan kesempatan dialog antara karyawan dan atasan.",
+    "sentenceInsight": "Sistem penilaian kinerja baru kurang transparan, tidak memberikan ruang diskusi, dan memiliki kriteria yang terlalu umum sehingga tidak mencerminkan beban kerja sebenarnya.",
+    "wordInsight": "Penilaian Kinerja",
+    "sentimen": "negatif"
+  },
+  {
+    "sourceData": "Instagram HC",
+    "employeeName": "Rudi Hartono",
+    "date": "2025-01-08",
+    "witel": "Sulbagsel",
+    "kota": "Makassar",
+    "originalInsight": "Program mentoring yang diinisiasi HC tahun ini sungguh berdampak positif bagi pengembangan karir saya. Mentor yang ditugaskan sangat berpengalaman dan selalu menyediakan waktu untuk diskusi meskipun jadwalnya padat. Saya mendapatkan banyak insight berharga tentang industri dan pengembangan skill yang dibutuhkan. Format program yang tidak terlalu formal membuat diskusi mengalir dengan nyaman. Saya juga mengapresiasi adanya tujuan dan target yang jelas di awal program, sehingga pengembangan lebih terarah. Saya berharap program ini dapat diperluas ke lebih banyak karyawan di masa mendatang.",
+    "sentenceInsight": "Program mentoring HC memberikan dampak positif bagi pengembangan karir dengan mentor berpengalaman, format tidak terlalu formal, dan tujuan yang jelas sehingga pengembangan menjadi terarah.",
+    "wordInsight": "Program Mentoring",
+    "sentimen": "positif"
+  },
+  {
+    "sourceData": "Komplain Helpdesk HC",
+    "employeeName": "Taufik Rahman",
+    "date": "2025-02-25",
+    "witel": "Aceh",
+    "kota": "Banda Aceh",
+    "originalInsight": "Saya ingin menyampaikan masukan terkait proses rekrutmen internal. Menurut pengalaman saya dan beberapa kolega, proses ini tidak transparan dan terkesan hanya formalitas. Beberapa posisi seperti sudah dipersiapkan untuk kandidat tertentu. Feedback setelah interview juga sangat minim, sehingga karyawan yang tidak lolos tidak tahu area mana yang perlu diperbaiki. Waktu antara pengumuman lowongan dan deadline aplikasi juga terlalu singkat, hanya 3 hari kerja. Saya berharap HC dapat memperbaiki proses ini dengan memberikan kriteria seleksi yang lebih jelas, waktu aplikasi yang lebih panjang, dan feedback yang konstruktif bagi semua kandidat.",
+    "sentenceInsight": "Proses rekrutmen internal tidak transparan, terkesan formalitas, minim feedback, dan memiliki deadline aplikasi yang terlalu singkat sehingga perlu diperbaiki dengan kriteria seleksi yang jelas dan waktu aplikasi yang lebih panjang.",
+    "wordInsight": "Sistem Promosi",
+    "sentimen": "negatif"
+  },
+  {
+    "sourceData": "Berita HC",
+    "employeeName": "Maya Anggraini",
+    "date": "2025-03-20",
+    "witel": "Kalselteng",
+    "kota": "Banjarmasin",
+    "originalInsight": "Program beasiswa pendidikan lanjutan yang ditawarkan perusahaan sangat membantu pengembangan karir saya. Saya berhasil menyelesaikan program Master berkat dukungan finansial dan kebijakan waktu kerja yang fleksibel. Proses aplikasi beasiswa juga cukup straightforward dengan persyaratan yang jelas. Yang saya hargai adalah tidak adanya ikatan kerja yang memberatkan setelah menyelesaikan studi, hanya komitmen untuk tetap berkontribusi minimal 2 tahun. Saya merasa ilmu yang saya dapatkan langsung bisa diaplikasikan untuk pekerjaan dan memberikan fresh perspective untuk tim. Terima kasih atas kesempatan berharga ini.",
+    "sentenceInsight": "Program beasiswa pendidikan lanjutan sangat membantu pengembangan karir dengan dukungan finansial, waktu kerja fleksibel, proses aplikasi yang jelas, dan ikatan kerja yang tidak memberatkan sehingga ilmu dapat langsung diaplikasikan.",
+    "wordInsight": "Program Beasiswa",
+    "sentimen": "positif"
+  },
+  {
+    "sourceData": "Diarium",
+    "employeeName": "Dian Permata",
+    "date": "2025-01-30",
+    "witel": "Papua",
+    "kota": "Jayapura",
+    "originalInsight": "Saya ingin menyampaikan keprihatinan mengenai kesenjangan fasilitas kerja antara kantor pusat dan kantor regional, khususnya di wilayah timur Indonesia. Kami di Papua menghadapi keterbatasan infrastruktur seperti koneksi internet yang tidak stabil, perangkat kerja yang sudah usang, dan ruang kerja yang kurang nyaman. Hal ini berdampak pada produktivitas dan motivasi kerja. Sementara dari dokumentasi kegiatan yang dibagikan, kantor pusat memiliki fasilitas yang sangat modern dan nyaman. Saya berharap perusahaan dapat memberikan perhatian lebih pada pemerataan fasilitas kerja di seluruh Indonesia.",
+    "sentenceInsight": "Terdapat kesenjangan fasilitas kerja antara kantor pusat dan regional terutama di wilayah timur Indonesia seperti koneksi internet tidak stabil, perangkat usang, dan ruang kerja kurang nyaman yang berdampak pada produktivitas.",
+    "wordInsight": "Fasilitas Kerja",
+    "sentimen": "negatif"
+  },
+  {
+    "sourceData": "Berita HC",
+    "employeeName": "Nugroho Wibowo",
+    "date": "2025-01-22",
+    "witel": "Jawa Timur Barat",
+    "kota": "Sidoarjo",
+    "originalInsight": "Program sertifikasi kompetensi yang diselenggarakan HC sangat membantu meningkatkan kredibilitas dan kualifikasi profesional saya. Materi yang diberikan sangat relevan dengan kebutuhan industri saat ini. Instruktur yang dipilih juga sangat kompeten dan berpengalaman di bidangnya. Yang saya hargai adalah perusahaan menanggung seluruh biaya sertifikasi yang cukup mahal ini. Setelah mendapatkan sertifikasi, saya merasa lebih percaya diri dalam menjalankan tugas dan tanggung jawab. Kualitas pekerjaan saya juga meningkat karena pengetahuan dan skill baru yang saya dapatkan. Program ini benar-benar investasi berharga bagi karyawan dan perusahaan.",
+    "sentenceInsight": "Program sertifikasi kompetensi sangat membantu meningkatkan kredibilitas profesional dengan materi relevan, instruktur kompeten, dan pembiayaan penuh dari perusahaan sehingga meningkatkan kepercayaan diri dan kualitas pekerjaan.",
+    "wordInsight": "Pelatihan Digital",
+    "sentimen": "positif"
+  },
+  {
+    "sourceData": "Komplain Helpdesk HC",
+    "employeeName": "Lina Susanti",
+    "date": "2025-02-10",
+    "witel": "Bekasi Karawang",
+    "kota": "Bekasi",
+    "originalInsight": "Saya ingin menyampaikan keluhan terkait proses reimbursement biaya pengobatan yang sangat lambat dan berbelit-belit. Sudah hampir 3 bulan saya menunggu penggantian biaya pengobatan anak saya yang cukup besar. Setiap kali saya menanyakan progress, jawaban yang saya terima selalu sama: 'masih dalam proses'. Padahal semua dokumen yang diminta sudah saya lengkapi sejak awal. Saya juga diminta untuk melengkapi dokumen tambahan yang tidak disebutkan di awal proses. Tidak ada timeline yang jelas kapan proses akan selesai. Situasi ini sangat menyulitkan keuangan keluarga saya. Mohon agar proses reimbursement dapat dipercepat dan dipermudah.",
+    "sentenceInsight": "Proses reimbursement biaya pengobatan sangat lambat dan berbelit-belit dengan permintaan dokumen tambahan yang tidak disebutkan di awal serta tidak adanya timeline yang jelas.",
+    "wordInsight": "Klaim Asuransi",
+    "sentimen": "negatif"
+  },
+  {
+    "sourceData": "Diarium",
+    "employeeName": "Agus Purnomo",
+    "date": "2025-03-08",
+    "witel": "Nusa Tenggara",
+    "kota": "Mataram",
+    "originalInsight": "Saya sangat mengapresiasi program rotasi karyawan yang baru diimplementasikan oleh HC. Program ini memberikan kesempatan bagi saya untuk belajar dan berkembang di bidang yang berbeda. Pengalaman 6 bulan bekerja di departemen yang berbeda sangat memperluas wawasan dan jaringan kerja saya. Saya juga mendapatkan pemahaman yang lebih baik tentang proses bisnis perusahaan secara keseluruhan. Yang perlu ditingkatkan mungkin adalah proses handover yang terkadang kurang smooth, sehingga dibutuhkan waktu adaptasi yang lebih lama. Tapi secara keseluruhan, program ini sangat bermanfaat untuk pengembangan karir karyawan.",
+    "sentenceInsight": "Program rotasi karyawan sangat bermanfaat untuk pengembangan karir dengan memberikan kesempatan belajar di bidang berbeda dan memperluas wawasan meskipun proses handover masih perlu ditingkatkan.",
+    "wordInsight": "Rotasi Karyawan",
+    "sentimen": "positif"
+  },
+  {
+    "sourceData": "Instagram HC",
+    "employeeName": "Indra Kusuma",
+    "date": "2025-01-05",
+    "witel": "Yogya Jawa Tengah Selatan",
+    "kota": "Yogyakarta",
+    "originalInsight": "Health challenge bulan ini sangat menyenangkan dan memotivasi saya untuk lebih aktif. Sistem poin dan leaderboard membuat aktivitas fisik menjadi lebih menarik, seperti game. Hadiah-hadiah kecil seperti tumbler dan voucher juga memberikan insentif tambahan. Yang paling saya suka adalah tantangan berjalan 10.000 langkah setiap hari dan workout group mingguan via zoom. Meskipun remote, saya tetap merasa terhubung dengan rekan-rekan. Sebagai saran, mungkin ke depannya bisa ditambahkan juga tantangan nutrisi atau tidur yang cukup untuk meningkatkan kesehatan secara holistik.",
+    "sentenceInsight": "Health challenge dengan sistem poin, leaderboard, dan hadiah sangat menyenangkan dan memotivasi untuk lebih aktif secara fisik terutama tantangan 10.000 langkah dan workout group mingguan.",
+    "wordInsight": "Program Wellness",
+    "sentimen": "positif"
+  },
+  {
+    "sourceData": "Bot HC",
+    "employeeName": "Yuliana Hartati",
+    "date": "2025-03-15",
+    "witel": "Jawa Barat Selatan",
+    "kota": "Tasikmalaya",
+    "originalInsight": "Saya ingin memberikan masukan terkait program pensiun yang ditawarkan perusahaan. Meskipun dari segi finansial program ini cukup baik, namun saya merasa kurang dalam hal edukasi dan persiapan mental menghadapi masa pensiun. Banyak karyawan senior yang merasa cemas dan tidak siap ketika mendekati usia pensiun karena kurangnya pemahaman tentang perencanaan keuangan pasca kerja dan adaptasi gaya hidup. Saya menyarankan agar HC dapat mengadakan seminar atau workshop persiapan pensiun sejak 5 tahun sebelum masa pensiun, tidak hanya fokus pada aspek finansial tapi juga psikologis dan sosial.",
+    "sentenceInsight": "Program pensiun secara finansial cukup baik namun kurang dalam hal edukasi dan persiapan mental sehingga banyak karyawan senior merasa cemas dan tidak siap karena kurangnya pemahaman tentang perencanaan keuangan dan adaptasi gaya hidup.",
+    "wordInsight": "Program Pensiun",
+    "sentimen": "netral"
+  },
+  {
+    "sourceData": "Diarium",
+    "employeeName": "Bambang Sutrisno",
+    "date": "2025-02-27",
+    "witel": "Kalimantan Timur",
+    "kota": "Samarinda",
+    "originalInsight": "Saya sangat kecewa dengan kebijakan baru terkait tunjangan transportasi yang dihapuskan untuk karyawan Work From Home. Padahal kenyataannya, meskipun WFH, kami masih sering perlu datang ke kantor untuk rapat atau urusan administratif. Tanpa tunjangan transportasi, ini menjadi beban tambahan untuk karyawan. Selain itu, biaya listrik dan internet di rumah juga meningkat signifikan selama WFH, namun tidak ada kompensasi untuk hal ini. Kebijakan ini terasa tidak adil dan terkesan perusahaan mengambil keuntungan dari situasi WFH. Saya berharap HC dapat mempertimbangkan kembali kebijakan ini atau memberikan kompensasi dalam bentuk lain.",
+    "sentenceInsight": "Kebijakan penghapusan tunjangan transportasi untuk karyawan WFH tidak adil karena karyawan masih perlu datang ke kantor untuk rapat dan tidak ada kompensasi untuk peningkatan biaya listrik dan internet di rumah.",
+    "wordInsight": "Tunjangan Karyawan",
+    "sentimen": "negatif"
+  }
+]
