@@ -35,15 +35,25 @@ async function runSqlScript() {
     const sqlFilePath = path.join(process.cwd(), 'attached_assets', 'data.sql');
     let sqlContent = fs.readFileSync(sqlFilePath, 'utf8');
     
+    // Memperbaiki format SQL untuk menggunakan tanda kutip ganda pada nama kolom
+    sqlContent = sqlContent.replace(/INSERT INTO employee_insights \(/g, 'INSERT INTO employee_insights ("');
+    sqlContent = sqlContent.replace(/\) VALUES/g, '") VALUES');
+    sqlContent = sqlContent.replace(/, /g, '", "');
+    
     // Memisahkan per statement INSERT
     const insertStatements = sqlContent.split('INSERT INTO employee_insights');
     
     // Mengeksekusi setiap statement INSERT
     for (let i = 1; i < insertStatements.length; i++) {
       const statement = 'INSERT INTO employee_insights' + insertStatements[i];
-      // Kirim statement ke database
-      await db.execute(statement);
-      console.log(`Statement ${i} berhasil dijalankan`);
+      try {
+        // Kirim statement ke database
+        await db.execute(statement);
+        console.log(`Statement ${i} berhasil dijalankan`);
+      } catch (err) {
+        console.error(`Error pada statement ${i}:`, err);
+        console.log("Statement:", statement.substring(0, 100) + "...");
+      }
     }
     
     // Memeriksa jumlah data yang ditambahkan
