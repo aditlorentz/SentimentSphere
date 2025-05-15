@@ -1,43 +1,63 @@
-import { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import Header from "@/components/layout/header";
 import AIInsightConclusion from "@/components/dashboard/ai-conclusion";
 import { SentimentCategoryCard } from "@/components/cards/insight-card";
 import Chatbot from "@/components/dashboard/chatbot";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { InsightData } from "@/components/cards/insight-card";
 import { CategoryInsights, SurveyDashboardSummary } from "@shared/schema";
+import { Button } from "@/components/ui/button";
 
 // Fungsi untuk menghasilkan teks AI conclusion berdasarkan statistik
 function generateAIConclusionText(stats: any): string {
   if (!stats) {
-    return "Menunggu data untuk analisis sentimen...";
+    return "Belum ada data yang tersedia untuk dianalisis.";
   }
+
+  const positivePercent = Math.round((stats.positiveCount / stats.totalInsights) * 100);
+  const negativePercent = Math.round((stats.negativeCount / stats.totalInsights) * 100);
+  const neutralPercent = Math.round((stats.neutralCount / stats.totalInsights) * 100);
+
+  // Identifikasi sentiment dominan
+  let dominantSentiment = "netral";
+  let dominantPercent = neutralPercent;
   
-  return `Berdasarkan analisis sentimen dari ${stats.totalInsights || 0} insight, mayoritas tanggapan bersifat ${
-    stats.positiveCount > stats.negativeCount && stats.positiveCount > stats.neutralCount ? 'positif' : 
-    stats.negativeCount > stats.positiveCount && stats.negativeCount > stats.neutralCount ? 'negatif' : 'netral'
-  } (${
-    stats.positiveCount > stats.negativeCount && stats.positiveCount > stats.neutralCount ? stats.positiveCount : 
-    stats.negativeCount > stats.positiveCount && stats.negativeCount > stats.neutralCount ? stats.negativeCount : stats.neutralCount || 0
-  }) dengan ${stats.positiveCount || 0} positif dan ${stats.negativeCount || 0} negatif. ${
-    stats.bySource && stats.bySource.length > 0 
-      ? `Sumber data tertinggi dari "${stats.bySource[0]?.source || ''}" (${stats.bySource[0]?.count || 0} insight).` 
-      : ''
-  } ${
-    stats.byWord && stats.byWord.length > 0 
-      ? `Kata kunci populer: "${stats.byWord[0]?.word || ''}" (${stats.byWord[0]?.count || 0} kemunculan).`
-      : '' 
-  } Secara keseluruhan, sentimen karyawan memerlukan perhatian manajemen untuk meningkatkan pengalaman kerja.`;
+  if (positivePercent > negativePercent && positivePercent > neutralPercent) {
+    dominantSentiment = "positif";
+    dominantPercent = positivePercent;
+  } else if (negativePercent > positivePercent && negativePercent > neutralPercent) {
+    dominantSentiment = "negatif";
+    dominantPercent = negativePercent;
+  }
+
+  // Top sources
+  const topSources = stats.bySource.sort((a: any, b: any) => b.count - a.count).slice(0, 3);
+  const topSourcesText = topSources.map((s: any) => `${s.source} (${s.count})`).join(", ");
+
+  // Top words
+  const topWords = stats.byWord.sort((a: any, b: any) => b.count - a.count).slice(0, 5);
+  const topWordsText = topWords.map((w: any) => `${w.word}`).join(", ");
+
+  return `
+    Dari total ${stats.totalInsights} insight karyawan, sentimen yang dominan adalah ${dominantSentiment} (${dominantPercent}%). 
+    Terdapat ${stats.positiveCount} insight positif (${positivePercent}%), ${stats.negativeCount} insight negatif (${negativePercent}%), dan ${stats.neutralCount} insight netral (${neutralPercent}%).
+    
+    Sumber data terbanyak berasal dari ${topSourcesText}.
+    
+    Kata kunci yang paling sering muncul: ${topWordsText}.
+    
+    Hasil analisis ini menunjukkan bahwa sentimen karyawan secara umum ${dominantSentiment}, dengan fokus pada topik-topik yang perlu mendapat perhatian segera.
+  `;
 }
 
 export default function SurveyDashboard() {
-  // Fetch insights data from the API
-  const { data: insights, isLoading } = useQuery<CategoryInsights>({
+  // Fetch insights
+  const { data: insights, isLoading: insightsLoading } = useQuery<CategoryInsights>({
     queryKey: ['/api/insights'],
   });
   
   // Fetch database stats
-  const { data: stats } = useQuery<{
+  const { data: stats, isLoading: statsLoading } = useQuery<{
     totalInsights: number;
     positiveCount: number;
     negativeCount: number;
@@ -49,17 +69,69 @@ export default function SurveyDashboard() {
     queryKey: ['/api/postgres/stats'],
   });
   
-  // Fetch survey dashboard summary data
-  const { data: summaryData } = useQuery<{
-    data: SurveyDashboardSummary[];
-    total: number;
-  }>({
+  // State for infinite scroll
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  
+  // Fetch survey dashboard summary data with pagination
+  const { 
+    data: summaryData, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage,
+    isLoading: summaryLoading,
+    isError: summaryError
+  } = useInfiniteQuery({
     queryKey: ['/api/survey-dashboard/summary'],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await fetch(`/api/survey-dashboard/summary?page=${pageParam}&limit=${limit}`);
+      if (!res.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await res.json();
+      return data;
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage || !lastPage.data || lastPage.data.length < limit) {
+        return undefined;
+      }
+      return allPages.length + 1;
+    },
+    initialPageParam: 1,
+    refetchOnWindowFocus: false,
+    retry: 1
   });
   
-  // Convert survey dashboard summary data to insights format
+  // Set up infinite scroll with Intersection Observer
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
+  
+  // Set up the observer
+  useEffect(() => {
+    const currentRef = loadingRef.current;
+    
+    if (currentRef && !isFetchingNextPage && hasNextPage) {
+      if (observerRef.current) observerRef.current.disconnect();
+      
+      observerRef.current = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+          fetchNextPage();
+        }
+      });
+      
+      observerRef.current.observe(currentRef);
+    }
+    
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [loadingRef, isFetchingNextPage, fetchNextPage, hasNextPage]);
+  
+  // Convert infinite query survey dashboard summary data to insights format
   const summaryInsights = useMemo(() => {
-    if (!summaryData?.data) {
+    if (!summaryData?.pages) {
       return {
         positive: [],
         negative: [],
@@ -71,32 +143,37 @@ export default function SurveyDashboard() {
     const negative: InsightData[] = [];
     const neutral: InsightData[] = [];
     
-    summaryData.data.forEach(item => {
-      // Determine the dominant sentiment based on the highest percentage
-      const maxPercentage = Math.max(
-        item.positivePercentage || 0,
-        item.negativePercentage || 0,
-        item.neutralPercentage || 0
-      );
-      
-      // Create insight data object
-      const insightData: InsightData = {
-        id: item.id,
-        title: item.wordInsight,
-        positivePercentage: item.positivePercentage || 0,
-        negativePercentage: item.negativePercentage || 0,
-        neutralPercentage: item.neutralPercentage || 0,
-        views: item.totalCount,
-        comments: 0
-      };
-      
-      // Add to appropriate category based on dominant sentiment
-      if (maxPercentage === item.positivePercentage && maxPercentage > 0) {
-        positive.push(insightData);
-      } else if (maxPercentage === item.negativePercentage && maxPercentage > 0) {
-        negative.push(insightData);
-      } else if (maxPercentage === item.neutralPercentage && maxPercentage > 0) {
-        neutral.push(insightData);
+    // Flatten the pages data
+    summaryData.pages.forEach(page => {
+      if (page && page.data) {
+        page.data.forEach((item: SurveyDashboardSummary) => {
+          // Determine the dominant sentiment based on the highest percentage
+          const posPercent = item.positivePercentage || 0;
+          const negPercent = item.negativePercentage || 0;
+          const neutPercent = item.neutralPercentage || 0;
+          
+          const maxPercentage = Math.max(posPercent, negPercent, neutPercent);
+          
+          // Create insight data object
+          const insightData: InsightData = {
+            id: item.id,
+            title: item.wordInsight,
+            positivePercentage: posPercent,
+            negativePercentage: negPercent,
+            neutralPercentage: neutPercent,
+            views: item.totalCount,
+            comments: 0
+          };
+          
+          // Add to appropriate category based on dominant sentiment
+          if (maxPercentage === posPercent && maxPercentage > 0) {
+            positive.push(insightData);
+          } else if (maxPercentage === negPercent && maxPercentage > 0) {
+            negative.push(insightData);
+          } else if (maxPercentage === neutPercent && maxPercentage > 0) {
+            neutral.push(insightData);
+          }
+        });
       }
     });
     
@@ -106,13 +183,16 @@ export default function SurveyDashboard() {
       neutral
     } as CategoryInsights;
   }, [summaryData]);
-
+  
   // Handler for removing insights (would call API in a real app)
   const handleRemoveInsight = (id: number) => {
     console.log(`Removing insight with ID: ${id}`);
     // In a real app, we would call API and then invalidate the query
   };
-
+  
+  // Check if all data is still loading
+  const isLoading = insightsLoading || statsLoading || summaryLoading;
+  
   if (isLoading) {
     return (
       <div className="flex-1 overflow-x-hidden">
@@ -128,7 +208,7 @@ export default function SurveyDashboard() {
       </div>
     );
   }
-
+  
   return (
     <div className="flex-1 overflow-x-hidden">
       <Header title="Survey Dashboard" />
@@ -162,117 +242,32 @@ export default function SurveyDashboard() {
           />
         </div>
         
-        {/* Additional Insights */}
-        {insights?.additional && insights.additional.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {insights.additional.map((insight, index) => (
-              <div key={index} className="bg-white rounded-[12px] shadow-[0_10px_20px_rgba(0,0,0,0.05)] overflow-hidden card-hover">
-                <div className="p-4 border-b border-gray-100 hover:bg-gray-50 transition-all duration-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="font-medium text-sm text-gray-700">{insight.title}</p>
-                    <button 
-                      className="text-gray-400 hover:text-gray-600"
-                      onClick={() => handleRemoveInsight(insight.id)}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="lucide lucide-x"
-                      >
-                        <path d="M18 6 6 18" />
-                        <path d="m6 6 12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  <div className="h-1.5 rounded-full overflow-hidden bg-muted mb-2">
-                    <div className="flex h-full">
-                      <div
-                        className="bg-[#FDCB6E]"
-                        style={{ width: `${insight.neutralPercentage}%` }}
-                      />
-                      <div
-                        className="bg-[#FF7675]"
-                        style={{ width: `${insight.negativePercentage}%` }}
-                      />
-                      <div
-                        className="bg-[#00B894]"
-                        style={{ width: `${insight.positivePercentage}%` }}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center text-xs text-gray-500 space-x-6">
-                    <div className="flex items-center space-x-1">
-                      <span className="w-2 h-2 rounded-full bg-[#FDCB6E]"></span>
-                      <span>Netral: {insight.neutralPercentage}%</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <span className="w-2 h-2 rounded-full bg-[#FF7675]"></span>
-                      <span>Negatif: {insight.negativePercentage}%</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <span className="w-2 h-2 rounded-full bg-[#00B894]"></span>
-                      <span>Positif: {insight.positivePercentage}%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-6 mt-3 text-xs text-gray-500">
-                    <div className="flex items-center space-x-1">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="lucide lucide-eye"
-                      >
-                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                      <span>{insight.views}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="lucide lucide-message-square"
-                      >
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                      </svg>
-                      <span>{insight.comments}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-6 text-center text-gray-500">
-            <p>Tidak ada additional insights yang tersedia.</p>
+        {/* Infinite Scroll Trigger */}
+        {hasNextPage && (
+          <div className="flex justify-center my-8" ref={loadingRef}>
+            <Button
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              variant="outline"
+              className="px-8"
+            >
+              {isFetchingNextPage ? 'Loading...' : 'Load More Insights'}
+            </Button>
           </div>
         )}
+        
+        {/* Loading indicator */}
+        {isFetchingNextPage && (
+          <div className="flex justify-center items-center my-4">
+            <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+          </div>
+        )}
+        
+        {/* Show chat bot */}
+        <div className="mt-8">
+          <Chatbot />
+        </div>
       </div>
-      
-      <Chatbot />
     </div>
   );
 }
