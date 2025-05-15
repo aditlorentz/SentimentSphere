@@ -128,6 +128,21 @@ export type InsertTopInsight = z.infer<typeof insertTopInsightSchema>;
 export type EmployeeInsightType = typeof employeeInsights.$inferSelect;
 export type InsertEmployeeInsight = z.infer<typeof insertEmployeeInsightSchema>;
 
+// Tabel baru untuk menyimpan 10 word insight dengan total count terbanyak
+// Tabel ini lebih sederhana dari top_insights yang lama, hanya berisi word_insight dan total_count
+export const topWordInsights = pgTable("top_word_insights", {
+  id: serial("id").primaryKey(),
+  wordInsight: text("word_insight").notNull(),
+  totalCount: integer("total_count").notNull(),
+});
+
+export const insertTopWordInsightSchema = createInsertSchema(topWordInsights).omit({
+  id: true,
+});
+
+export type TopWordInsight = typeof topWordInsights.$inferSelect;
+export type InsertTopWordInsight = z.infer<typeof insertTopWordInsightSchema>;
+
 // Custom types for frontend
 export interface InsightData {
   id: number;

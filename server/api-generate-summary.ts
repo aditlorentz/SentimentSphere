@@ -1,5 +1,10 @@
 import { db } from "./db";
-import { employeeInsights, surveyDashboardSummary, topInsights } from "@shared/schema";
+import { 
+  employeeInsights, 
+  surveyDashboardSummary, 
+  topInsights, 
+  topWordInsights 
+} from "@shared/schema";
 import { sql, eq, and } from "drizzle-orm";
 import express from "express";
 
