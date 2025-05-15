@@ -3,11 +3,12 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, User, Lock, Brain } from "lucide-react";
+import { Eye, EyeOff, User, Lock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import brainSvg from "../assets/brain-neural.svg";
+import nlpLogo from "../assets/logo-nlp.webp";
 import {
   Form,
   FormControl,
@@ -94,10 +95,11 @@ export default function Login() {
       {/* Left section with Brain image and testimonial */}
       <div className="md:w-1/2 bg-white p-6 flex flex-col">
         <div className="flex items-center space-x-2 mb-8">
-          <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-            <Brain className="h-5 w-5" />
-          </div>
-          <h1 className="text-xl font-semibold">NLP Platform</h1>
+          <img 
+            src={nlpLogo} 
+            alt="NLP Logo" 
+            className="h-12"
+          />
         </div>
         
         <div className="flex-1 flex flex-col items-center justify-center">
