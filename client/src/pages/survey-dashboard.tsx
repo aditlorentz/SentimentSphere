@@ -1,130 +1,21 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Header from "@/components/layout/header";
 import AIInsightConclusion from "@/components/dashboard/ai-conclusion";
 import { SentimentCategoryCard } from "@/components/cards/insight-card";
 import Chatbot from "@/components/dashboard/chatbot";
 import { useQuery } from "@tanstack/react-query";
 import { InsightData } from "@/components/cards/insight-card";
-
-const aiConclusionText = `Berdasarkan analisis sentimen, mayoritas tanggapan bersifat netral (69) dengan beberapa umpan baik positif (15) dan negatif (7). Topik "kepegawaian hc" dan "bonus tahunan hc" mendapat perhatian tertinggi. Kritik konstruktif terkait kebijakan bimbingan dan kenaikan gaji menunjukkan area yang perlu ditingkatkan. Secara keseluruhan, sentimen karyawan cenderung netral dengan beberapa area yang memerlukan perhatian manajemen.`;
+import { CategoryInsights } from "@shared/schema";
 
 export default function SurveyDashboard() {
-  // Fetch insights data
+  // Fetch insights data from the API
   const { data: insights, isLoading } = useQuery({
     queryKey: ['/api/insights'],
-    queryFn: async () => {
-      // This would normally be fetched from the API
-      // For now, we'll simulate a delay and return mock data
-      return new Promise<{
-        neutral: InsightData[];
-        negative: InsightData[];
-        positive: InsightData[];
-        additional: InsightData[];
-      }>((resolve) => {
-        setTimeout(() => {
-          resolve({
-            neutral: [
-              {
-                id: 1,
-                title: "masukan remote working",
-                neutralPercentage: 55,
-                negativePercentage: 5,
-                positivePercentage: 40,
-                views: 125,
-                comments: 5,
-              },
-              {
-                id: 2,
-                title: "kritik konstruktif",
-                neutralPercentage: 45,
-                negativePercentage: 10,
-                positivePercentage: 45,
-                views: 88,
-                comments: 7,
-              },
-              {
-                id: 3,
-                title: "bonus tahunan hc",
-                neutralPercentage: 35,
-                negativePercentage: 0,
-                positivePercentage: 65,
-                views: 156,
-                comments: 2,
-              },
-            ],
-            negative: [
-              {
-                id: 4,
-                title: "kritik konstruktif",
-                neutralPercentage: 8,
-                negativePercentage: 89,
-                positivePercentage: 3,
-                views: 189,
-                comments: 16,
-              },
-              {
-                id: 5,
-                title: "kritik konstruktif",
-                neutralPercentage: 11,
-                negativePercentage: 79,
-                positivePercentage: 10,
-                views: 134,
-                comments: 9,
-              },
-            ],
-            positive: [
-              {
-                id: 6,
-                title: "bonus tahunan hc",
-                neutralPercentage: 33,
-                negativePercentage: 0,
-                positivePercentage: 67,
-                views: 75,
-                comments: 3,
-              },
-              {
-                id: 7,
-                title: "kepegawaian hc",
-                neutralPercentage: 4,
-                negativePercentage: 0,
-                positivePercentage: 96,
-                views: 178,
-                comments: 13,
-              },
-            ],
-            additional: [
-              {
-                id: 8,
-                title: "kebijakan kenaikan gaji",
-                neutralPercentage: 30,
-                negativePercentage: 0,
-                positivePercentage: 70,
-                views: 67,
-                comments: 1,
-              },
-              {
-                id: 9,
-                title: "evaluasi kebijakan bimbingan",
-                neutralPercentage: 41,
-                negativePercentage: 56,
-                positivePercentage: 3,
-                views: 86,
-                comments: 5,
-              },
-              {
-                id: 10,
-                title: "kepegawaian hc",
-                neutralPercentage: 4,
-                negativePercentage: 0,
-                positivePercentage: 96,
-                views: 178,
-                comments: 13,
-              },
-            ],
-          });
-        }, 500);
-      });
-    },
+  });
+  
+  // Fetch database stats
+  const { data: stats } = useQuery({
+    queryKey: ['/api/postgres/stats'],
   });
 
   // Handler for removing insights (would call API in a real app)
@@ -159,7 +50,7 @@ export default function SurveyDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <SentimentCategoryCard
             title="Netral Insight"
-            badge={69}
+            badge={stats?.neutralCount || 0}
             type="neutral"
             insights={insights?.neutral || []}
             onRemoveInsight={handleRemoveInsight}
@@ -167,7 +58,7 @@ export default function SurveyDashboard() {
           
           <SentimentCategoryCard
             title="Negative Insight"
-            badge={7}
+            badge={stats?.negativeCount || 0}
             type="negative"
             insights={insights?.negative || []}
             onRemoveInsight={handleRemoveInsight}
@@ -175,7 +66,7 @@ export default function SurveyDashboard() {
           
           <SentimentCategoryCard
             title="Positif Insight"
-            badge={15}
+            badge={stats?.positiveCount || 0}
             type="positive"
             insights={insights?.positive || []}
             onRemoveInsight={handleRemoveInsight}

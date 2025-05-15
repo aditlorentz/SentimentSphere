@@ -257,107 +257,138 @@ export class DatabaseStorage implements IStorage {
   // Legacy methods that we need to keep for compatibility
   
   async getInsights(): Promise<CategoryInsights> {
-    // In a real application, this would fetch from a database with real data
-    return {
-      neutral: [
-        {
-          id: 1,
-          title: "masukan remote working",
-          neutralPercentage: 55,
-          negativePercentage: 5,
-          positivePercentage: 40,
-          views: 125,
-          comments: 5,
-        },
-        {
-          id: 2,
-          title: "kritik konstruktif",
-          neutralPercentage: 45,
-          negativePercentage: 10,
-          positivePercentage: 45,
-          views: 88,
-          comments: 7,
-        },
-        {
-          id: 3,
-          title: "bonus tahunan hc",
-          neutralPercentage: 35,
-          negativePercentage: 0,
-          positivePercentage: 65,
-          views: 156,
-          comments: 2,
-        },
-      ],
-      negative: [
-        {
-          id: 4,
-          title: "kritik konstruktif",
-          neutralPercentage: 8,
-          negativePercentage: 89,
-          positivePercentage: 3,
-          views: 189,
-          comments: 16,
-        },
-        {
-          id: 5,
-          title: "kritik konstruktif",
-          neutralPercentage: 11,
-          negativePercentage: 79,
-          positivePercentage: 10,
-          views: 134,
-          comments: 9,
-        },
-      ],
-      positive: [
-        {
-          id: 6,
-          title: "bonus tahunan hc",
-          neutralPercentage: 33,
-          negativePercentage: 0,
-          positivePercentage: 67,
-          views: 75,
-          comments: 3,
-        },
-        {
-          id: 7,
-          title: "kepegawaian hc",
-          neutralPercentage: 4,
-          negativePercentage: 0,
-          positivePercentage: 96,
-          views: 178,
-          comments: 13,
-        },
-      ],
-      additional: [
-        {
-          id: 8,
-          title: "kebijakan kenaikan gaji",
-          neutralPercentage: 30,
-          negativePercentage: 0,
-          positivePercentage: 70,
-          views: 67,
-          comments: 1,
-        },
-        {
-          id: 9,
-          title: "evaluasi kebijakan bimbingan",
-          neutralPercentage: 41,
-          negativePercentage: 56,
-          positivePercentage: 3,
-          views: 86,
-          comments: 5,
-        },
-        {
-          id: 10,
-          title: "kepegawaian hc",
-          neutralPercentage: 4,
-          negativePercentage: 0,
-          positivePercentage: 96,
-          views: 178,
-          comments: 13,
-        },
-      ],
-    };
+    try {
+      // Get top words by sentiment
+      const positiveData = await this.getInsightsBySentiment('positif', 10);
+      const negativeData = await this.getInsightsBySentiment('negatif', 10);
+      const neutralData = await this.getInsightsBySentiment('netral', 10);
+      
+      // Get additional insights (mix of all)
+      const additionalData = await this.getTopInsightsByEngagement(6);
+      
+      return {
+        positive: positiveData,
+        negative: negativeData,
+        neutral: neutralData,
+        additional: additionalData
+      };
+    } catch (error) {
+      console.error("Error fetching insights from database:", error);
+      // Fallback in case of error
+      return {
+        neutral: [],
+        negative: [],
+        positive: [],
+        additional: []
+      };
+    }
+  }
+  
+  // Helper method to get insights by sentiment
+  private async getInsightsBySentiment(sentiment: string, limit: number = 10): Promise<InsightData[]> {
+    // Get word counts for this sentiment
+    const wordCounts = await db
+      .select({
+        word: employeeInsights.wordInsight,
+        count: sql`COUNT(*)`
+      })
+      .from(employeeInsights)
+      .where(eq(employeeInsights.sentimen, sentiment))
+      .groupBy(employeeInsights.wordInsight)
+      .orderBy(sql`COUNT(*)`, 'desc')
+      .limit(limit);
+    
+    const result: InsightData[] = [];
+    
+    // Process each word to create insights
+    for (const item of wordCounts) {
+      const word = item.word;
+      
+      // Get all insights with this word and sentiment
+      const relatedInsights = await db
+        .select()
+        .from(employeeInsights)
+        .where(and(
+          eq(employeeInsights.sentimen, sentiment),
+          sql`${employeeInsights.wordInsight} LIKE ${`%${word}%`}`
+        ))
+        .limit(20);
+      
+      if (relatedInsights.length === 0) continue;
+      
+      // Calculate percentages based on sentiment counts in the related data
+      const totalCount = relatedInsights.length;
+      const posCount = relatedInsights.filter(i => i.sentimen === 'positif').length;
+      const negCount = relatedInsights.filter(i => i.sentimen === 'negatif').length;
+      const neutCount = relatedInsights.filter(i => i.sentimen === 'netral').length;
+      
+      const positivePercentage = Math.round((posCount / totalCount) * 100);
+      const negativePercentage = Math.round((negCount / totalCount) * 100);
+      const neutralPercentage = Math.round((neutCount / totalCount) * 100);
+      
+      result.push({
+        id: result.length + 1,
+        title: word,
+        positivePercentage,
+        negativePercentage,
+        neutralPercentage,
+        views: Math.floor(Math.random() * 100) + 50, // Random number for views
+        comments: Math.floor(Math.random() * 20) + 1 // Random number for comments
+      });
+    }
+    
+    return result;
+  }
+  
+  // Helper method to get insights sorted by "engagement" (we'll use word frequency)
+  private async getTopInsightsByEngagement(limit: number = 6): Promise<InsightData[]> {
+    // Get the most frequently occurring word insights across all sentiments
+    const topWords = await db
+      .select({
+        word: employeeInsights.wordInsight,
+        count: sql`COUNT(*)`
+      })
+      .from(employeeInsights)
+      .groupBy(employeeInsights.wordInsight)
+      .orderBy(sql`COUNT(*)`, 'desc')
+      .limit(limit);
+    
+    const result: InsightData[] = [];
+    
+    for (const item of topWords) {
+      const word = item.word;
+      
+      // Get related insights for this word
+      const relatedInsights = await db
+        .select()
+        .from(employeeInsights)
+        .where(sql`${employeeInsights.wordInsight} LIKE ${`%${word}%`}`)
+        .limit(20);
+      
+      if (relatedInsights.length === 0) continue;
+      
+      // Calculate percentages
+      const totalCount = relatedInsights.length;
+      const posCount = relatedInsights.filter(i => i.sentimen === 'positif').length;
+      const negCount = relatedInsights.filter(i => i.sentimen === 'negatif').length;
+      const neutCount = relatedInsights.filter(i => i.sentimen === 'netral').length;
+      
+      const positivePercentage = Math.round((posCount / totalCount) * 100);
+      const negativePercentage = Math.round((negCount / totalCount) * 100);
+      const neutralPercentage = Math.round((neutCount / totalCount) * 100);
+      
+      result.push({
+        id: result.length + 1,
+        title: word,
+        positivePercentage,
+        negativePercentage,
+        neutralPercentage,
+        views: Math.floor(Math.random() * 200) + 50,
+        comments: Math.floor(Math.random() * 15) + 1
+      });
+    }
+    
+    return result;
   }
 
   async getMyInsights(): Promise<CategoryInsights> {
