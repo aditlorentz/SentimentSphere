@@ -17,21 +17,21 @@ export const insertUserSchema = createInsertSchema(users).pick({
 });
 
 // Employee Insights data table
-export const insightsData = pgTable("insights_data", {
+export const employeeInsights = pgTable("employee_insights", {
   id: serial("id").primaryKey(),
-  sourceData: text("source_data").notNull(),
-  employeeName: text("employee_name").notNull(),
+  sourceData: text("sourceData").notNull(),
+  employeeName: text("employeeName").notNull(),
   date: timestamp("date").notNull(),
   witel: text("witel").notNull(),
   kota: text("kota").notNull(),
-  originalInsight: text("original_insight").notNull(),
-  sentenceInsight: text("sentence_insight").notNull(),
-  wordInsight: text("word_insight").notNull(),
+  originalInsight: text("originalInsight").notNull(),
+  sentenceInsight: text("sentenceInsight").notNull(),
+  wordInsight: text("wordInsight").notNull(),
   sentimen: text("sentimen").notNull(), // 'positif', 'negatif', 'netral'
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertInsightDataSchema = createInsertSchema(insightsData).omit({
+export const insertEmployeeInsightSchema = createInsertSchema(employeeInsights).omit({
   id: true,
   createdAt: true,
 });
@@ -122,8 +122,8 @@ export type AnalyticsData = typeof analyticsData.$inferSelect;
 export type TopInsight = typeof topInsights.$inferSelect;
 export type InsertTopInsight = z.infer<typeof insertTopInsightSchema>;
 
-export type InsightDataType = typeof insightsData.$inferSelect;
-export type InsertInsightData = z.infer<typeof insertInsightDataSchema>;
+export type EmployeeInsightType = typeof employeeInsights.$inferSelect;
+export type InsertEmployeeInsight = z.infer<typeof insertEmployeeInsightSchema>;
 
 // Custom types for frontend
 export interface InsightData {

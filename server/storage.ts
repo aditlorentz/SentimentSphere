@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, InsightData, CategoryInsights, TopInsightData, AnalyticsFullData, UrlsResponse, InsightDataType, InsertInsightData, insightsData } from "@shared/schema";
+import { users, type User, type InsertUser, InsightData, CategoryInsights, TopInsightData, AnalyticsFullData, UrlsResponse, EmployeeInsightType, InsertEmployeeInsight, employeeInsights } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, sql, or } from "drizzle-orm";
 
@@ -22,10 +22,10 @@ export interface IStorage {
   deleteUrl(id: number): Promise<void>;
   
   // Insights Data operations (from database)
-  getInsightsData(page: number, limit: number, filter?: object): Promise<{data: InsightDataType[], total: number}>;
-  addInsightData(data: InsertInsightData): Promise<InsightDataType>;
-  getInsightDataById(id: number): Promise<InsightDataType | undefined>;
-  updateInsightData(id: number, data: Partial<InsertInsightData>): Promise<InsightDataType | undefined>;
+  getInsightsData(page: number, limit: number, filter?: object): Promise<{data: EmployeeInsightType[], total: number}>;
+  addInsightData(data: InsertEmployeeInsight): Promise<EmployeeInsightType>;
+  getInsightDataById(id: number): Promise<EmployeeInsightType | undefined>;
+  updateInsightData(id: number, data: Partial<InsertEmployeeInsight>): Promise<EmployeeInsightType | undefined>;
   deleteInsightData(id: number): Promise<void>;
   getInsightStats(): Promise<{
     totalInsights: number,
@@ -75,38 +75,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Insights Data operations from database
-  async getInsightsData(page: number, limit: number, filter?: any): Promise<{data: InsightDataType[], total: number}> {
-    let query = db.select().from(insightsData);
+  async getInsightsData(page: number, limit: number, filter?: any): Promise<{data: EmployeeInsightType[], total: number}> {
+    let query = db.select().from(employeeInsights);
     
     if (filter) {
       const conditions = [];
       
       if (filter.sourceData) {
-        conditions.push(eq(insightsData.sourceData, filter.sourceData));
+        conditions.push(eq(employeeInsights.sourceData, filter.sourceData));
       }
       
       if (filter.witel) {
-        conditions.push(eq(insightsData.witel, filter.witel));
+        conditions.push(eq(employeeInsights.witel, filter.witel));
       }
       
       if (filter.kota) {
-        conditions.push(eq(insightsData.kota, filter.kota));
+        conditions.push(eq(employeeInsights.kota, filter.kota));
       }
       
       if (filter.sentimen) {
-        conditions.push(eq(insightsData.sentimen, filter.sentimen));
+        conditions.push(eq(employeeInsights.sentimen, filter.sentimen));
       }
       
       if (filter.wordInsight) {
-        conditions.push(eq(insightsData.wordInsight, filter.wordInsight));
+        conditions.push(eq(employeeInsights.wordInsight, filter.wordInsight));
       }
       
       if (filter.search) {
         conditions.push(
           or(
-            like(insightsData.originalInsight, `%${filter.search}%`),
-            like(insightsData.sentenceInsight, `%${filter.search}%`),
-            like(insightsData.employeeName, `%${filter.search}%`)
+            like(employeeInsights.originalInsight, `%${filter.search}%`),
+            like(employeeInsights.sentenceInsight, `%${filter.search}%`),
+            like(employeeInsights.employeeName, `%${filter.search}%`)
           )
         );
       }
@@ -114,8 +114,8 @@ export class DatabaseStorage implements IStorage {
       if (filter.dateFrom && filter.dateTo) {
         conditions.push(
           and(
-            sql`${insightsData.date} >= ${filter.dateFrom}`,
-            sql`${insightsData.date} <= ${filter.dateTo}`
+            sql`${employeeInsights.date} >= ${filter.dateFrom}`,
+            sql`${employeeInsights.date} <= ${filter.dateTo}`
           )
         );
       }
@@ -126,47 +126,47 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Get total count
-    const totalCountResult = await db.select({ count: sql`COUNT(*)` }).from(insightsData);
+    const totalCountResult = await db.select({ count: sql`COUNT(*)` }).from(employeeInsights);
     const total = Number(totalCountResult[0].count);
     
     // Apply pagination
     const data = await query
-      .orderBy(desc(insightsData.date))
+      .orderBy(desc(employeeInsights.date))
       .limit(limit)
       .offset((page - 1) * limit);
       
     return { data, total };
   }
   
-  async addInsightData(data: InsertInsightData): Promise<InsightDataType> {
+  async addInsightData(data: InsertEmployeeInsight): Promise<EmployeeInsightType> {
     const [result] = await db
-      .insert(insightsData)
+      .insert(employeeInsights)
       .values(data)
       .returning();
     return result;
   }
   
-  async getInsightDataById(id: number): Promise<InsightDataType | undefined> {
+  async getInsightDataById(id: number): Promise<EmployeeInsightType | undefined> {
     const [result] = await db
       .select()
-      .from(insightsData)
-      .where(eq(insightsData.id, id));
+      .from(employeeInsights)
+      .where(eq(employeeInsights.id, id));
     return result;
   }
   
-  async updateInsightData(id: number, data: Partial<InsertInsightData>): Promise<InsightDataType | undefined> {
+  async updateInsightData(id: number, data: Partial<InsertEmployeeInsight>): Promise<EmployeeInsightType | undefined> {
     const [result] = await db
-      .update(insightsData)
+      .update(employeeInsights)
       .set(data)
-      .where(eq(insightsData.id, id))
+      .where(eq(employeeInsights.id, id))
       .returning();
     return result;
   }
   
   async deleteInsightData(id: number): Promise<void> {
     await db
-      .delete(insightsData)
-      .where(eq(insightsData.id, id));
+      .delete(employeeInsights)
+      .where(eq(employeeInsights.id, id));
   }
   
   async getInsightStats(): Promise<{
@@ -179,36 +179,36 @@ export class DatabaseStorage implements IStorage {
     byWord: {word: string, count: number}[]
   }> {
     // Get total counts
-    const totalCountResult = await db.select({ count: sql`COUNT(*)` }).from(insightsData);
+    const totalCountResult = await db.select({ count: sql`COUNT(*)` }).from(employeeInsights);
     const totalInsights = Number(totalCountResult[0].count);
     
     // Get sentiment counts
     const posCountResult = await db
       .select({ count: sql`COUNT(*)` })
-      .from(insightsData)
-      .where(eq(insightsData.sentimen, 'positif'));
+      .from(employeeInsights)
+      .where(eq(employeeInsights.sentimen, 'positif'));
     const positiveCount = Number(posCountResult[0].count);
     
     const negCountResult = await db
       .select({ count: sql`COUNT(*)` })
-      .from(insightsData)
-      .where(eq(insightsData.sentimen, 'negatif'));
+      .from(employeeInsights)
+      .where(eq(employeeInsights.sentimen, 'negatif'));
     const negativeCount = Number(negCountResult[0].count);
     
     const neutCountResult = await db
       .select({ count: sql`COUNT(*)` })
-      .from(insightsData)
-      .where(eq(insightsData.sentimen, 'netral'));
+      .from(employeeInsights)
+      .where(eq(employeeInsights.sentimen, 'netral'));
     const neutralCount = Number(neutCountResult[0].count);
     
     // Get counts by source
     const bySourceResult = await db
       .select({
-        source: insightsData.sourceData,
+        source: employeeInsights.sourceData,
         count: sql`COUNT(*)`
       })
-      .from(insightsData)
-      .groupBy(insightsData.sourceData);
+      .from(employeeInsights)
+      .groupBy(employeeInsights.sourceData);
     
     const bySource = bySourceResult.map(r => ({
       source: r.source,
@@ -218,11 +218,11 @@ export class DatabaseStorage implements IStorage {
     // Get counts by witel
     const byWitelResult = await db
       .select({
-        witel: insightsData.witel,
+        witel: employeeInsights.witel,
         count: sql`COUNT(*)`
       })
-      .from(insightsData)
-      .groupBy(insightsData.witel);
+      .from(employeeInsights)
+      .groupBy(employeeInsights.witel);
     
     const byWitel = byWitelResult.map(r => ({
       witel: r.witel,
@@ -232,11 +232,11 @@ export class DatabaseStorage implements IStorage {
     // Get counts by word insight
     const byWordResult = await db
       .select({
-        word: insightsData.wordInsight,
+        word: employeeInsights.wordInsight,
         count: sql`COUNT(*)`
       })
-      .from(insightsData)
-      .groupBy(insightsData.wordInsight);
+      .from(employeeInsights)
+      .groupBy(employeeInsights.wordInsight);
     
     const byWord = byWordResult.map(r => ({
       word: r.word,
@@ -555,55 +555,102 @@ export class DatabaseStorage implements IStorage {
           city: "Jakarta",
           source: "Feedback",
           employee: "A*** B***",
-          sentiment: "Sistem kerja hybrid memberikan fleksibilitas yang baik...",
-          date: "2025-05-14 11:30:45",
+          sentiment: "Sistem kerja hybrid memberikan fleksibilitas yang sangat saya hargai...",
+          date: "2025-05-13 09:18:52",
         },
         {
           id: 4,
-          city: "Surabaya",
-          source: "Dikleum",
-          employee: "M*** N***",
-          sentiment: "Perlu adanya peningkatan fasilitas kerja di kantor cabang...",
-          date: "2025-05-14 10:15:33",
+          city: "Yogyakarta",
+          source: "Feedback",
+          employee: "R*** N***",
+          sentiment: "Saya merasa pelatihan yang diberikan kurang relevan dengan pekerjaan saya...",
+          date: "2025-05-13 08:07:31",
+        },
+        {
+          id: 5,
+          city: "Medan",
+          source: "Employee Relation",
+          employee: "D*** T***",
+          sentiment: "Saya ingin menyampaikan apresiasi saya terhadap program mentoring...",
+          date: "2025-05-13 04:56:19",
         },
       ],
     };
   }
 
-  // URL operations
   async getUrls(page: number, limit: number): Promise<UrlsResponse> {
-    // In a real application, this would fetch URLs from a database
+    // In a real application, this would fetch URLs from a database with pagination
     const urls = [
       {
         id: 1,
-        url: "http://15.235.147.1:4000/api/companies",
-        totalNumbers: 5,
-        totalInsights: 500,
-        totalSentiment: "500/500",
-        totalClassified: "500/500",
-        date: new Date("2025-04-10T08:41:52"),
-        status: "SUCCESS" as const,
+        url: 'https://www.twitter.com',
+        totalNumbers: 1200,
+        totalInsights: 950,
+        totalSentiment: 'Positif (78%)',
+        totalClassified: 'Emosi',
+        date: '10/05/2025',
+        status: 'SUCCESS'
       },
       {
         id: 2,
-        url: "http://15.235.147.1:4000/api/feedback",
-        totalNumbers: 8,
-        totalInsights: 750,
-        totalSentiment: "750/750",
-        totalClassified: "750/750",
-        date: new Date("2025-05-12T10:23:45"),
-        status: "SUCCESS" as const,
+        url: 'https://www.instagram.com',
+        totalNumbers: 850,
+        totalInsights: 720,
+        totalSentiment: 'Positif (65%)',
+        totalClassified: 'Kesehatan',
+        date: '08/05/2025',
+        status: 'SUCCESS'
       },
       {
         id: 3,
-        url: "http://15.235.147.1:4000/api/survey",
-        totalNumbers: 12,
-        totalInsights: 320,
-        totalSentiment: "320/320",
-        totalClassified: "320/320",
-        date: new Date("2025-05-14T09:15:30"),
-        status: "SUCCESS" as const,
+        url: 'https://www.facebook.com',
+        totalNumbers: 1500,
+        totalInsights: 1350,
+        totalSentiment: 'Negatif (53%)',
+        totalClassified: 'Lingkungan Kerja',
+        date: '05/05/2025',
+        status: 'SUCCESS'
       },
+      {
+        id: 4,
+        url: 'https://www.linkedin.com',
+        totalNumbers: 300,
+        totalInsights: 290,
+        totalSentiment: 'Positif (91%)',
+        totalClassified: 'Pengembangan',
+        date: '02/05/2025',
+        status: 'SUCCESS'
+      },
+      {
+        id: 5,
+        url: 'https://www.telcom.com/feedback/may',
+        totalNumbers: 0,
+        totalInsights: 0,
+        totalSentiment: '-',
+        totalClassified: '-',
+        date: '01/05/2025',
+        status: 'FAILED'
+      },
+      {
+        id: 6,
+        url: 'https://forum.telcom.com/employee',
+        totalNumbers: 630,
+        totalInsights: 590,
+        totalSentiment: 'Netral (48%)',
+        totalClassified: 'General',
+        date: '28/04/2025',
+        status: 'SUCCESS'
+      },
+      {
+        id: 7,
+        url: 'https://intranet.telcom.com/survey',
+        totalNumbers: 0,
+        totalInsights: 0,
+        totalSentiment: '-',
+        totalClassified: '-',
+        date: '15/05/2025',
+        status: 'PENDING'
+      }
     ];
 
     // Simple pagination
@@ -613,28 +660,33 @@ export class DatabaseStorage implements IStorage {
 
     return {
       urls: paginatedUrls,
-      total: 10, // Total count for pagination
+      total: urls.length
     };
   }
 
   async addUrl(url: string): Promise<any> {
-    // In a real application, this would add a URL to the database
+    // In a real application, this would add a URL to the database and start processing
     return {
-      id: Date.now(),
+      id: Math.floor(Math.random() * 1000) + 10,
       url,
       totalNumbers: 0,
       totalInsights: 0,
-      totalSentiment: "0/0",
-      totalClassified: "0/0",
-      date: new Date(),
-      status: "PENDING" as const,
+      totalSentiment: '-',
+      totalClassified: '-',
+      date: new Date().toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }).replace(/\//g, '/'),
+      status: 'PENDING'
     };
   }
 
   async deleteUrl(id: number): Promise<void> {
     // In a real application, this would delete a URL from the database
-    return;
+    console.log(`URL with ID ${id} deleted`);
   }
+
 }
 
 export const storage = new DatabaseStorage();
