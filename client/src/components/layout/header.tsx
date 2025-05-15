@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
 import {
   Popover,
   PopoverContent,
@@ -32,14 +33,15 @@ export default function Header({
   showFilters = true,
 }: HeaderProps) {
   const [location] = useLocation();
-  const [date, setDate] = useState<Date | undefined>(new Date());
   const [source, setSource] = useState<string>("all");
   const [survey, setSurvey] = useState<string>("all");
-
-  // Date range example (one month ago to now)
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setMonth(startDate.getMonth() - 1);
+  
+  // Date range (one month ago to now)
+  const today = new Date();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
+    to: today
+  });
 
   return (
     <header className="bg-white border-b border-gray-200 py-4 px-6 flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -74,26 +76,56 @@ export default function Header({
             </Select>
           </div>
 
-          {/* Date Picker */}
+          {/* Date Range Picker */}
           <Popover>
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
-                className="min-w-[210px] justify-start bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto"
+                className="min-w-[230px] justify-start bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto"
               >
                 <CalendarIcon className="h-4 w-4 mr-1.5 text-gray-400" />
                 <span className="text-sm font-normal">
-                  {date ? format(date, "PPP") : "Pick a date"}
+                  {dateRange && dateRange.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "MMM d, yyyy")
+                    )
+                  ) : (
+                    "Select date range"
+                  )}
                 </span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
+                mode="range"
+                selected={dateRange}
+                onSelect={(range) => setDateRange(range)}
                 initialFocus
+                numberOfMonths={2}
+                defaultMonth={dateRange?.from}
+                className="p-2"
               />
+              <div className="p-3 border-t border-border flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  Select a date range
+                </div>
+                <Button 
+                  size="sm" 
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs rounded-full px-3"
+                  onClick={() => {
+                    setDateRange({
+                      from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
+                      to: today
+                    } as DateRange);
+                  }}
+                >
+                  Last 30 Days
+                </Button>
+              </div>
             </PopoverContent>
           </Popover>
 
