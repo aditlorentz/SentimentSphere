@@ -48,18 +48,15 @@ const TopInsightItem = ({ label, count }: TopInsightItemProps) => (
 );
 
 // Interface untuk format respons API
-interface TopWordInsightsResponse {
-  success: boolean;
-  data: Array<{
-    id: number;
-    wordInsight: string;
-    totalCount: number;
-  }>;
+interface TopWordInsight {
+  id: number;
+  wordInsight: string;
+  totalCount: number;
 }
 
 // Hook untuk mengambil data top insights dari API
 function useTopWordInsights() {
-  return useQuery<TopWordInsightsResponse>({
+  return useQuery<TopWordInsight[]>({
     queryKey: ['/api/top-word-insights'],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -67,10 +64,7 @@ function useTopWordInsights() {
 
 export default function Sidebar() {
   // Menggunakan fungsi query untuk mendapatkan data top word insights
-  const { data: apiResponse, isLoading } = useTopWordInsights();
-  
-  // Ekstrak data dari respons API
-  const topWordInsights = apiResponse?.data || [];
+  const { data: topWordInsights, isLoading } = useTopWordInsights();
   
   console.log('Top insights in Sidebar:', topWordInsights);
 
