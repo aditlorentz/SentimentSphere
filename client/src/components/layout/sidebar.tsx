@@ -16,7 +16,7 @@ const SidebarItem = ({ href, icon, children, badge }: SidebarItemProps) => {
 
   return (
     <Link href={href}>
-      <a
+      <div
         className={cn(
           "sidebar-item",
           isActive && "active"
@@ -29,7 +29,7 @@ const SidebarItem = ({ href, icon, children, badge }: SidebarItemProps) => {
             {badge}
           </span>
         )}
-      </a>
+      </div>
     </Link>
   );
 };
@@ -78,9 +78,6 @@ export default function Sidebar() {
           </SidebarItem>
           <SidebarItem href="/survey-dashboard" icon={<BarChart3 size={18} />}>
             Survey Dashboard
-          </SidebarItem>
-          <SidebarItem href="/survey-summary" icon={<BarChart2 size={18} />}>
-            Survey Summary
           </SidebarItem>
           <SidebarItem href="/top-insights" icon={<Star size={18} />}>
             Top Insight
