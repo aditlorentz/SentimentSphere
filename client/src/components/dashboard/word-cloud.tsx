@@ -122,7 +122,7 @@ const WordCloud: React.FC<WordCloudProps> = ({
   return (
     <div className="rounded-xl bg-white shadow-[0_10px_20px_rgba(0,0,0,0.05)] overflow-hidden">
       <div className="p-4 border-b border-gray-100">
-        <h3 className="font-medium text-gray-800">Common Topics</h3>
+        <h3 className="font-medium text-gray-800">{title}</h3>
       </div>
       <div ref={chartRef} style={{ width, height }} />
     </div>
