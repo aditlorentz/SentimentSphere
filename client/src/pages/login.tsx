@@ -146,7 +146,7 @@ export default function Login() {
       {/* Right section with login form */}
       <div className="md:w-1/2 bg-white flex items-center justify-center p-6 md:p-12">
         <div className="w-full max-w-md">
-          <h2 className="text-3xl font-bold mb-2">Login</h2>
+          <h2 className="text-3xl font-bold mb-2 text-black">Login</h2>
           <p className="text-gray-600 mb-8">Enter your credentials to login</p>
 
           {errorMessage && (

@@ -63,7 +63,7 @@ export default function Sidebar() {
           alt="NLP Logo" 
           className="h-10"
         />
-        <h1 className="font-display text-lg font-semibold ml-3 text-primary">
+        <h1 className="font-display text-lg font-semibold ml-3 text-black">
           NLP Insight
         </h1>
       </div>

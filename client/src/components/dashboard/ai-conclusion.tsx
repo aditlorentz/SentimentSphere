@@ -23,7 +23,7 @@ export default function AIInsightConclusion({
     <div className="bg-white rounded-[12px] shadow-[0_10px_20px_rgba(0,0,0,0.05)] p-6 mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          <h2 className="text-lg font-semibold text-primary">
+          <h2 className="text-lg font-semibold text-black">
             AI Instant Conclusion
           </h2>
           <span className="bg-blue-100 text-secondary text-xs font-medium px-2 py-1 rounded-full">
