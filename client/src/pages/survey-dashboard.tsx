@@ -5,7 +5,7 @@ import { SentimentCategoryCard } from "@/components/cards/insight-card";
 import Chatbot from "@/components/dashboard/chatbot";
 import { useQuery } from "@tanstack/react-query";
 import { InsightData } from "@/components/cards/insight-card";
-import { CategoryInsights } from "@shared/schema";
+import { CategoryInsights, SurveyDashboardSummary } from "@shared/schema";
 
 // Fungsi untuk menghasilkan teks AI conclusion berdasarkan statistik
 function generateAIConclusionText(stats: any): string {
@@ -48,6 +48,64 @@ export default function SurveyDashboard() {
   }>({
     queryKey: ['/api/postgres/stats'],
   });
+  
+  // Fetch survey dashboard summary data
+  const { data: summaryData } = useQuery<{
+    data: SurveyDashboardSummary[];
+    total: number;
+  }>({
+    queryKey: ['/api/survey-dashboard/summary'],
+  });
+  
+  // Convert survey dashboard summary data to insights format
+  const summaryInsights = useMemo(() => {
+    if (!summaryData?.data) {
+      return {
+        positive: [],
+        negative: [],
+        neutral: []
+      } as CategoryInsights;
+    }
+    
+    const positive: InsightData[] = [];
+    const negative: InsightData[] = [];
+    const neutral: InsightData[] = [];
+    
+    summaryData.data.forEach(item => {
+      // Determine the dominant sentiment based on the highest percentage
+      const maxPercentage = Math.max(
+        item.positivePercentage || 0,
+        item.negativePercentage || 0,
+        item.neutralPercentage || 0
+      );
+      
+      // Create insight data object
+      const insightData: InsightData = {
+        id: item.id,
+        title: item.wordInsight,
+        positivePercentage: item.positivePercentage || 0,
+        negativePercentage: item.negativePercentage || 0,
+        neutralPercentage: item.neutralPercentage || 0,
+        views: item.totalCount,
+        comments: 0
+      };
+      
+      // Add to appropriate category based on dominant sentiment
+      if (maxPercentage === item.positivePercentage && maxPercentage > 0) {
+        positive.push(insightData);
+      } else if (maxPercentage === item.negativePercentage && maxPercentage > 0) {
+        negative.push(insightData);
+      } else if (maxPercentage === item.neutralPercentage && maxPercentage > 0) {
+        neutral.push(insightData);
+      }
+    });
+    
+    return {
+      positive,
+      negative,
+      neutral
+    } as CategoryInsights;
+  }, [summaryData]);
 
   // Handler for removing insights (would call API in a real app)
   const handleRemoveInsight = (id: number) => {
@@ -80,26 +138,26 @@ export default function SurveyDashboard() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <SentimentCategoryCard
-            title="Netral Insight"
-            badge={stats?.neutralCount || 0}
+            title="Netral Insight dari Survey"
+            badge={summaryInsights.neutral.length}
             type="neutral"
-            insights={insights?.neutral || []}
+            insights={summaryInsights.neutral}
             onRemoveInsight={handleRemoveInsight}
           />
           
           <SentimentCategoryCard
-            title="Negative Insight"
-            badge={stats?.negativeCount || 0}
+            title="Negative Insight dari Survey"
+            badge={summaryInsights.negative.length}
             type="negative"
-            insights={insights?.negative || []}
+            insights={summaryInsights.negative}
             onRemoveInsight={handleRemoveInsight}
           />
           
           <SentimentCategoryCard
-            title="Positif Insight"
-            badge={stats?.positiveCount || 0}
+            title="Positif Insight dari Survey"
+            badge={summaryInsights.positive.length}
             type="positive"
-            insights={insights?.positive || []}
+            insights={summaryInsights.positive}
             onRemoveInsight={handleRemoveInsight}
           />
         </div>
