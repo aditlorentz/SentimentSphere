@@ -3,6 +3,7 @@ import Header from "@/components/layout/header";
 import { Card, CardContent } from "@/components/ui/card";
 import AIInsightConclusion from "@/components/dashboard/ai-conclusion";
 import Chatbot from "@/components/dashboard/chatbot";
+import WordCloud from "@/components/dashboard/word-cloud";
 import { useQuery } from "@tanstack/react-query";
 import {
   Table,
@@ -43,7 +44,7 @@ export default function TopInsights() {
       return new Promise<{
         insights: TopInsight[];
         totalCount: number;
-        wordCloudSvg: string;
+        wordCloudData: Array<{ tag: string; weight: number }>;
       }>((resolve) => {
         setTimeout(() => {
           resolve({
@@ -98,17 +99,21 @@ export default function TopInsights() {
               }
             ],
             totalCount: 500,
-            // Word cloud SVG
-            wordCloudSvg: `<svg width="500" height="300" xmlns="http://www.w3.org/2000/svg">
-              <text x="250" y="150" font-size="50" text-anchor="middle" fill="#333">program</text>
-              <text x="160" y="100" font-size="35" text-anchor="middle" fill="#444">karyawan</text>
-              <text x="360" y="180" font-size="25" text-anchor="middle" fill="#555">peserta</text>
-              <text x="150" y="200" font-size="28" text-anchor="middle" fill="#666">materi</text>
-              <text x="320" y="80" font-size="22" text-anchor="middle" fill="#777">proses</text>
-              <text x="100" y="160" font-size="20" text-anchor="middle" fill="#888">evaluasi</text>
-              <text x="400" y="130" font-size="18" text-anchor="middle" fill="#999">manajemen</text>
-              <text x="200" y="250" font-size="16" text-anchor="middle" fill="#aaa">perusahaan</text>
-            </svg>`
+            // Word cloud data for amCharts
+            wordCloudData: [
+              { tag: "program", weight: 80 },
+              { tag: "karyawan", weight: 65 },
+              { tag: "peserta", weight: 42 },
+              { tag: "materi", weight: 48 },
+              { tag: "proses", weight: 35 },
+              { tag: "evaluasi", weight: 30 },
+              { tag: "manajemen", weight: 25 },
+              { tag: "perusahaan", weight: 20 },
+              { tag: "pengembangan", weight: 15 },
+              { tag: "implementasi", weight: 12 },
+              { tag: "kebijakan", weight: 10 },
+              { tag: "administrasi", weight: 8 }
+            ]
           });
         }, 500);
       });
