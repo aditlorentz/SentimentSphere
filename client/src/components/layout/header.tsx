@@ -28,27 +28,59 @@ import {
 
 // We've replaced HeaderFilter with more modern Select and Popover components
 
+interface SelectOption {
+  label: string;
+  value: string;
+}
+
 interface HeaderProps {
   title: string;
   totalInsights?: number;
   showFilters?: boolean;
+  
+  // Filter values
+  sourceValue?: string;
+  surveyValue?: string;
+  dateRangeValue?: DateRange;
+  
+  // Filter options
+  sourceOptions?: SelectOption[];
+  surveyOptions?: SelectOption[];
+  
+  // Filter callbacks
+  onSourceChange?: (value: string) => void;
+  onSurveyChange?: (value: string) => void;
+  onDateRangeChange?: (range: DateRange | undefined) => void;
+  onResetFilters?: () => void;
 }
 
 export default function Header({
   title,
   totalInsights = 101,
   showFilters = true,
+  sourceValue = "all",
+  surveyValue = "all",
+  dateRangeValue,
+  sourceOptions = [],
+  surveyOptions = [],
+  onSourceChange,
+  onSurveyChange,
+  onDateRangeChange,
+  onResetFilters,
 }: HeaderProps) {
   const [location] = useLocation();
-  const [source, setSource] = useState<string>("all");
-  const [survey, setSurvey] = useState<string>("all");
   
   // Date range (one month ago to now)
   const today = new Date();
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+  const defaultDateRange = {
     from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
     to: today
-  });
+  };
+  
+  // Use provided values or defaults
+  const source = sourceValue;
+  const survey = surveyValue;
+  const dateRange = dateRangeValue || (showFilters ? defaultDateRange : undefined);
   
   // Import useAuth hook
   const { logout } = useAuth();
@@ -56,6 +88,34 @@ export default function Header({
   // Handler for logout action
   const handleLogout = () => {
     logout();
+  };
+  
+  // Handle source change
+  const handleSourceChange = (value: string) => {
+    if (onSourceChange) {
+      onSourceChange(value);
+    }
+  };
+  
+  // Handle survey change
+  const handleSurveyChange = (value: string) => {
+    if (onSurveyChange) {
+      onSurveyChange(value);
+    }
+  };
+  
+  // Handle date range change
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    if (onDateRangeChange) {
+      onDateRangeChange(range);
+    }
+  };
+  
+  // Handle reset filters
+  const handleResetFilters = () => {
+    if (onResetFilters) {
+      onResetFilters();
+    }
   };
 
   return (
@@ -74,7 +134,7 @@ export default function Header({
 
           {/* Source Filter */}
           <div className="relative w-full sm:w-auto">
-            <Select value={source} onValueChange={setSource}>
+            <Select value={source} onValueChange={handleSourceChange}>
               <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
                 <div className="flex items-center">
                   <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
@@ -83,10 +143,11 @@ export default function Header({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Sources</SelectItem>
-                <SelectItem value="survey">Survey</SelectItem>
-                <SelectItem value="feedback">Feedback</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="chat">Chat</SelectItem>
+                {sourceOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -119,7 +180,7 @@ export default function Header({
                 <Calendar
                   mode="range"
                   selected={dateRange}
-                  onSelect={(range) => setDateRange(range)}
+                  onSelect={handleDateRangeChange}
                   initialFocus
                   numberOfMonths={2}
                   defaultMonth={dateRange?.from || new Date()}
@@ -133,7 +194,7 @@ export default function Header({
                     size="sm" 
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs rounded-full px-3"
                     onClick={() => {
-                      setDateRange({
+                      handleDateRangeChange({
                         from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
                         to: today
                       } as DateRange);
@@ -148,24 +209,29 @@ export default function Header({
 
           {/* Survey Type Filter */}
           <div className="relative w-full sm:w-auto">
-            <Select value={survey} onValueChange={setSurvey}>
+            <Select value={survey} onValueChange={handleSurveyChange}>
               <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
                 <div className="flex items-center">
                   <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
-                  <SelectValue placeholder="Survey" className="text-sm truncate" />
+                  <SelectValue placeholder="Location" className="text-sm truncate" />
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Surveys</SelectItem>
-                <SelectItem value="employee">Employee</SelectItem>
-                <SelectItem value="customer">Customer</SelectItem>
-                <SelectItem value="product">Product</SelectItem>
+                <SelectItem value="all">All Locations</SelectItem>
+                {surveyOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           {/* Reset Button */}
-          <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm rounded-full px-4 py-1 h-8">
+          <Button 
+            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm rounded-full px-4 py-1 h-8"
+            onClick={handleResetFilters}
+          >
             <RefreshCcw className="h-4 w-4 mr-1.5 flex-shrink-0" /> Reset
           </Button>
 

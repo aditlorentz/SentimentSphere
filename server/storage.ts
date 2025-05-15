@@ -1,6 +1,6 @@
 import { users, type User, type InsertUser, InsightData, CategoryInsights, TopInsightData, AnalyticsFullData, UrlsResponse, EmployeeInsightType, InsertEmployeeInsight, employeeInsights, surveyDashboardSummary, SurveyDashboardSummary, InsertSurveyDashboardSummary } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, like, sql, or } from "drizzle-orm";
+import { eq, desc, and, like, sql, or, gte, lte, inArray } from "drizzle-orm";
 
 // Modify the interface with any CRUD methods
 // you might need
@@ -843,34 +843,49 @@ export class DatabaseStorage implements IStorage {
           const wordInsightsWithSource = db
             .selectDistinct({ wordInsight: employeeInsights.wordInsight })
             .from(employeeInsights)
-            .where(sql`LOWER(${employeeInsights.source}) = LOWER(${filter.source})`);
+            .where(sql`LOWER(${employeeInsights.sourceData}) = LOWER(${filter.source})`);
           
-          baseQuery = baseQuery
-            .where(
-              inArray(
-                surveyDashboardSummary.wordInsight, 
-                wordInsightsWithSource.mapSelect((subq) => subq.wordInsight)
-              )
+          // Get the words as an array of strings to use in WHERE IN clause
+          const words = await wordInsightsWithSource;
+          const wordsList = words.map(w => w.wordInsight);
+          
+          if (wordsList.length > 0) {
+            baseQuery = baseQuery.where(
+              sql`${surveyDashboardSummary.wordInsight} IN (${wordsList.join(',')})`
             );
+          } else {
+            // If no matching words found, return empty result
+            return { data: [], total: 0 };
+          }
         }
         
-        // Survey/category filter
+        // Survey/category filter - assuming survey maps to some field in employeeInsights
         if (filter.survey) {
           console.log(`Filtering by survey/category: ${filter.survey}`);
           
-          // Similar approach for survey/category filter
+          // In this case we might filter by witel or kota
           const wordInsightsWithCategory = db
             .selectDistinct({ wordInsight: employeeInsights.wordInsight })
             .from(employeeInsights)
-            .where(sql`LOWER(${employeeInsights.category}) = LOWER(${filter.survey})`);
-          
-          baseQuery = baseQuery
             .where(
-              inArray(
-                surveyDashboardSummary.wordInsight, 
-                wordInsightsWithCategory.mapSelect((subq) => subq.wordInsight)
+              or(
+                sql`LOWER(${employeeInsights.witel}) = LOWER(${filter.survey})`,
+                sql`LOWER(${employeeInsights.kota}) = LOWER(${filter.survey})`
               )
             );
+          
+          // Get the words as an array of strings
+          const words = await wordInsightsWithCategory;
+          const wordsList = words.map(w => w.wordInsight);
+          
+          if (wordsList.length > 0) {
+            baseQuery = baseQuery.where(
+              sql`${surveyDashboardSummary.wordInsight} IN (${wordsList.join(',')})`
+            );
+          } else {
+            // If no matching words found, return empty result
+            return { data: [], total: 0 };
+          }
         }
         
         // Date range filter
@@ -883,27 +898,40 @@ export class DatabaseStorage implements IStorage {
             .from(employeeInsights)
             .where(
               and(
-                gte(employeeInsights.timestamp, filter.dateRange.start),
-                lte(employeeInsights.timestamp, filter.dateRange.end)
+                sql`${employeeInsights.date} >= ${filter.dateRange.start}`,
+                sql`${employeeInsights.date} <= ${filter.dateRange.end}`
               )
             );
           
-          baseQuery = baseQuery
-            .where(
-              inArray(
-                surveyDashboardSummary.wordInsight, 
-                wordInsightsInDateRange.mapSelect((subq) => subq.wordInsight)
-              )
+          // Get the words as an array of strings
+          const words = await wordInsightsInDateRange;
+          const wordsList = words.map(w => w.wordInsight);
+          
+          if (wordsList.length > 0) {
+            baseQuery = baseQuery.where(
+              sql`${surveyDashboardSummary.wordInsight} IN (${wordsList.join(',')})`
             );
+          } else {
+            // If no matching words found, return empty result
+            return { data: [], total: 0 };
+          }
         }
       }
       
       // Count total with filters applied
-      const [totalResult] = await baseQuery.select({ count: sql<number>`count(*)` });
+      const totalCountQuery = db
+        .select({ count: sql<number>`count(*)` })
+        .from(surveyDashboardSummary);
+      
+      // Copy WHERE clauses from baseQuery to totalCountQuery
+      if (baseQuery.hasOwnProperty('where')) {
+        Object.assign(totalCountQuery, { where: (baseQuery as any).where });
+      }
+      
+      const [totalResult] = await totalCountQuery;
       
       // Get paginated data with filters applied
       const data = await baseQuery
-        .select()
         .orderBy(desc(surveyDashboardSummary.totalCount))
         .limit(limit)
         .offset(offset);

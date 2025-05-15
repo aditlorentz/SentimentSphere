@@ -3,10 +3,11 @@ import Header from "@/components/layout/header";
 import AIInsightConclusion from "@/components/dashboard/ai-conclusion";
 import { SentimentCategoryCard } from "@/components/cards/insight-card";
 import Chatbot from "@/components/dashboard/chatbot";
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { InsightData } from "@/components/cards/insight-card";
 import { CategoryInsights, SurveyDashboardSummary } from "@shared/schema";
 import { Button } from "@/components/ui/button";
+import { DateRange } from "react-day-picker";
 
 // Fungsi untuk menghasilkan teks AI conclusion berdasarkan statistik
 function generateAIConclusionText(stats: any): string {
@@ -52,6 +53,12 @@ function generateAIConclusionText(stats: any): string {
 
 export default function SurveyDashboard() {
   const [limit] = useState(10);
+  const queryClient = useQueryClient();
+  
+  // Filter state
+  const [source, setSource] = useState<string>("all");
+  const [survey, setSurvey] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   
   // Fetch insights
   const { data: insights, isLoading: insightsLoading } = useQuery<CategoryInsights>({
@@ -74,17 +81,43 @@ export default function SurveyDashboard() {
   // Create a ref for the loader element
   const loaderRef = useRef<HTMLDivElement>(null);
   
+  // Function to build query string based on filters
+  const buildQueryString = (page: number) => {
+    let queryString = `/api/survey-dashboard/summary?page=${page}&limit=${limit}`;
+    
+    if (source && source !== 'all') {
+      queryString += `&source=${encodeURIComponent(source)}`;
+    }
+    
+    if (survey && survey !== 'all') {
+      queryString += `&survey=${encodeURIComponent(survey)}`;
+    }
+    
+    if (dateRange && dateRange.from) {
+      queryString += `&startDate=${dateRange.from.toISOString()}`;
+      
+      if (dateRange.to) {
+        queryString += `&endDate=${dateRange.to.toISOString()}`;
+      } else {
+        queryString += `&endDate=${new Date().toISOString()}`;
+      }
+    }
+    
+    return queryString;
+  };
+  
   // Fetch survey dashboard summary data with pagination
   const { 
     data: summaryData, 
     fetchNextPage, 
     hasNextPage, 
     isFetchingNextPage,
-    isLoading: summaryLoading 
+    isLoading: summaryLoading,
+    refetch 
   } = useInfiniteQuery({
-    queryKey: ['/api/survey-dashboard/summary'],
+    queryKey: ['/api/survey-dashboard/summary', { source, survey, dateRange }],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await fetch(`/api/survey-dashboard/summary?page=${pageParam}&limit=${limit}`);
+      const response = await fetch(buildQueryString(pageParam));
       if (!response.ok) {
         throw new Error('Failed to fetch data');
       }
@@ -195,9 +228,50 @@ export default function SurveyDashboard() {
     );
   }
   
+  // Filter handlers
+  const handleSourceChange = (value: string) => {
+    setSource(value);
+  };
+  
+  const handleSurveyChange = (value: string) => {
+    setSurvey(value);
+  };
+  
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+  };
+  
+  // Reset filters
+  const handleResetFilters = () => {
+    setSource("all");
+    setSurvey("all");
+    setDateRange(undefined);
+  };
+  
   return (
     <div className="flex-1 overflow-x-hidden">
-      <Header title="Survey Dashboard" />
+      <Header 
+        title="Survey Dashboard" 
+        totalInsights={stats?.totalInsights || 0}
+        showFilters={true}
+        onSourceChange={handleSourceChange}
+        onSurveyChange={handleSurveyChange}
+        onDateRangeChange={handleDateRangeChange}
+        onResetFilters={handleResetFilters}
+        sourceValue={source}
+        surveyValue={survey}
+        dateRangeValue={dateRange}
+        // Pass source options based on stats data
+        sourceOptions={stats?.bySource.map(s => ({ 
+          label: `${s.source} (${s.count})`, 
+          value: s.source 
+        })) || []}
+        // Pass survey options based on stats data
+        surveyOptions={stats?.byWitel.map(w => ({ 
+          label: `${w.witel} (${w.count})`, 
+          value: w.witel 
+        })) || []}
+      />
       
       <div className="p-6">
         <AIInsightConclusion content={generateAIConclusionText(stats)} />
