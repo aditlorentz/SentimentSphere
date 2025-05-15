@@ -11,6 +11,7 @@ import MyInsights from "@/pages/my-insights";
 import TopInsights from "@/pages/top-insights";
 import SmartAnalytics from "@/pages/smart-analytics";
 import Settings from "@/pages/settings";
+import SurveySummary from "@/pages/survey-summary";
 
 import Sidebar from "@/components/layout/sidebar";
 import { ThemeProvider } from "next-themes";

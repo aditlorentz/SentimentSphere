@@ -725,6 +725,104 @@ export class DatabaseStorage implements IStorage {
     console.log(`URL with ID ${id} deleted`);
   }
 
+  // Survey Dashboard Summary operations
+  async generateSurveyDashboardSummary(): Promise<void> {
+    try {
+      console.log("Generating survey dashboard summary...");
+      
+      // First clear existing summary data
+      await db.delete(surveyDashboardSummary);
+      
+      // Get all unique wordInsight values
+      const uniqueWordInsights = await db
+        .selectDistinct({ wordInsight: employeeInsights.wordInsight })
+        .from(employeeInsights);
+      
+      // For each unique wordInsight, count total, positive, negative, and neutral
+      for (const { wordInsight } of uniqueWordInsights) {
+        // Skip empty wordInsights
+        if (!wordInsight || wordInsight.trim() === '') continue;
+        
+        // Get total count
+        const [totalResult] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(employeeInsights)
+          .where(eq(employeeInsights.wordInsight, wordInsight));
+        
+        // Get positive count
+        const [positiveResult] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(employeeInsights)
+          .where(and(
+            eq(employeeInsights.wordInsight, wordInsight),
+            eq(employeeInsights.sentimen, 'positif')
+          ));
+        
+        // Get negative count
+        const [negativeResult] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(employeeInsights)
+          .where(and(
+            eq(employeeInsights.wordInsight, wordInsight),
+            eq(employeeInsights.sentimen, 'negatif')
+          ));
+        
+        // Get neutral count
+        const [neutralResult] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(employeeInsights)
+          .where(and(
+            eq(employeeInsights.wordInsight, wordInsight),
+            eq(employeeInsights.sentimen, 'netral')
+          ));
+        
+        // Insert summary record
+        await db.insert(surveyDashboardSummary).values({
+          wordInsight,
+          totalCount: totalResult.count,
+          positiveCount: positiveResult.count,
+          negativeCount: negativeResult.count,
+          neutralCount: neutralResult.count
+        });
+      }
+      
+      console.log("Survey dashboard summary generation completed.");
+    } catch (error) {
+      console.error("Error generating survey dashboard summary:", error);
+      throw error;
+    }
+  }
+
+  async getSurveyDashboardSummary(page: number = 1, limit: number = 10): Promise<{
+    data: SurveyDashboardSummary[],
+    total: number
+  }> {
+    try {
+      // Calculate offset
+      const offset = (page - 1) * limit;
+      
+      // Get total count
+      const [totalResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(surveyDashboardSummary);
+      
+      // Get paginated data
+      const data = await db
+        .select()
+        .from(surveyDashboardSummary)
+        .orderBy(desc(surveyDashboardSummary.totalCount))
+        .limit(limit)
+        .offset(offset);
+      
+      return {
+        data,
+        total: totalResult.count
+      };
+    } catch (error) {
+      console.error("Error getting survey dashboard summary:", error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

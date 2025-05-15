@@ -223,6 +223,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Logout failed" });
     }
   });
+  
+  // Survey Dashboard Summary API
+  app.post("/api/survey-dashboard/generate", async (req: Request, res: Response) => {
+    try {
+      await storage.generateSurveyDashboardSummary();
+      res.json({ success: true, message: "Survey dashboard summary generated successfully" });
+    } catch (error) {
+      console.error("Error generating survey dashboard summary:", error);
+      res.status(500).json({ success: false, message: "Failed to generate survey dashboard summary" });
+    }
+  });
+  
+  app.get("/api/survey-dashboard/summary", async (req: Request, res: Response) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      
+      const result = await storage.getSurveyDashboardSummary(page, limit);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching survey dashboard summary:", error);
+      res.status(500).json({ message: "Failed to fetch survey dashboard summary" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
