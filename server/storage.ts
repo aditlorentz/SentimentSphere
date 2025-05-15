@@ -295,7 +295,7 @@ export class DatabaseStorage implements IStorage {
       .from(employeeInsights)
       .where(eq(employeeInsights.sentimen, sentiment))
       .groupBy(employeeInsights.wordInsight)
-      .orderBy(sql`COUNT(*)`, 'desc')
+      .orderBy(desc(sql`COUNT(*)`))
       .limit(limit);
     
     const result: InsightData[] = [];
@@ -350,7 +350,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(employeeInsights)
       .groupBy(employeeInsights.wordInsight)
-      .orderBy(sql`COUNT(*)`, 'desc')
+      .orderBy(desc(sql`COUNT(*)`))
       .limit(limit);
     
     const result: InsightData[] = [];
