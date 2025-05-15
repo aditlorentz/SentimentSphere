@@ -47,9 +47,19 @@ const TopInsightItem = ({ label, count }: TopInsightItemProps) => (
   </div>
 );
 
-// Menggunakan React Query untuk fetch data top insights dari API
-export function useTopWordInsights() {
-  return useQuery({
+// Interface untuk format respons API
+interface TopWordInsightsResponse {
+  success: boolean;
+  data: Array<{
+    id: number;
+    wordInsight: string;
+    totalCount: number;
+  }>;
+}
+
+// Hook untuk mengambil data top insights dari API
+function useTopWordInsights() {
+  return useQuery<TopWordInsightsResponse>({
     queryKey: ['/api/top-word-insights'],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -57,7 +67,12 @@ export function useTopWordInsights() {
 
 export default function Sidebar() {
   // Menggunakan fungsi query untuk mendapatkan data top word insights
-  const { data: topWordInsights, isLoading } = useTopWordInsights();
+  const { data: apiResponse, isLoading } = useTopWordInsights();
+  
+  // Ekstrak data dari respons API
+  const topWordInsights = apiResponse?.data || [];
+  
+  console.log('Top insights in Sidebar:', topWordInsights);
 
   return (
     <aside className="w-64 bg-white shadow-neu flex-shrink-0 flex flex-col h-screen sticky top-0">
@@ -105,7 +120,7 @@ export default function Sidebar() {
             <div className="text-center py-4 text-gray-400 text-sm">
               Loading insights...
             </div>
-          ) : topWordInsights && topWordInsights.length > 0 ? (
+          ) : topWordInsights.length > 0 ? (
             // Tampilkan data jika tersedia
             topWordInsights.map((insight) => (
               <TopInsightItem

@@ -28,6 +28,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await db.select().from(topWordInsights)
         .orderBy(sql`${topWordInsights.totalCount} DESC`)
         .limit(10);
+      // Kembalikan data tanpa wrapper object
       res.json(result);
     } catch (error) {
       console.error("Error fetching top word insights:", error);
