@@ -44,7 +44,7 @@ export default function Header({
   });
 
   return (
-    <header className="bg-white border-b border-gray-200 py-4 px-6 flex flex-col lg:flex-row lg:items-center lg:justify-between">
+    <header className="sticky top-0 z-30 bg-white border-b border-gray-200 py-4 px-6 flex flex-col lg:flex-row lg:items-center lg:justify-between shadow-sm">
       <h1 className="text-2xl font-display font-bold text-black tracking-tight">{title}</h1>
 
       {showFilters && (

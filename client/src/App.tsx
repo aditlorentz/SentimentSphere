@@ -21,7 +21,7 @@ function Router() {
   return (
     <div className={`${!isLoginPage ? "flex min-h-screen" : ""}`}>
       {!isLoginPage && <Sidebar />}
-      <div className={!isLoginPage ? "flex-1 flex flex-col" : "w-full"}>
+      <div className={!isLoginPage ? "flex-1 flex flex-col relative h-screen overflow-y-auto" : "w-full"}>
         <Switch>
           <Route path="/" component={Login} />
           <Route path="/login" component={Login} />
