@@ -21,6 +21,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register survey dashboard regeneration routes
   registerSummaryRegenerationRoutes(app);
+  
+  // Endpoint untuk top word insights
+  app.get("/api/top-word-insights", async (req: Request, res: Response) => {
+    try {
+      const result = await db.select().from(topWordInsights)
+        .orderBy(sql`${topWordInsights.totalCount} DESC`)
+        .limit(10);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching top word insights:", error);
+      res.status(500).json({ message: "Failed to fetch top word insights" });
+    }
+  });
+  
   // PostgreSQL API routes - untuk data insight dari database
   app.get("/api/postgres/insights", async (req: Request, res: Response) => {
     try {

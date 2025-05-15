@@ -47,15 +47,18 @@ const TopInsightItem = ({ label, count }: TopInsightItemProps) => (
   </div>
 );
 
-const topInsights = [
-  { label: "kepegawaian hc", count: 26 },
-  { label: "kepegawaian hc", count: 25 },
-  { label: "kritik konstruktif", count: 25 },
-  { label: "bonus tahunan hc", count: 23 },
-  { label: "bonus tahunan hc", count: 20 },
-];
+// Menggunakan React Query untuk fetch data top insights dari API
+export function useTopWordInsights() {
+  return useQuery({
+    queryKey: ['/api/top-word-insights'],
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
 
 export default function Sidebar() {
+  // Menggunakan fungsi query untuk mendapatkan data top word insights
+  const { data: topWordInsights, isLoading } = useTopWordInsights();
+
   return (
     <aside className="w-64 bg-white shadow-neu flex-shrink-0 flex flex-col h-screen sticky top-0">
       <div className="p-4 border-b border-gray-100 flex items-center">
@@ -97,13 +100,26 @@ export default function Sidebar() {
           TOP INSIGHTS
         </p>
         <nav className="mt-4 space-y-1">
-          {topInsights.map((insight, index) => (
-            <TopInsightItem
-              key={index}
-              label={insight.label}
-              count={insight.count}
-            />
-          ))}
+          {isLoading ? (
+            // Tampilkan loading state saat data sedang dimuat
+            <div className="text-center py-4 text-gray-400 text-sm">
+              Loading insights...
+            </div>
+          ) : topWordInsights && topWordInsights.length > 0 ? (
+            // Tampilkan data jika tersedia
+            topWordInsights.map((insight) => (
+              <TopInsightItem
+                key={insight.id}
+                label={insight.wordInsight}
+                count={insight.totalCount}
+              />
+            ))
+          ) : (
+            // Tampilkan pesan jika tidak ada data
+            <div className="text-center py-4 text-gray-400 text-sm">
+              No insights available
+            </div>
+          )}
         </nav>
       </div>
     </aside>
