@@ -6,6 +6,8 @@ import {
 } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +33,18 @@ interface InsightItemProps {
 
 export function InsightItem({ insight, onRemove }: InsightItemProps) {
   const [showDetails, setShowDetails] = useState(false);
+  
+  // Fetch detailed data from employee_insights when dialog is opened
+  const { data: insightDetails, isLoading } = useQuery({
+    queryKey: [`/api/postgres/insights/word/${insight.title}`, showDetails],
+    queryFn: async () => {
+      if (!showDetails) return null;
+      const response = await fetch(`/api/postgres/insights/word/${encodeURIComponent(insight.title)}`);
+      if (!response.ok) throw new Error('Failed to fetch insight details');
+      return response.json();
+    },
+    enabled: showDetails,
+  });
   
   return (
     <>
@@ -93,7 +107,7 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
       </div>
       
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">{insight.title}</DialogTitle>
             <DialogDescription className="text-base">
@@ -131,7 +145,7 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
               <h4 className="text-sm font-medium mb-2">Statistik</h4>
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-blue-50 p-3 rounded-md">
-                  <p className="text-xs text-gray-500">Views</p>
+                  <p className="text-xs text-gray-500">Total</p>
                   <p className="text-lg font-bold text-blue-500">{insight.views}</p>
                 </div>
                 <div className="bg-indigo-50 p-3 rounded-md">
@@ -150,6 +164,63 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
                 {getDominantSentimentDescription(insight)}.
               </p>
             </div>
+            
+            {isLoading && (
+              <div className="flex justify-center py-4">
+                <p className="text-gray-500">Memuat data detail...</p>
+              </div>
+            )}
+            
+            {!isLoading && insightDetails && insightDetails.data && insightDetails.data.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-2">Data dari Database</h4>
+                <div className="overflow-auto max-h-60 border rounded-md">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sumber</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Karyawan</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Witel</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sentimen</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {insightDetails.data.map((item: any) => (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                          <td className="px-3 py-2 whitespace-nowrap text-xs">{item.sourceData}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs">{item.employeeName}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs">
+                            {format(new Date(item.date), 'dd/MM/yyyy')}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs">{item.witel}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs">
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              item.sentimen === 'positif' 
+                                ? 'bg-green-100 text-green-800' 
+                                : item.sentimen === 'negatif'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {item.sentimen}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-2 text-xs text-right text-gray-500">
+                  Menampilkan {insightDetails.data.length} dari {insightDetails.total} data
+                </div>
+              </div>
+            )}
+            
+            {!isLoading && (!insightDetails || !insightDetails.data || insightDetails.data.length === 0) && (
+              <div className="py-4 text-center text-gray-500">
+                Tidak ada data detail untuk ditampilkan.
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

@@ -71,6 +71,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch insight stats" });
     }
   });
+  
+  // Endpoint untuk mendapatkan data employee insights berdasarkan word insight
+  app.get("/api/postgres/insights/word/:wordInsight", async (req: Request, res: Response) => {
+    try {
+      const wordInsight = req.params.wordInsight;
+      if (!wordInsight) {
+        return res.status(400).json({ error: "Word insight is required" });
+      }
+      
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 5;
+      
+      const result = await storage.getInsightsData(page, limit, { wordInsight });
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching insights by word:", error);
+      res.status(500).json({ error: "Failed to fetch insights by word" });
+    }
+  });
 
   // API routes legacy
   app.get("/api/insights", async (req: Request, res: Response) => {
