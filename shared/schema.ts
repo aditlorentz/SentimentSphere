@@ -100,6 +100,8 @@ export const topInsights = pgTable("top_insights", {
   employee: text("employee").notNull(),
   sentiment: text("sentiment").notNull(),
   date: timestamp("date").defaultNow(),
+  wordInsight: text("word_insight"),
+  totalCount: integer("total_count"),
 });
 
 export const insertTopInsightSchema = createInsertSchema(topInsights).omit({
