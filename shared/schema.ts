@@ -124,6 +124,10 @@ export interface TopInsightData {
   insights: TopInsight[];
   totalCount: number;
   wordCloudSvg: string;
+  wordCloudData?: Array<{
+    tag: string;
+    weight: number;
+  }>;
 }
 
 export interface AnalyticsFullData {

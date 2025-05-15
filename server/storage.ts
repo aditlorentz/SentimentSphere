@@ -277,6 +277,21 @@ export class MemStorage implements IStorage {
       },
     ];
 
+    const wordCloudData = [
+      { tag: "program", weight: 80 },
+      { tag: "karyawan", weight: 65 },
+      { tag: "peserta", weight: 42 },
+      { tag: "materi", weight: 48 },
+      { tag: "proses", weight: 35 },
+      { tag: "evaluasi", weight: 30 },
+      { tag: "manajemen", weight: 25 },
+      { tag: "perusahaan", weight: 20 },
+      { tag: "pengembangan", weight: 15 },
+      { tag: "implementasi", weight: 12 },
+      { tag: "kebijakan", weight: 10 },
+      { tag: "administrasi", weight: 8 }
+    ];
+
     // Simple pagination
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
@@ -286,6 +301,7 @@ export class MemStorage implements IStorage {
       insights: paginatedInsights,
       totalCount: 500, // Total count for pagination
       wordCloudSvg: this.wordCloudSvg,
+      wordCloudData: wordCloudData,
     };
   }
 

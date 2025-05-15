@@ -149,9 +149,9 @@ export default function TopInsights() {
         
         <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="flex justify-center mb-4">
-              {topInsights?.wordCloudSvg && (
-                <div dangerouslySetInnerHTML={{ __html: topInsights.wordCloudSvg }} />
+            <div className="mb-4">
+              {topInsights?.wordCloudData && (
+                <WordCloud data={topInsights.wordCloudData} height="320px" />
               )}
             </div>
             
