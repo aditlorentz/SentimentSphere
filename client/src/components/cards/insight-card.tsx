@@ -26,14 +26,26 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
     <div className="p-4 border-b border-gray-100 hover:bg-gray-50 transition-all duration-200">
       <div className="flex items-center justify-between mb-3">
         <p className="font-medium text-sm text-gray-700">{insight.title}</p>
-        {onRemove && (
-          <button 
-            className="text-gray-400 hover:text-gray-600"
-            onClick={() => onRemove(insight.id)}
+        <button 
+          className="text-gray-400 hover:text-blue-600"
+          onClick={() => onRemove ? onRemove(insight.id) : {}}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="lucide lucide-pin"
           >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+            <line x1="12" x2="12" y1="17" y2="22" />
+            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 16.24Z" />
+          </svg>
+        </button>
       </div>
       
       <ProgressBar 
@@ -93,7 +105,7 @@ export function SentimentCategoryCard({
             {badge}
           </span>
         </div>
-        <button className="text-gray-400 hover:text-gray-600">
+        <button className="text-gray-400 hover:text-blue-600">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -104,11 +116,10 @@ export function SentimentCategoryCard({
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="lucide lucide-more-vertical"
+            className="lucide lucide-pin"
           >
-            <circle cx="12" cy="5" r="1" />
-            <circle cx="12" cy="12" r="1" />
-            <circle cx="12" cy="19" r="1" />
+            <line x1="12" x2="12" y1="17" y2="22" />
+            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 16.24Z" />
           </svg>
         </button>
       </div>
