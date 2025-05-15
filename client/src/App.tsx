@@ -11,6 +11,7 @@ import MyInsights from "@/pages/my-insights";
 import TopInsights from "@/pages/top-insights";
 import SmartAnalytics from "@/pages/smart-analytics";
 import Settings from "@/pages/settings";
+import DatabaseInsights from "@/pages/database-insights";
 import Sidebar from "@/components/layout/sidebar";
 import { ThemeProvider } from "next-themes";
 
@@ -30,6 +31,7 @@ function Router() {
           <Route path="/top-insights" component={TopInsights} />
           <Route path="/smart-analytics" component={SmartAnalytics} />
           <Route path="/settings" component={Settings} />
+          <Route path="/database-insights" component={DatabaseInsights} />
           <Route component={NotFound} />
         </Switch>
       </div>
