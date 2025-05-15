@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
 import { Brain, ChartLine, Star, BarChart3, Settings } from "lucide-react";
+import nlpLogo from "../../assets/logo-nlp.webp";
 
 interface SidebarItemProps {
   href: string;
@@ -57,9 +58,11 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-white shadow-neu flex-shrink-0 flex flex-col h-screen sticky top-0">
       <div className="p-4 border-b border-gray-100 flex items-center">
-        <div className="h-8 w-8 rounded-md bg-secondary flex items-center justify-center text-white">
-          <Brain className="h-5 w-5" />
-        </div>
+        <img 
+          src={nlpLogo} 
+          alt="NLP Logo" 
+          className="h-10"
+        />
         <h1 className="font-display text-lg font-semibold ml-3 text-primary">
           NLP Insight
         </h1>
