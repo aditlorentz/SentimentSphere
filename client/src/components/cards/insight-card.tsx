@@ -112,7 +112,7 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">{insight.title}</DialogTitle>
             <DialogDescription className="text-base">
-              Detail Word Insight
+              Detail Insight
             </DialogDescription>
           </DialogHeader>
           
@@ -164,7 +164,7 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
             
             {!isLoading && insightDetails && insightDetails.data && insightDetails.data.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium mb-2">Data dari Database</h4>
+                <h4 className="text-sm font-medium mb-2">Data Detail</h4>
                 <div className="space-y-4">
                   <div className="overflow-auto max-h-60 border rounded-md">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -203,7 +203,7 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
                     </table>
                   </div>
                   
-                  <h4 className="text-sm font-medium mb-2">Sentence Insights</h4>
+                  <h4 className="text-sm font-medium mb-2">Sentence Detail</h4>
                   <div className="overflow-auto max-h-60 border rounded-md">
                     <div className="divide-y divide-gray-200">
                       {insightDetails.data.map((item: any) => (

@@ -242,7 +242,7 @@ export default function SurveyDashboard() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <SentimentCategoryCard
-            title="Netral Insight dari Survey"
+            title="Netral"
             badge={categories.neutral.length}
             type="neutral"
             insights={categories.neutral}
@@ -250,7 +250,7 @@ export default function SurveyDashboard() {
           />
           
           <SentimentCategoryCard
-            title="Negative Insight dari Survey"
+            title="Negatif"
             badge={categories.negative.length}
             type="negative"
             insights={categories.negative}
@@ -258,7 +258,7 @@ export default function SurveyDashboard() {
           />
           
           <SentimentCategoryCard
-            title="Positif Insight dari Survey"
+            title="Positif"
             badge={categories.positive.length}
             type="positive"
             insights={categories.positive}
@@ -268,7 +268,7 @@ export default function SurveyDashboard() {
         
         {/* Informasi jumlah data */}
         <div className="text-center text-gray-500 text-sm mt-4 mb-6">
-          Menampilkan semua {totalData} data insight dari database
+          Menampilkan semua {totalData} data dari database
         </div>
         
         {/* Show chat bot */}
