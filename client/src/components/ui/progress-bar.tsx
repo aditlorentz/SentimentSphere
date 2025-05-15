@@ -53,7 +53,7 @@ export function SentimentIndicator({
         style={{ backgroundColor: color }}
       />
       <span className="text-xs text-gray-500">
-        {label} WordInsight: {percentage}%
+        {label}: {percentage}%
       </span>
     </div>
   );
@@ -115,7 +115,7 @@ export function InsightStats({ views, comments }: InsightStatsProps) {
           <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
-        <span>Jumlah WordInsight: {views}</span>
+        <span>Jumlah: {views}</span>
       </div>
       <div className="flex items-center space-x-1">
         <svg
