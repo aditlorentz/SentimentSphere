@@ -2,9 +2,12 @@ import express, { type Express, NextFunction } from "express";
 import type { Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema } from "@shared/schema";
+import { insertUserSchema, surveyDashboardSummary } from "@shared/schema";
+import { topWordInsights } from "@shared/schema-top-insights";
 import { registerSummaryRegenerationRoutes } from "./api-generate-summary";
 import { compareSync, hashSync } from "bcryptjs";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 
 // Simple middleware to log requests
 const logRequests = (req: Request, res: Response, next: NextFunction) => {
@@ -294,6 +297,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching survey dashboard summary:", error);
       res.status(500).json({ message: "Failed to fetch survey dashboard summary" });
+    }
+  });
+  
+  // API untuk melihat top word insights (dari tabel baru)
+  app.get("/api/top-word-insights", async (req: Request, res: Response) => {
+    try {
+      // Ambil top word insights dari database
+      const topWordInsightsData = await db
+        .select()
+        .from(topWordInsights)
+        .orderBy(sql`${topWordInsights.totalCount} DESC`);
+      
+      res.json({
+        success: true,
+        data: topWordInsightsData
+      });
+    } catch (error: any) {
+      console.error("Error fetching top word insights:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch top word insights",
+        error: error.message
+      });
     }
   });
 

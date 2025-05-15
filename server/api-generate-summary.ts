@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { employeeInsights, surveyDashboardSummary } from "@shared/schema";
+import { employeeInsights, surveyDashboardSummary, topInsights } from "@shared/schema";
 import { sql, eq, and } from "drizzle-orm";
 import express from "express";
 
@@ -92,12 +92,52 @@ router.post("/api/regenerate-survey-summary", async (req, res) => {
     console.log("\n✅ Regenerasi selesai!");
     
     // Kirim response sukses dengan detail hasil
+    // Update both top_insights and top_word_insights tables
+    console.log("🔄 Memperbarui tabel top_insights dan top_word_insights dengan 10 word insight teratas...");
+    
+    // Clear existing insights
+    await db.delete(topInsights);
+    await db.delete(topWordInsights);
+    
+    // Get top 10 word insights based on total_count
+    const topInsightsList = await db
+      .select({
+        wordInsight: surveyDashboardSummary.wordInsight,
+        totalCount: surveyDashboardSummary.totalCount
+      })
+      .from(surveyDashboardSummary)
+      .orderBy(sql`${surveyDashboardSummary.totalCount} DESC`)
+      .limit(10);
+    
+    // Insert into top_insights table (existing table)
+    for (const insight of topInsightsList) {
+      await db.insert(topInsights).values({
+        wordInsight: insight.wordInsight,
+        totalCount: insight.totalCount,
+        location: 'n/a',
+        source: 'n/a',
+        employee: 'n/a',
+        sentiment: 'n/a'
+      });
+    }
+    
+    // Insert into top_word_insights table (new simplified table)
+    for (const insight of topInsightsList) {
+      await db.insert(topWordInsights).values({
+        wordInsight: insight.wordInsight,
+        totalCount: insight.totalCount
+      });
+    }
+    
+    console.log(`✅ Berhasil menyimpan ${topInsightsList.length} word insight teratas ke tabel top_insights dan top_word_insights`);
+    
     res.json({
       success: true,
-      message: "Regenerasi survey dashboard summary berhasil",
+      message: "Regenerasi survey dashboard summary dan top insights berhasil",
       stats: {
         totalWordInsightsProcessed: summaryCount.count,
         totalDataProcessed: totalInsights.sum,
+        topInsightsUpdated: topInsightsList.length
       }
     });
   } catch (error: any) {
