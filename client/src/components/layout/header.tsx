@@ -44,7 +44,7 @@ export default function Header({
 
   return (
     <header className="bg-white border-b border-gray-200 py-4 px-6 flex flex-col lg:flex-row lg:items-center lg:justify-between">
-      <h1 className="text-2xl font-display font-bold text-black">{title}</h1>
+      <h1 className="text-2xl font-display font-bold text-black tracking-tight">{title}</h1>
 
       {showFilters && (
         <div className="flex items-center space-x-2 mt-4 lg:mt-0 overflow-x-auto pb-2 lg:pb-0">
