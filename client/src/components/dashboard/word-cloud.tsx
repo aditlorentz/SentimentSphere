@@ -9,9 +9,15 @@ interface WordCloudProps {
   }>;
   width?: string;
   height?: string;
+  title?: string;
 }
 
-const WordCloud: React.FC<WordCloudProps> = ({ data, width = '100%', height = '300px' }) => {
+const WordCloud: React.FC<WordCloudProps> = ({ 
+  data, 
+  width = '100%', 
+  height = '300px',
+  title = "Common Topics"
+}) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<am5.Root | null>(null);
 

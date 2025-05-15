@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import AIInsightConclusion from "@/components/dashboard/ai-conclusion";
 import Chatbot from "@/components/dashboard/chatbot";
 import WordCloud from "@/components/dashboard/word-cloud";
+import IndonesiaMap from "@/components/dashboard/indonesia-map";
 import { useQuery } from "@tanstack/react-query";
 import {
   Table,
@@ -149,10 +150,32 @@ export default function TopInsights() {
         
         <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="mb-4">
-              {topInsights?.wordCloudData && (
-                <WordCloud data={topInsights.wordCloudData} height="320px" />
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                {topInsights?.wordCloudData && (
+                  <WordCloud 
+                    data={topInsights.wordCloudData} 
+                    height="320px" 
+                    title="Word Cloud Analysis"
+                  />
+                )}
+              </div>
+              <div>
+                <IndonesiaMap 
+                  title="Regional Distribution"
+                  height="320px"
+                  data={[
+                    { id: "ID-JK", name: "Jakarta", value: 42 },
+                    { id: "ID-JB", name: "West Java", value: 35 },
+                    { id: "ID-JI", name: "East Java", value: 28 },
+                    { id: "ID-JT", name: "Central Java", value: 25 },
+                    { id: "ID-SN", name: "South Sulawesi", value: 18 },
+                    { id: "ID-BT", name: "Banten", value: 15 },
+                    { id: "ID-SU", name: "North Sumatra", value: 12 },
+                    { id: "ID-KT", name: "East Kalimantan", value: 10 }
+                  ]}
+                />
+              </div>
             </div>
             
             <div className="overflow-x-auto">

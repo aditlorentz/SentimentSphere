@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@amcharts/amcharts5": "^5.12.2",
+    "@amcharts/amcharts5-geodata": "^5.1.4",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
