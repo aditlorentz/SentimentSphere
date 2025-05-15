@@ -294,69 +294,192 @@ export default function SmartAnalytics() {
                 </button>
               </div>
               
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart
-                  data={data?.monthlyData}
-                  margin={{
-                    top: 10,
-                    right: 30,
-                    left: 0,
-                    bottom: 0,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                  <YAxis tickLine={false} axisLine={false} />
-                  <Tooltip />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="positive"
-                    stackId="1"
-                    stroke="#00B894"
-                    fill="#00B894"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="negative"
-                    stackId="1"
-                    stroke="#FF7675"
-                    fill="#FF7675"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="neutral"
-                    stackId="1"
-                    stroke="#FDCB6E"
-                    fill="#FDCB6E"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="bg-white rounded-xl overflow-hidden">
+                <div className="py-1 px-2">
+                  <h3 className="text-base font-semibold mx-4 my-3 text-gray-800">Sentiment Trends Over Time</h3>
+                </div>
+                
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart
+                    data={data?.monthlyData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 5,
+                      bottom: 5,
+                    }}
+                  >
+                    <defs>
+                      <linearGradient id="colorPositive" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#00B894" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#00B894" stopOpacity={0.1}/>
+                      </linearGradient>
+                      <linearGradient id="colorNegative" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FF7675" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#FF7675" stopOpacity={0.1}/>
+                      </linearGradient>
+                      <linearGradient id="colorNeutral" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FDCB6E" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#FDCB6E" stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="name" 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tick={{ fill: '#64748b', fontSize: 12 }}
+                      dy={10}
+                    />
+                    <YAxis 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tick={{ fill: '#64748b', fontSize: 12 }}
+                      dx={-5}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        borderRadius: '8px', 
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                        border: 'none',
+                        padding: '10px 14px',
+                      }}
+                      itemStyle={{ 
+                        fontSize: '12px',
+                        padding: '2px 0',
+                      }}
+                      labelStyle={{
+                        fontWeight: 'bold',
+                        marginBottom: '5px',
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="top"
+                      height={36}
+                      iconType="circle"
+                      iconSize={8}
+                      wrapperStyle={{
+                        paddingBottom: '10px',
+                        fontSize: '12px',
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="positive"
+                      name="Positive"
+                      stackId="1"
+                      stroke="#00B894"
+                      strokeWidth={2}
+                      fill="url(#colorPositive)"
+                      activeDot={{ r: 6, strokeWidth: 0 }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="negative"
+                      name="Negative"
+                      stackId="1"
+                      stroke="#FF7675"
+                      strokeWidth={2}
+                      fill="url(#colorNegative)"
+                      activeDot={{ r: 6, strokeWidth: 0 }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="neutral"
+                      name="Neutral"
+                      stackId="1"
+                      stroke="#FDCB6E"
+                      strokeWidth={2}
+                      fill="url(#colorNeutral)"
+                      activeDot={{ r: 6, strokeWidth: 0 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
           
           <Card className="shadow-[0_10px_20px_rgba(0,0,0,0.05)]">
             <CardContent className="p-6">
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={data?.pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {data?.pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="bg-white rounded-xl overflow-hidden">
+                <div className="py-1 px-2">
+                  <h3 className="text-base font-semibold mx-4 my-3 text-gray-800">Sentiment Distribution</h3>
+                </div>
+                
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <defs>
+                      <filter id="shadow" height="200%" width="200%" x="-50%" y="-50%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.1"/>
+                      </filter>
+                      <linearGradient id="positiveGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#27ae60" />
+                        <stop offset="100%" stopColor="#00B894" />
+                      </linearGradient>
+                      <linearGradient id="negativeGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#e74c3c" />
+                        <stop offset="100%" stopColor="#FF7675" />
+                      </linearGradient>
+                      <linearGradient id="neutralGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#f39c12" />
+                        <stop offset="100%" stopColor="#FDCB6E" />
+                      </linearGradient>
+                    </defs>
+                    <Pie
+                      data={data?.pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      innerRadius={60}
+                      outerRadius={90}
+                      fill="#8884d8"
+                      dataKey="value"
+                      paddingAngle={5}
+                      cornerRadius={5}
+                      label={({ name, percent }) => {
+                        return `${name}: ${(percent * 100).toFixed(0)}%`;
+                      }}
+                      labelStyle={{ fontSize: 13, fontWeight: 500, fill: '#333' }}
+                    >
+                      {data?.pieData.map((entry, index) => {
+                        const gradientId = 
+                          entry.name === "Positive" ? "positiveGradient" : 
+                          entry.name === "Negative" ? "negativeGradient" : "neutralGradient";
+                        return (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={`url(#${gradientId})`} 
+                            stroke="#fff"
+                            strokeWidth={2}
+                            style={{ filter: 'drop-shadow(0px 2px 3px rgba(0,0,0,0.1))' }}
+                          />
+                        );
+                      })}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        borderRadius: '8px', 
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                        border: 'none',
+                        padding: '10px 14px',
+                      }} 
+                      formatter={(value, name) => [`${value} (${(value / data?.totalInsights! * 100).toFixed(1)}%)`, name]}
+                      itemStyle={{ fontSize: '12px', padding: '2px 0' }}
+                      labelStyle={{ fontWeight: 'bold', marginBottom: '5px' }}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      iconType="circle"
+                      iconSize={10}
+                      formatter={(value) => {
+                        return <span style={{ fontSize: '13px', color: '#4b5563', padding: '0 8px' }}>{value}</span>;
+                      }}
+                      wrapperStyle={{ paddingTop: 20 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </div>
