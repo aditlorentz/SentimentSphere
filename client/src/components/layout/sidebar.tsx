@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
 import { Brain, ChartLine, Star, BarChart3, Settings, BarChart2 } from "lucide-react";
 import nlpLogo from "../../assets/logo-nlp.webp";
+import { useQuery } from "@tanstack/react-query";
 
 interface SidebarItemProps {
   href: string;
