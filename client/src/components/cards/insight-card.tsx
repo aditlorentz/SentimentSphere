@@ -156,16 +156,6 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
               </div>
             </div>
             
-            <div className="bg-gray-50 p-4 rounded-md">
-              <h4 className="text-sm font-medium mb-2">Word Insight Interpretation</h4>
-              <p className="text-sm text-gray-600">
-                Kata kunci "{insight.title}" memiliki sentimen {getDominantSentiment(insight)} 
-                dengan {getPercentageForSentiment(insight, getDominantSentiment(insight))}% dari total. 
-                Ini menunjukkan bahwa tanggapan karyawan terhadap topik ini cenderung 
-                {getDominantSentimentDescription(insight)}.
-              </p>
-            </div>
-            
             {isLoading && (
               <div className="flex justify-center py-4">
                 <p className="text-gray-500">Memuat data detail...</p>
