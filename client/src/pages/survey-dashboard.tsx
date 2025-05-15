@@ -1,12 +1,11 @@
-import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import React, { useMemo, useState } from "react";
 import Header from "@/components/layout/header";
 import AIInsightConclusion from "@/components/dashboard/ai-conclusion";
 import { SentimentCategoryCard } from "@/components/cards/insight-card";
 import Chatbot from "@/components/dashboard/chatbot";
-import { useQuery, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { InsightData } from "@/components/cards/insight-card";
 import { CategoryInsights, SurveyDashboardSummary } from "@shared/schema";
-import { Button } from "@/components/ui/button";
 import { DateRange } from "react-day-picker";
 
 // Fungsi untuk menghasilkan teks AI conclusion berdasarkan statistik
@@ -52,7 +51,6 @@ function generateAIConclusionText(stats: any): string {
 }
 
 export default function SurveyDashboard() {
-  const [limit] = useState(10);
   const queryClient = useQueryClient();
   
   // Filter state
@@ -78,12 +76,10 @@ export default function SurveyDashboard() {
     queryKey: ['/api/postgres/stats'],
   });
   
-  // Create a ref for the loader element
-  const loaderRef = useRef<HTMLDivElement>(null);
-  
   // Function to build query string based on filters
-  const buildQueryString = (page: number) => {
-    let queryString = `/api/survey-dashboard/summary?page=${page}&limit=${limit}`;
+  const buildQueryString = () => {
+    // Tidak perlu pagination karena kita akan menampilkan semua data
+    let queryString = `/api/survey-dashboard/summary?page=1&limit=1000`;
     
     if (source && source !== 'all') {
       queryString += `&source=${encodeURIComponent(source)}`;
@@ -106,55 +102,24 @@ export default function SurveyDashboard() {
     return queryString;
   };
   
-  // Fetch survey dashboard summary data with pagination
+  // Fetch survey dashboard summary data langsung (bukan infinite)
   const { 
     data: summaryData, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage,
     isLoading: summaryLoading,
     refetch 
-  } = useInfiniteQuery({
+  } = useQuery<{
+    data: SurveyDashboardSummary[];
+    total: string;
+  }>({
     queryKey: ['/api/survey-dashboard/summary', { source, survey, dateRange }],
-    queryFn: async ({ pageParam = 1 }) => {
-      const response = await fetch(buildQueryString(pageParam));
+    queryFn: async () => {
+      const response = await fetch(buildQueryString());
       if (!response.ok) {
         throw new Error('Failed to fetch data');
       }
       return response.json();
     },
-    getNextPageParam: (lastPage, allPages) => {
-      if (!lastPage || !lastPage.data || lastPage.data.length < limit) {
-        return undefined;
-      }
-      return allPages.length + 1;
-    },
-    initialPageParam: 1,
   });
-  
-  // Set up intersection observer for infinite scrolling
-  useEffect(() => {
-    const currentLoaderRef = loaderRef.current;
-    
-    if (!currentLoaderRef || isFetchingNextPage || !hasNextPage) return;
-    
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.5 }
-    );
-    
-    observer.observe(currentLoaderRef);
-    
-    return () => {
-      if (currentLoaderRef) {
-        observer.unobserve(currentLoaderRef);
-      }
-    };
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
   
   // Convert survey dashboard summary data to sentiment categories
   const categories = useMemo(() => {
@@ -164,40 +129,36 @@ export default function SurveyDashboard() {
       neutral: [] as InsightData[],
     };
     
-    if (!summaryData?.pages) return result;
+    if (!summaryData?.data) return result;
     
-    // Process each page of data
-    summaryData.pages.forEach(page => {
-      if (!page.data) return;
+    // Process all data at once
+    summaryData.data.forEach((item: SurveyDashboardSummary) => {
+      const posPercent = item.positivePercentage || 0;
+      const negPercent = item.negativePercentage || 0;
+      const neutPercent = item.neutralPercentage || 0;
       
-      page.data.forEach((item: SurveyDashboardSummary) => {
-        const posPercent = item.positivePercentage || 0;
-        const negPercent = item.negativePercentage || 0;
-        const neutPercent = item.neutralPercentage || 0;
-        
-        // Find the highest percentage
-        const maxPercent = Math.max(posPercent, negPercent, neutPercent);
-        
-        // Create insight object
-        const insight: InsightData = {
-          id: item.id,
-          title: item.wordInsight,
-          positivePercentage: posPercent,
-          negativePercentage: negPercent,
-          neutralPercentage: neutPercent,
-          views: item.totalCount,
-          comments: 0
-        };
-        
-        // Add to appropriate category based on highest percentage
-        if (maxPercent === posPercent && maxPercent > 0) {
-          result.positive.push(insight);
-        } else if (maxPercent === negPercent && maxPercent > 0) {
-          result.negative.push(insight);
-        } else if (maxPercent === neutPercent && maxPercent > 0) {
-          result.neutral.push(insight);
-        }
-      });
+      // Find the highest percentage
+      const maxPercent = Math.max(posPercent, negPercent, neutPercent);
+      
+      // Create insight object
+      const insight: InsightData = {
+        id: item.id,
+        title: item.wordInsight,
+        positivePercentage: posPercent,
+        negativePercentage: negPercent,
+        neutralPercentage: neutPercent,
+        views: item.totalCount,
+        comments: 0
+      };
+      
+      // Add to appropriate category based on highest percentage
+      if (maxPercent === posPercent && maxPercent > 0) {
+        result.positive.push(insight);
+      } else if (maxPercent === negPercent && maxPercent > 0) {
+        result.negative.push(insight);
+      } else if (maxPercent === neutPercent && maxPercent > 0) {
+        result.neutral.push(insight);
+      }
     });
     
     return result;
@@ -247,6 +208,9 @@ export default function SurveyDashboard() {
     setSurvey("all");
     setDateRange(undefined);
   };
+  
+  // Informasi jumlah total data
+  const totalData = parseInt(summaryData?.total || "0");
   
   return (
     <div className="flex-1 overflow-x-hidden">
@@ -302,26 +266,10 @@ export default function SurveyDashboard() {
           />
         </div>
         
-        {/* Load more trigger for infinite scroll */}
-        {hasNextPage && (
-          <div className="flex justify-center my-8" ref={loaderRef}>
-            <Button
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              variant="outline"
-              className="px-8"
-            >
-              {isFetchingNextPage ? 'Loading...' : 'Load More Insights'}
-            </Button>
-          </div>
-        )}
-        
-        {/* Loading indicator */}
-        {isFetchingNextPage && (
-          <div className="flex justify-center items-center my-4">
-            <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-          </div>
-        )}
+        {/* Informasi jumlah data */}
+        <div className="text-center text-gray-500 text-sm mt-4 mb-6">
+          Menampilkan semua {totalData} data insight dari database
+        </div>
         
         {/* Show chat bot */}
         <div className="mt-8">
