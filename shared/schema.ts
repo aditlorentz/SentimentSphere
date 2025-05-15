@@ -92,16 +92,17 @@ export const analyticsData = pgTable("analytics_data", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Top insights table schema
+// Top insights table schema for storing top word insights based on total count
 export const topInsights = pgTable("top_insights", {
   id: serial("id").primaryKey(),
-  location: text("location").notNull(),
-  source: text("source").notNull(),
-  employee: text("employee").notNull(),
-  sentiment: text("sentiment").notNull(),
+  wordInsight: text("word_insight").notNull(),
+  totalCount: integer("total_count").notNull(),
+  // Kolom berikut hanya untuk kompatibilitas dengan struktur database lama
+  location: text("location").notNull().default('n/a'),
+  source: text("source").notNull().default('n/a'),
+  employee: text("employee").notNull().default('n/a'),
+  sentiment: text("sentiment").notNull().default('n/a'),
   date: timestamp("date").defaultNow(),
-  wordInsight: text("word_insight"),
-  totalCount: integer("total_count"),
 });
 
 export const insertTopInsightSchema = createInsertSchema(topInsights).omit({
