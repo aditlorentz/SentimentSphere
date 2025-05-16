@@ -8,7 +8,8 @@ interface RegionData {
   id: string;
   name: string;
   value: number;
-  fill?: am5.Color;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface IndonesiaMapProps {
@@ -17,6 +18,18 @@ interface IndonesiaMapProps {
   width?: string;
   height?: string;
 }
+
+// Koordinat pusat dari provinsi-provinsi utama di Indonesia
+const REGION_COORDS = {
+  "ID-JK": { latitude: -6.2, longitude: 106.8 },  // Jakarta
+  "ID-JB": { latitude: -6.9, longitude: 107.6 },  // West Java (Bandung)
+  "ID-JI": { latitude: -7.5, longitude: 112.5 },  // East Java (Surabaya)
+  "ID-JT": { latitude: -7.0, longitude: 110.4 },  // Central Java (Semarang)
+  "ID-SN": { latitude: -5.1, longitude: 119.4 },  // South Sulawesi (Makassar)
+  "ID-BT": { latitude: -6.1, longitude: 106.1 },  // Banten (Serang)
+  "ID-SU": { latitude: 3.6, longitude: 98.7 },    // North Sumatra (Medan)
+  "ID-KT": { latitude: -0.5, longitude: 117.1 }   // East Kalimantan (Samarinda)
+};
 
 const IndonesiaMap: React.FC<IndonesiaMapProps> = ({ 
   data = [], 
@@ -73,12 +86,12 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
     });
 
     // Create hover state
-    const hoverState = polygonSeries.mapPolygons.template.states.create("hover", {
+    polygonSeries.mapPolygons.template.states.create("hover", {
       fill: am5.color(0x0984E3)
     });
 
     // Create active state
-    const activeState = polygonSeries.mapPolygons.template.states.create("active", {
+    polygonSeries.mapPolygons.template.states.create("active", {
       fill: am5.color(0x00B894)
     });
 
@@ -90,6 +103,50 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       max: am5.color(0x0984E3),
       key: "fill"
     }]);
+
+    // Create point series for labels
+    const pointSeries = chart.series.push(
+      am5map.MapPointSeries.new(root, {
+        latitudeField: "latitude",
+        longitudeField: "longitude"
+      })
+    );
+
+    // Create a circle bullet template
+    const circleTemplate = am5.Template.new({});
+
+    // Configure bullet appearance
+    pointSeries.bullets.push((root) => {
+      const container = am5.Container.new(root, {});
+
+      // Add label with value
+      const label = container.children.push(
+        am5.Label.new(root, {
+          text: "{value}",
+          centerX: am5.p50,
+          centerY: am5.p50,
+          fontSize: 14,
+          fontWeight: "bold",
+          fill: am5.color(0x000000)
+        })
+      );
+
+      // Add background circle
+      const circle = container.children.push(
+        am5.Circle.new(root, {
+          radius: 22,
+          fill: am5.color(0xFFFFFF),
+          fillOpacity: 0.7,
+          centerX: am5.p50,
+          centerY: am5.p50,
+          layer: -1
+        })
+      );
+
+      return am5.Bullet.new(root, {
+        sprite: container
+      });
+    });
 
     // Add events to polygons
     polygonSeries.mapPolygons.template.events.on("click", (ev) => {
@@ -123,37 +180,14 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       }
     });
 
-    // Create a legend if there's data
+    // Process data for both polygon and point series
+    let defaultData;
     if (data.length > 0) {
-      // Set up data
-      const regionData = data.map(region => {
-        return {
-          id: region.id,
-          name: region.name,
-          value: region.value,
-          fill: region.fill
-        };
-      });
-      
-      polygonSeries.data.setAll(regionData);
-      
-      // Add heat legend
-      const heatLegend = chart.children.push(am5.HeatLegend.new(root, {
-        orientation: "vertical",
-        startColor: am5.color(0xCFE8FF),
-        endColor: am5.color(0x0984E3),
-        startText: "Lowest",
-        endText: "Highest",
-        stepCount: 5,
-        height: am5.percent(70),
-        y: am5.percent(15)
-      }));
-      
-      // Position the legend
-      heatLegend.set("x", am5.percent(90));
+      // Use provided data
+      defaultData = data;
     } else {
-      // Default data with minimal values
-      const defaultData = [
+      // Use default data
+      defaultData = [
         { id: "ID-JK", name: "Jakarta", value: 42 },
         { id: "ID-JB", name: "West Java", value: 35 },
         { id: "ID-JI", name: "East Java", value: 28 },
@@ -163,9 +197,38 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
         { id: "ID-SU", name: "North Sumatra", value: 12 },
         { id: "ID-KT", name: "East Kalimantan", value: 10 }
       ];
-      
-      polygonSeries.data.setAll(defaultData);
     }
+
+    // Set polygon data
+    polygonSeries.data.setAll(defaultData);
+
+    // Create point data with coordinates for labels
+    const pointData = defaultData.map(region => {
+      const coords = REGION_COORDS[region.id as keyof typeof REGION_COORDS];
+      return {
+        ...region,
+        latitude: coords?.latitude,
+        longitude: coords?.longitude
+      };
+    });
+
+    // Set data for points
+    pointSeries.data.setAll(pointData);
+
+    // Add heat legend
+    const heatLegend = chart.children.push(am5.HeatLegend.new(root, {
+      orientation: "vertical",
+      startColor: am5.color(0xCFE8FF),
+      endColor: am5.color(0x0984E3),
+      startText: "Lowest",
+      endText: "Highest",
+      stepCount: 5,
+      height: am5.percent(70),
+      y: am5.percent(15)
+    }));
+    
+    // Position the legend
+    heatLegend.set("x", am5.percent(90));
 
     // Make stuff animate on load
     chart.appear(1000, 100);
