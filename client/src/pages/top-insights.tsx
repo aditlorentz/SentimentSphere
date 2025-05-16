@@ -5,7 +5,6 @@ import AIInsightConclusion from "@/components/dashboard/ai-conclusion";
 import Chatbot from "@/components/dashboard/chatbot";
 import WordCloud from "@/components/dashboard/word-cloud";
 import IndonesiaMap from "@/components/dashboard/indonesia-map";
-import RegionSummaryTable from "@/components/dashboard/region-summary-table";
 import { useQuery } from "@tanstack/react-query";
 import {
   Table,
@@ -124,15 +123,18 @@ export default function TopInsights() {
                 <IndonesiaMap 
                   title="Regional Distribution"
                   height="320px"
-                  useApiData={true}
+                  data={[
+                    { id: "ID-JK", name: "Jakarta", value: 42 },
+                    { id: "ID-JB", name: "West Java", value: 35 },
+                    { id: "ID-JI", name: "East Java", value: 28 },
+                    { id: "ID-JT", name: "Central Java", value: 25 },
+                    { id: "ID-SN", name: "South Sulawesi", value: 18 },
+                    { id: "ID-BT", name: "Banten", value: 15 },
+                    { id: "ID-SU", name: "North Sumatra", value: 12 },
+                    { id: "ID-KT", name: "East Kalimantan", value: 10 }
+                  ]}
                 />
               </div>
-            </div>
-            <div className="mb-6">
-              <RegionSummaryTable 
-                title="Sentiment Distribution by Region" 
-                limit={6} 
-              />
             </div>
             
             <div className="overflow-x-auto">
