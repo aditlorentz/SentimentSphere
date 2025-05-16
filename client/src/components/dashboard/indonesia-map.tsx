@@ -3,76 +3,47 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5map from '@amcharts/amcharts5/map';
 import am5geodata_indonesiaLow from '@amcharts/amcharts5-geodata/indonesiaLow';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
-import { useQuery } from '@tanstack/react-query';
 
-interface MapGeoDataItem {
+interface RegionData {
   id: string;
   name: string;
   value: number;
-  latitude: number;
-  longitude: number;
-  witel: string;
-  positiveCount: number;
-  negativeCount: number;
-  neutralCount: number;
-  dominantSentiment: string;
+  fill?: am5.Color;
 }
 
 interface IndonesiaMapProps {
-  data?: MapGeoDataItem[];
+  data?: RegionData[];
   title?: string;
   width?: string;
   height?: string;
-  useApiData?: boolean;
 }
 
 const IndonesiaMap: React.FC<IndonesiaMapProps> = ({ 
   data = [], 
   title = "Regional Insights", 
   width = '100%', 
-  height = '400px',
-  useApiData = true 
+  height = '400px' 
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<am5.Root | null>(null);
-  
-  // Ambil data dari API jika useApiData = true
-  const { data: apiData, isLoading } = useQuery({
-    queryKey: ['/api/map-geo-data'],
-    queryFn: async () => {
-      if (!useApiData) return null;
-      
-      const response = await fetch('/api/map-geo-data');
-      if (!response.ok) {
-        throw new Error('Failed to fetch map geo data');
-      }
-      
-      const result = await response.json();
-      return result.data as MapGeoDataItem[];
-    },
-    enabled: useApiData
-  });
-
-  // Tentukan data mana yang akan digunakan
-  const mapData = useApiData && apiData ? apiData : data;
 
   useLayoutEffect(() => {
-    // Pastikan DOM element tersedia dan ada data
-    if (!chartRef.current || (useApiData && isLoading)) return;
+    // Initialize chart only when DOM is ready
+    if (!chartRef.current) return;
 
-    // Bersihkan chart sebelumnya jika ada
+    // Dispose previous chart if exists
     if (rootRef.current) {
       rootRef.current.dispose();
     }
 
-    // Buat root element baru
+    // Create root element
     const root = am5.Root.new(chartRef.current);
     rootRef.current = root;
 
-    // Set tema animasi
+    // Set themes
     root.setThemes([am5themes_Animated.new(root)]);
 
-    // Buat chart
+    // Create the map chart
     const chart = root.container.children.push(
       am5map.MapChart.new(root, {
         panX: "translateX",
@@ -83,7 +54,7 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       })
     );
 
-    // Buat polygon series untuk peta dengan GeoJSON
+    // Create polygon series for map
     const polygonSeries = chart.series.push(
       am5map.MapPolygonSeries.new(root, {
         geoJSON: am5geodata_indonesiaLow,
@@ -92,174 +63,127 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       })
     );
 
-    // Set tampilan dasar polygon
+    // Configure polygon series appearance
     polygonSeries.mapPolygons.template.setAll({
-      tooltipText: "[bold]{name}[/]\nWitel: {witel}\n[green]Positif: {positiveCount}[/]\n[red]Negatif: {negativeCount}[/]\n[gold]Netral: {neutralCount}[/]\nTotal: {value}",
+      tooltipText: "{name}: {value}",
       interactive: true,
       fill: am5.color(0xEEEEEE),
       strokeWidth: 0.5,
       stroke: am5.color(0xFFFFFF)
     });
 
-    // Data default jika tidak ada data
-    const defaultData: MapGeoDataItem[] = [
-      { id: "ID-JK", name: "Jakarta", value: 42, positiveCount: 25, negativeCount: 10, neutralCount: 7, dominantSentiment: "positive", latitude: -6.2, longitude: 106.8, witel: "Jakarta" },
-      { id: "ID-JB", name: "West Java", value: 35, positiveCount: 15, negativeCount: 15, neutralCount: 5, dominantSentiment: "neutral", latitude: -6.9, longitude: 107.6, witel: "Bandung" },
-      { id: "ID-JI", name: "East Java", value: 28, positiveCount: 10, negativeCount: 15, neutralCount: 3, dominantSentiment: "negative", latitude: -7.5, longitude: 112.5, witel: "Surabaya" },
-      { id: "ID-JT", name: "Central Java", value: 25, positiveCount: 12, negativeCount: 8, neutralCount: 5, dominantSentiment: "positive", latitude: -7.0, longitude: 110.4, witel: "Semarang" },
-      { id: "ID-SN", name: "South Sulawesi", value: 18, positiveCount: 5, negativeCount: 10, neutralCount: 3, dominantSentiment: "negative", latitude: -5.1, longitude: 119.4, witel: "Makassar" },
-      { id: "ID-BT", name: "Banten", value: 15, positiveCount: 7, negativeCount: 5, neutralCount: 3, dominantSentiment: "positive", latitude: -6.1, longitude: 106.1, witel: "Serang" }
-    ];
-
-    // Pilih data yang akan digunakan
-    const dataToUse = mapData.length > 0 ? mapData : defaultData;
-
-    // Terapkan data ke polygon series
-    polygonSeries.data.setAll(dataToUse);
-
-    // Siapkan rules untuk heatmap berdasarkan sentimen
-    const positivePolygons = am5map.MapPolygonSeries.new(root, {});
-    const negativePolygons = am5map.MapPolygonSeries.new(root, {});
-    const neutralPolygons = am5map.MapPolygonSeries.new(root, {});
-    
-    positivePolygons.mapPolygons.template.setAll({
-      fill: am5.color(0x00B894),  // Hijau
-      fillOpacity: 0.7
+    // Create hover state
+    const hoverState = polygonSeries.mapPolygons.template.states.create("hover", {
+      fill: am5.color(0x0984E3)
     });
-    
-    negativePolygons.mapPolygons.template.setAll({
-      fill: am5.color(0xE74C3C),  // Merah
-      fillOpacity: 0.7
+
+    // Create active state
+    const activeState = polygonSeries.mapPolygons.template.states.create("active", {
+      fill: am5.color(0x00B894)
     });
-    
-    neutralPolygons.mapPolygons.template.setAll({
-      fill: am5.color(0xF1C40F),  // Kuning
-      fillOpacity: 0.7
-    });
-    
-    // Kelompokkan data berdasarkan sentimen
-    const positiveData: MapGeoDataItem[] = [];
-    const negativeData: MapGeoDataItem[] = [];
-    const neutralData: MapGeoDataItem[] = [];
-    
-    dataToUse.forEach(item => {
-      if (item.dominantSentiment === "positive") {
-        positiveData.push(item);
-      } else if (item.dominantSentiment === "negative") {
-        negativeData.push(item);
-      } else if (item.dominantSentiment === "neutral") {
-        neutralData.push(item);
+
+    // Add heat rule
+    polygonSeries.set("heatRules", [{
+      target: polygonSeries.mapPolygons.template,
+      dataField: "value",
+      min: am5.color(0xCFE8FF),
+      max: am5.color(0x0984E3),
+      key: "fill"
+    }]);
+
+    // Add events to polygons
+    polygonSeries.mapPolygons.template.events.on("click", (ev) => {
+      const dataItem = ev.target.dataItem;
+      
+      if (dataItem && dataItem.dataContext) {
+        const dataContext = dataItem.dataContext as any;
+        const id = dataContext.id;
+        const name = dataContext.name;
+        const value = dataContext.value;
+        
+        if (id && name) {
+          console.log(`Clicked region: ${name} (${id}), value: ${value}`);
+          // Handle click event here (e.g., filter data by region)
+        }
+      }
+
+      // Toggle active state
+      polygonSeries.mapPolygons.each((polygon) => {
+        if (polygon !== ev.target) {
+          polygon.states.applyAnimate("default");
+        }
+      });
+      
+      if (ev.target.get("active")) {
+        ev.target.states.applyAnimate("default");
+        ev.target.set("active", false);
+      } else {
+        ev.target.states.applyAnimate("active");
+        ev.target.set("active", true);
       }
     });
-    
-    // Terapkan data ke masing-masing series
-    positivePolygons.data.setAll(positiveData);
-    negativePolygons.data.setAll(negativeData);
-    neutralPolygons.data.setAll(neutralData);
-    
-    // Tambahkan series ke chart
-    chart.series.push(positivePolygons);
-    chart.series.push(negativePolygons);
-    chart.series.push(neutralPolygons);
 
-    // Buat point series untuk label angka
-    const textSeries = chart.series.push(
-      am5map.MapPointSeries.new(root, {
-        latitudeField: "latitude",
-        longitudeField: "longitude"
-      })
-    );
-
-    // Konfigurasi tampilan label
-    textSeries.bullets.push(() => {
-      // Buat circle background dengan warna berdasarkan sentimen dominan
-      const circle = am5.Circle.new(root, {
-        radius: 18,
-        fill: am5.color(0xFFFFFF),
-        fillOpacity: 0.8,
-        stroke: am5.color(0xCCCCCC),
-        strokeWidth: 1
+    // Create a legend if there's data
+    if (data.length > 0) {
+      // Set up data
+      const regionData = data.map(region => {
+        return {
+          id: region.id,
+          name: region.name,
+          value: region.value,
+          fill: region.fill
+        };
       });
+      
+      polygonSeries.data.setAll(regionData);
+      
+      // Add heat legend
+      const heatLegend = chart.children.push(am5.HeatLegend.new(root, {
+        orientation: "vertical",
+        startColor: am5.color(0xCFE8FF),
+        endColor: am5.color(0x0984E3),
+        startText: "Lowest",
+        endText: "Highest",
+        stepCount: 5,
+        height: am5.percent(70),
+        y: am5.percent(15)
+      }));
+      
+      // Position the legend
+      heatLegend.set("x", am5.percent(90));
+    } else {
+      // Default data with minimal values
+      const defaultData = [
+        { id: "ID-JK", name: "Jakarta", value: 42 },
+        { id: "ID-JB", name: "West Java", value: 35 },
+        { id: "ID-JI", name: "East Java", value: 28 },
+        { id: "ID-JT", name: "Central Java", value: 25 },
+        { id: "ID-SN", name: "South Sulawesi", value: 18 },
+        { id: "ID-BT", name: "Banten", value: 15 },
+        { id: "ID-SU", name: "North Sumatra", value: 12 },
+        { id: "ID-KT", name: "East Kalimantan", value: 10 }
+      ];
+      
+      polygonSeries.data.setAll(defaultData);
+    }
 
-      // Tambahkan adapter untuk warna background lingkaran berdasarkan sentimen dominan
-      circle.adapters.add("fill", function(fill, target) {
-        const dataContext = target.dataItem?.dataContext;
-        if (dataContext) {
-          const sentiment = dataContext.dominantSentiment;
-          
-          if (sentiment === "positive") {
-            return am5.color(0x7DCEA0); // Hijau muda
-          } else if (sentiment === "negative") {
-            return am5.color(0xF5B7B1); // Merah muda
-          } else if (sentiment === "neutral") {
-            return am5.color(0xF9E79F); // Kuning muda
-          }
-        }
-        return fill;
-      });
-
-      // Buat text untuk nilai
-      const text = am5.Label.new(root, {
-        text: "{value}",
-        fontWeight: "bold",
-        fill: am5.color(0x000000),
-        centerX: am5.p50,
-        centerY: am5.p50,
-        fontSize: 14
-      });
-
-      // Bungkus circle dan text dalam container
-      const container = am5.Container.new(root, {});
-      container.children.push(circle);
-      container.children.push(text);
-
-      return am5.Bullet.new(root, {
-        sprite: container
-      });
-    });
-
-    // Terapkan data ke text series
-    textSeries.data.setAll(dataToUse);
-
-    // Tambahkan legend untuk sentimen
-    const legend = chart.children.push(
-      am5.Legend.new(root, {
-        x: am5.p50,
-        centerX: am5.p50,
-        y: am5.percent(95),
-        layout: root.horizontalLayout
-      })
-    );
-
-    legend.data.setAll([
-      { name: "Positive", fill: am5.color(0x00B894) },
-      { name: "Neutral", fill: am5.color(0xF1C40F) },
-      { name: "Negative", fill: am5.color(0xE74C3C) }
-    ]);
-
-    // Animasi
+    // Make stuff animate on load
     chart.appear(1000, 100);
 
     return () => {
-      // Bersihkan resources saat unmount
+      // Clean up on unmount
       if (rootRef.current) {
         rootRef.current.dispose();
       }
     };
-  }, [mapData, isLoading, useApiData]);
+  }, [data]);
 
   return (
     <div className="rounded-xl bg-white shadow-[0_10px_20px_rgba(0,0,0,0.05)] overflow-hidden">
       <div className="p-4 border-b border-gray-100">
         <h3 className="font-medium text-gray-800">{title}</h3>
       </div>
-      {isLoading && useApiData ? (
-        <div className="flex items-center justify-center" style={{ width, height }}>
-          <div className="animate-pulse text-gray-400">Loading map data...</div>
-        </div>
-      ) : (
-        <div ref={chartRef} style={{ width, height }} />
-      )}
+      <div ref={chartRef} style={{ width, height }} />
     </div>
   );
 };

@@ -224,29 +224,3 @@ export const insertSurveyDashboardSummarySchema = createInsertSchema(surveyDashb
 
 export type SurveyDashboardSummary = typeof surveyDashboardSummary.$inferSelect;
 export type InsertSurveyDashboardSummary = z.infer<typeof insertSurveyDashboardSummarySchema>;
-
-// Tabel untuk menyimpan data geografis untuk peta Indonesia
-export const mapGeoData = pgTable("map_geo_data", {
-  id: serial("id").primaryKey().notNull(),
-  regionId: text("region_id").notNull().unique(), // ID provinsi (ID-JK, ID-JB, dll)
-  regionName: text("region_name").notNull(), // Nama provinsi
-  witel: text("witel").notNull(), // Wilayah telekomunikasi
-  latitude: text("latitude").notNull(), // Latitude untuk penempatan label
-  longitude: text("longitude").notNull(), // Longitude untuk penempatan label
-  totalCount: integer("total_count").notNull().default(0), // Total data
-  positiveCount: integer("positive_count").notNull().default(0), // Jumlah data positif
-  negativeCount: integer("negative_count").notNull().default(0), // Jumlah data negatif
-  neutralCount: integer("neutral_count").notNull().default(0), // Jumlah data netral
-  dominantSentiment: text("dominant_sentiment").notNull().default("neutral"), // Sentimen dominan (positive, negative, neutral)
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const insertMapGeoDataSchema = createInsertSchema(mapGeoData).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export type MapGeoData = typeof mapGeoData.$inferSelect;
-export type InsertMapGeoData = z.infer<typeof insertMapGeoDataSchema>;

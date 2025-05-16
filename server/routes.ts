@@ -2,7 +2,7 @@ import express, { type Express, NextFunction } from "express";
 import type { Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, surveyDashboardSummary, mapGeoData } from "@shared/schema";
+import { insertUserSchema, surveyDashboardSummary } from "@shared/schema";
 import { topWordInsights } from "@shared/schema-top-insights";
 import { registerSummaryRegenerationRoutes } from "./api-generate-summary";
 import { compareSync, hashSync } from "bcryptjs";
@@ -374,42 +374,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
-  // Endpoint untuk data geografis peta Indonesia - dinonaktifkan
-  // Kita menggunakan data statis di client, tidak perlu endpoint ini lagi
-  /*
-  app.get("/api/map-geo-data", async (req: Request, res: Response) => {
-    try {
-      const result = await db.select().from(mapGeoData);
-      
-      // Transform data untuk format yang dibutuhkan oleh komponen peta
-      const geoData = result.map(row => ({
-        id: row.regionId,
-        name: row.regionName,
-        value: row.totalCount,
-        positiveCount: row.positiveCount,
-        negativeCount: row.negativeCount,
-        neutralCount: row.neutralCount,
-        dominantSentiment: row.dominantSentiment,
-        latitude: parseFloat(row.latitude),
-        longitude: parseFloat(row.longitude),
-        witel: row.witel
-      }));
-      
-      return res.json({
-        success: true,
-        data: geoData
-      });
-    } catch (error: any) {
-      console.error("Error fetching map geo data:", error);
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch map geo data",
-        error: error.message
-      });
-    }
-  });
-  */
 
   const httpServer = createServer(app);
   return httpServer;

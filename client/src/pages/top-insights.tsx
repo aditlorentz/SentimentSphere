@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import AIInsightConclusion from "@/components/dashboard/ai-conclusion";
 import Chatbot from "@/components/dashboard/chatbot";
 import WordCloud from "@/components/dashboard/word-cloud";
-import IndonesiaMapSimple from "@/components/dashboard/indonesia-map-simple";
+import IndonesiaMap from "@/components/dashboard/indonesia-map";
 import { useQuery } from "@tanstack/react-query";
 import {
   Table,
@@ -22,109 +22,105 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Button } from "@/components/ui/button";
-import { BookmarkIcon } from "lucide-react";
 
-const TopInsights = () => {
+const aiConclusionText = `Berdasarkan analisis sentimen, mayoritas tanggapan bersifat netral (69) dengan beberapa umpan baik positif (15) dan negatif (7). Topik "kepegawaian hc" dan "bonus tahunan hc" mendapat perhatian tertinggi. Kritik konstruktif terkait kebijakan bimbingan dan kenaikan gaji menunjukkan area yang perlu ditingkatkan. Secara keseluruhan, sentimen karyawan cenderung netral dengan beberapa area yang memerlukan perhatian manajemen.`;
+
+interface TopInsight {
+  id: number;
+  location: string;
+  source: string;
+  employee: string;
+  sentiment: string;
+  date: string;
+}
+
+export default function TopInsights() {
   const [page, setPage] = useState(1);
-  const [pinned, setPinned] = useState<number[]>([]);
-  const [wordCloudSvg, setWordCloudSvg] = useState<string | null>(null);
-  const itemsPerPage = 10;
+  const [totalPages, setTotalPages] = useState(5);
 
-  const { data: topInsightsData, isLoading } = useQuery({
-    queryKey: ["/api/top-insights"],
-    refetchOnWindowFocus: false,
+  // Fetch data from employee_insights table with pagination
+  const { data: insightsData, isLoading } = useQuery({
+    queryKey: ['/api/postgres/insights', page],
+    queryFn: async () => {
+      const limit = 10; // Display 10 insights per page
+      const response = await fetch(`/api/postgres/insights?page=${page}&limit=${limit}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch insights');
+      }
+      
+      const data = await response.json();
+      return data;
+    },
   });
+  
+  // Prepare data for the component
+  const topInsights = insightsData ? {
+    insights: insightsData.data.map((item: any) => ({
+      id: item.id,
+      location: item.kota || 'Unknown',
+      source: item.sourceData || 'Unknown',
+      employee: item.employeeName ? `${item.employeeName.substring(0, 1)}*** ${item.employeeName.substring(item.employeeName.length - 1)}***` : 'Unknown',
+      sentiment: item.sentenceInsight ? `${item.sentenceInsight.substring(0, 20)}...` : item.sentimen,
+      date: item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0].replace(/-/g, '/') : 'Unknown'
+    })),
+    totalCount: Number(insightsData.total) || 0,
+    // Word cloud data for amCharts - using the top word insights
+    wordCloudData: [
+      { tag: "program", weight: 80 },
+      { tag: "karyawan", weight: 65 },
+      { tag: "peserta", weight: 42 },
+      { tag: "materi", weight: 48 },
+      { tag: "proses", weight: 35 },
+      { tag: "evaluasi", weight: 30 },
+      { tag: "manajemen", weight: 25 },
+      { tag: "perusahaan", weight: 20 },
+      { tag: "pengembangan", weight: 15 },
+      { tag: "implementasi", weight: 12 },
+      { tag: "kebijakan", weight: 10 },
+      { tag: "administrasi", weight: 8 }
+    ]
+  } : null;
 
-  // Handle pagination
-  const onPageChange = (newPage: number) => {
-    setPage(newPage);
-  };
-
-  // Handle pinning/unpinning of insights
-  const togglePin = (id: number) => {
-    if (pinned.includes(id)) {
-      setPinned(pinned.filter((pinnedId) => pinnedId !== id));
-    } else {
-      setPinned([...pinned, id]);
-    }
-  };
-
-  // Load pinned insights from localStorage on mount
   useEffect(() => {
-    const savedPinned = localStorage.getItem("pinnedInsights");
-    if (savedPinned) {
-      setPinned(JSON.parse(savedPinned));
+    if (topInsights?.totalCount) {
+      setTotalPages(Math.ceil(topInsights.totalCount / 10));
     }
-  }, []);
+  }, [topInsights?.totalCount]);
 
-  // Save pinned insights to localStorage when updated
-  useEffect(() => {
-    localStorage.setItem("pinnedInsights", JSON.stringify(pinned));
-  }, [pinned]);
-
-  // Set word cloud SVG
-  useEffect(() => {
-    if (topInsightsData?.wordCloudSvg) {
-      setWordCloudSvg(topInsightsData.wordCloudSvg);
-    }
-  }, [topInsightsData]);
-
-  // Get data for current page
-  const getCurrentPageData = () => {
-    if (!topInsightsData?.insights) return [];
-    
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    
-    return topInsightsData.insights.slice(startIndex, endIndex);
-  };
-
-  // Calculate total pages
-  const totalPages = topInsightsData?.insights
-    ? Math.ceil(topInsightsData.insights.length / itemsPerPage)
-    : 0;
+  if (isLoading) {
+    return (
+      <div className="flex-1 overflow-x-hidden">
+        <Header title="Top Insights" />
+        <div className="p-6 space-y-4">
+          <div className="bg-white rounded-[12px] h-24 animate-pulse shadow-[0_10px_20px_rgba(0,0,0,0.05)]"></div>
+          <div className="grid grid-cols-1 gap-6">
+            <div className="bg-white rounded-[12px] h-96 animate-pulse shadow-[0_10px_20px_rgba(0,0,0,0.05)]"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC]">
-      <Header />
-
-      <main className="container px-4 py-6 max-w-[1200px] mx-auto">
-        <h1 className="text-3xl font-semibold text-gray-800 mb-6">
-          Top NLP Insights
-        </h1>
-
-        <div className="grid grid-cols-1 gap-8">
-          {/* AI Analysis Card */}
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-xl font-medium text-gray-700 mb-4">
-                AI Analysis
-              </h2>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <AIInsightConclusion />
-                <Chatbot />
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Main Insights Card */}
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-xl font-medium text-gray-700 mb-4">
-                Word Insights & Regional Distribution
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div className="flex-1 overflow-x-hidden">
+      <Header title="Top Insights" />
+      
+      <div className="p-6">
+        <AIInsightConclusion content={aiConclusionText} />
+        
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <WordCloud 
-                  svgContent={wordCloudSvg || ""} 
+                  useRealData={true}
+                  height="320px" 
                   title="Word Cloud Analysis"
                 />
               </div>
               <div>
-                <IndonesiaMapSimple 
+                <IndonesiaMap 
                   title="Regional Distribution"
                   height="320px"
                   data={[
@@ -145,106 +141,103 @@ const TopInsights = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px] text-center">No</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Sentiment</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="w-[100px] text-center">Action</TableHead>
+                    <TableHead className="w-[50px]">No</TableHead>
+                    <TableHead>WITEL</TableHead>
+                    <TableHead>SOURCE</TableHead>
+                    <TableHead>NAMA KARYAWAN</TableHead>
+                    <TableHead>INSIGHT SENTIMENT</TableHead>
+                    <TableHead>DATE</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
-                        <div className="flex justify-center">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                        </div>
-                      </TableCell>
+                  {topInsights?.insights.map((insight: TopInsight, index: number) => (
+                    <TableRow key={insight.id} className="hover:bg-gray-50 transition-all duration-200">
+                      <TableCell className="font-medium">{index + 1 + (page - 1) * 10}</TableCell>
+                      <TableCell>{insight.location}</TableCell>
+                      <TableCell>{insight.source}</TableCell>
+                      <TableCell>{insight.employee}</TableCell>
+                      <TableCell>{insight.sentiment}</TableCell>
+                      <TableCell>{insight.date}</TableCell>
                     </TableRow>
-                  ) : (
-                    getCurrentPageData().map((insight, index) => (
-                      <TableRow key={insight.id}>
-                        <TableCell className="text-center font-medium">
-                          {(page - 1) * itemsPerPage + index + 1}
-                        </TableCell>
-                        <TableCell>{insight.location}</TableCell>
-                        <TableCell>{insight.source}</TableCell>
-                        <TableCell>{insight.employee}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-block px-2 py-1 rounded-full text-sm ${
-                              insight.sentiment === "positive"
-                                ? "bg-green-100 text-green-800"
-                                : insight.sentiment === "negative"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
-                          >
-                            {insight.sentiment}
-                          </span>
-                        </TableCell>
-                        <TableCell>{insight.date}</TableCell>
-                        <TableCell className="text-center">
-                          <Button
-                            variant={pinned.includes(insight.id) ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => togglePin(insight.id)}
-                            className={pinned.includes(insight.id) ? "bg-blue-500 text-white" : ""}
-                          >
-                            <BookmarkIcon className="h-4 w-4 mr-1" />
-                            {pinned.includes(insight.id) ? "Pinned" : "Pin"}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  ))}
                 </TableBody>
               </Table>
             </div>
-
-            {totalPages > 1 && (
-              <div className="mt-4 flex justify-center">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => page > 1 && onPageChange(page - 1)}
-                        className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
+            
+            <Pagination className="mt-4">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    href="#" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (page > 1) setPage(page - 1);
+                    }}
+                    className={page === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const pageNum = i + 1;
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage(pageNum);
+                        }}
+                        isActive={page === pageNum}
+                      >
+                        {pageNum}
+                      </PaginationLink>
                     </PaginationItem>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                      <PaginationItem key={pageNum}>
-                        <PaginationLink
-                          onClick={() => onPageChange(pageNum)}
-                          isActive={pageNum === page}
-                          className="cursor-pointer"
-                        >
-                          {pageNum}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
+                  );
+                })}
+                
+                {totalPages > 5 && (
+                  <>
                     <PaginationItem>
-                      <PaginationNext
-                        onClick={() => page < totalPages && onPageChange(page + 1)}
-                        className={
-                          page >= totalPages
-                            ? "pointer-events-none opacity-50"
-                            : "cursor-pointer"
-                        }
-                      />
+                      <PaginationLink href="#" onClick={(e) => e.preventDefault()}>
+                        ...
+                      </PaginationLink>
                     </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+                    <PaginationItem>
+                      <PaginationLink 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage(totalPages);
+                        }}
+                        isActive={page === totalPages}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  </>
+                )}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    href="#" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (page < totalPages) setPage(page + 1);
+                    }}
+                    className={page === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+            
+            <div className="mt-4 text-sm text-gray-500 text-right">
+              Showing {insightsData && insightsData.data.length > 0 ? (page - 1) * 10 + 1 : 0} to {insightsData ? (page - 1) * 10 + insightsData.data.length : 0} of {insightsData?.total || 0} entries
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <Chatbot />
     </div>
   );
-};
-
-export default TopInsights;
+}
