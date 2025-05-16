@@ -221,8 +221,14 @@ export default function SmartAnalytics() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Total Karyawan Terlibat</p>
-                  <h3 className="text-2xl font-bold mt-1">{data?.totalEmployees}</h3>
-                  <span className="text-green-500 text-sm">+ {data?.totalEmployees}.0% this month</span>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {isLoadingStats ? (
+                      <div className="w-12 h-8 bg-gray-200 animate-pulse rounded"></div>
+                    ) : (
+                      sentimentStats?.bySource?.length || 0
+                    )}
+                  </h3>
+                  <span className="text-green-500 text-sm">Data dari employee_insights</span>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users">
@@ -241,8 +247,14 @@ export default function SmartAnalytics() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Total Insights</p>
-                  <h3 className="text-2xl font-bold mt-1">{data?.totalInsights}</h3>
-                  <span className="text-green-500 text-sm">+ {data?.totalInsights}.0% this month</span>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {isLoadingStats ? (
+                      <div className="w-12 h-8 bg-gray-200 animate-pulse rounded"></div>
+                    ) : (
+                      sentimentStats?.totalInsights || 0
+                    )}
+                  </h3>
+                  <span className="text-green-500 text-sm">Data dari employee_insights</span>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-lightbulb">
@@ -260,8 +272,14 @@ export default function SmartAnalytics() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Total Negatif</p>
-                  <h3 className="text-2xl font-bold mt-1">{data?.totalNegative}</h3>
-                  <span className="text-red-500 text-sm">+ {data?.totalNegative}.0% this month</span>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {isLoadingStats ? (
+                      <div className="w-12 h-8 bg-gray-200 animate-pulse rounded"></div>
+                    ) : (
+                      sentimentStats?.negativeCount || 0
+                    )}
+                  </h3>
+                  <span className="text-red-500 text-sm">Data dari employee_insights</span>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-thumbs-down">
@@ -278,8 +296,14 @@ export default function SmartAnalytics() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Total Positif</p>
-                  <h3 className="text-2xl font-bold mt-1">{data?.totalPositive}</h3>
-                  <span className="text-green-500 text-sm">+ {data?.totalPositive}.0% this month</span>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {isLoadingStats ? (
+                      <div className="w-12 h-8 bg-gray-200 animate-pulse rounded"></div>
+                    ) : (
+                      sentimentStats?.positiveCount || 0
+                    )}
+                  </h3>
+                  <span className="text-green-500 text-sm">Data dari employee_insights</span>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-thumbs-up">
