@@ -70,11 +70,9 @@ const RegionSummaryTable: React.FC<RegionSummaryTableProps> = ({
   // Tampilkan error jika ada
   if (error) {
     return (
-      <div className="rounded-xl bg-white shadow-[0_10px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-        <div className="p-4 border-b border-gray-100">
-          <h3 className="font-medium text-gray-800">{title}</h3>
-        </div>
-        <div className="p-4 text-red-500">
+      <div>
+        <h3 className="text-lg font-medium mb-4">{title}</h3>
+        <div className="text-red-500">
           Failed to load data. Please try again later.
         </div>
       </div>
@@ -82,11 +80,9 @@ const RegionSummaryTable: React.FC<RegionSummaryTableProps> = ({
   }
 
   return (
-    <div className="rounded-xl bg-white shadow-[0_10px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-      <div className="p-4 border-b border-gray-100">
-        <h3 className="font-medium text-gray-800">{title}</h3>
-      </div>
-      <div className="p-4 overflow-x-auto">
+    <div>
+      <h3 className="text-lg font-medium mb-4">{title}</h3>
+      <div className="overflow-x-auto">
         <Table>
           <TableCaption>Ringkasan data sentimen berdasarkan wilayah</TableCaption>
           <TableHeader>
@@ -126,6 +122,10 @@ const RegionSummaryTable: React.FC<RegionSummaryTableProps> = ({
       </div>
     </div>
   );
+  
+  // Salah satu contoh dari fungsi komponen ini adalah memberikan gambaran tentang distribusi
+  // sentimen berdasarkan wilayah, sehingga bisa melihat area mana yang memiliki 
+  // sentimen mayoritas positif atau negatif
 };
 
 export default RegionSummaryTable;
