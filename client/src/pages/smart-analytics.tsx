@@ -178,6 +178,23 @@ export default function SmartAnalytics() {
     ];
   }, [sentimentStats]);
   
+  // Hitung jumlah karyawan unik dari data employee insights
+  const uniqueEmployeesCount = useMemo(() => {
+    if (!employeeInsightsData || employeeInsightsData.length === 0) return 0;
+    
+    // Set untuk menyimpan nama karyawan yang unik
+    const uniqueEmployees = new Set<string>();
+    
+    // Iterasi data untuk mengekstrak nama karyawan
+    employeeInsightsData.forEach((insight: any) => {
+      if (insight.employeeName && insight.employeeName.trim() !== '' && insight.employeeName !== 'Anonymous') {
+        uniqueEmployees.add(insight.employeeName);
+      }
+    });
+    
+    return uniqueEmployees.size;
+  }, [employeeInsightsData]);
+  
   if (isLoading || isLoadingInsights) {
     return (
       <div className="flex-1 overflow-x-hidden">
@@ -230,10 +247,10 @@ export default function SmartAnalytics() {
                 <div>
                   <p className="text-sm text-gray-500">Total Karyawan Terlibat</p>
                   <h3 className="text-2xl font-bold mt-1">
-                    {isLoadingStats ? (
+                    {isLoadingInsights ? (
                       <div className="w-12 h-8 bg-gray-200 animate-pulse rounded"></div>
                     ) : (
-                      sentimentStats?.bySource?.length || 0
+                      uniqueEmployeesCount
                     )}
                   </h3>
                 </div>
