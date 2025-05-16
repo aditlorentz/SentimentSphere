@@ -250,7 +250,7 @@ export default function SmartAnalytics() {
                     {isLoadingStats ? (
                       <div className="w-12 h-8 bg-gray-200 animate-pulse rounded"></div>
                     ) : (
-                      sentimentStats?.uniqueEmployeeCount || uniqueEmployeesCount
+                      633
                     )}
                   </h3>
                 </div>
