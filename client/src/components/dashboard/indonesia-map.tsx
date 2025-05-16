@@ -27,22 +27,22 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
   const rootRef = useRef<am5.Root | null>(null);
 
   useLayoutEffect(() => {
-    // Initialize chart only when DOM is ready
+    // Pastikan DOM element tersedia
     if (!chartRef.current) return;
 
-    // Dispose previous chart if exists
+    // Bersihkan chart sebelumnya jika ada
     if (rootRef.current) {
       rootRef.current.dispose();
     }
 
-    // Create root element
+    // Buat root element baru
     const root = am5.Root.new(chartRef.current);
     rootRef.current = root;
 
-    // Set themes
+    // Set tema animasi
     root.setThemes([am5themes_Animated.new(root)]);
 
-    // Create the map chart
+    // Buat chart
     const chart = root.container.children.push(
       am5map.MapChart.new(root, {
         panX: "translateX",
@@ -53,7 +53,7 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       })
     );
 
-    // Create polygon series for map
+    // Buat polygon series untuk peta dengan GeoJSON
     const polygonSeries = chart.series.push(
       am5map.MapPolygonSeries.new(root, {
         geoJSON: am5geodata_indonesiaLow,
@@ -62,7 +62,7 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       })
     );
 
-    // Configure polygon series appearance
+    // Set tampilan dasar polygon
     polygonSeries.mapPolygons.template.setAll({
       tooltipText: "{name}: {value}",
       interactive: true,
@@ -71,17 +71,7 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       stroke: am5.color(0xFFFFFF)
     });
 
-    // Create hover state
-    polygonSeries.mapPolygons.template.states.create("hover", {
-      fill: am5.color(0x0984E3)
-    });
-
-    // Create active state
-    polygonSeries.mapPolygons.template.states.create("active", {
-      fill: am5.color(0x00B894)
-    });
-
-    // Add heat rule
+    // Tambahkan heat rule untuk warna berdasarkan nilai
     polygonSeries.set("heatRules", [{
       target: polygonSeries.mapPolygons.template,
       dataField: "value",
@@ -90,107 +80,100 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       key: "fill"
     }]);
 
-    // Setup data
-    let defaultData;
-    if (data.length > 0) {
-      // Use provided data
-      defaultData = data;
-    } else {
-      // Use default data
-      defaultData = [
-        { id: "ID-JK", name: "Jakarta", value: 42 },
-        { id: "ID-JB", name: "West Java", value: 35 },
-        { id: "ID-JI", name: "East Java", value: 28 },
-        { id: "ID-JT", name: "Central Java", value: 25 },
-        { id: "ID-SN", name: "South Sulawesi", value: 18 },
-        { id: "ID-BT", name: "Banten", value: 15 },
-        { id: "ID-SU", name: "North Sumatra", value: 12 },
-        { id: "ID-KT", name: "East Kalimantan", value: 10 }
-      ];
-    }
+    // Siapkan data
+    const mapData = data.length > 0 ? data : [
+      { id: "ID-JK", name: "Jakarta", value: 42 },
+      { id: "ID-JB", name: "West Java", value: 35 },
+      { id: "ID-JI", name: "East Java", value: 28 },
+      { id: "ID-JT", name: "Central Java", value: 25 },
+      { id: "ID-SN", name: "South Sulawesi", value: 18 },
+      { id: "ID-BT", name: "Banten", value: 15 },
+      { id: "ID-SU", name: "North Sumatra", value: 12 },
+      { id: "ID-KT", name: "East Kalimantan", value: 10 }
+    ];
 
-    // Set polygon data
-    polygonSeries.data.setAll(defaultData);
+    // Terapkan data ke polygon series
+    polygonSeries.data.setAll(mapData);
 
-    // Custom adapter to add labels on polygons
-    polygonSeries.mapPolygons.template.adapters.add("onHit", function(onHit, target) {
-      // Get data item
-      const dataItem = target.dataItem;
-      
-      if (dataItem && dataItem.dataContext) {
-        const dataContext = dataItem.dataContext as any;
-        const id = dataContext.id;
-        const name = dataContext.name;
-        const value = dataContext.value;
-        
-        if (id && name) {
-          console.log(`Clicked region: ${name} (${id}), value: ${value}`);
-          // Handle click event here (e.g., filter data by region)
-        }
-      }
+    // Buat point series untuk label angka
+    const textSeries = chart.series.push(
+      am5map.MapPointSeries.new(root, {})
+    );
 
-      // Toggle active state
-      polygonSeries.mapPolygons.each((polygon) => {
-        if (polygon !== target) {
-          polygon.states.applyAnimate("default");
-        }
-      });
-      
-      if (target.get("active")) {
-        target.states.applyAnimate("default");
-        target.set("active", false);
-      } else {
-        target.states.applyAnimate("active");
-        target.set("active", true);
-      }
-      
-      return onHit;
+    // Definisikan posisi label untuk setiap provinsi
+    const labelPositions: Record<string, {latitude: number, longitude: number}> = {
+      "ID-JK": { latitude: -6.2, longitude: 106.8 },  // Jakarta
+      "ID-JB": { latitude: -6.9, longitude: 107.6 },  // West Java
+      "ID-JI": { latitude: -7.5, longitude: 112.5 },  // East Java
+      "ID-JT": { latitude: -7.0, longitude: 110.4 },  // Central Java
+      "ID-SN": { latitude: -5.1, longitude: 119.4 },  // South Sulawesi
+      "ID-BT": { latitude: -6.1, longitude: 106.1 },  // Banten
+      "ID-SU": { latitude: 3.6, longitude: 98.7 },    // North Sumatra
+      "ID-KT": { latitude: -0.5, longitude: 117.1 }   // East Kalimantan
+    };
+
+    // Buat data untuk text labels
+    const pointData = mapData.map(region => {
+      const position = labelPositions[region.id] || { latitude: 0, longitude: 0 };
+      return {
+        title: region.value.toString(),
+        latitude: position.latitude,
+        longitude: position.longitude
+      };
     });
 
-    // Add labels directly on the polygons
-    polygonSeries.mapPolygons.template.setup = (target) => {
-      // Create label for the value
-      const valueLabel = am5.Label.new(root, {
-        text: "{value}",
-        fontSize: 14,
+    // Terapkan data ke text series
+    textSeries.data.setAll(pointData);
+
+    // Konfigurasi tampilan label
+    textSeries.bullets.push(() => {
+      const circle = am5.Circle.new(root, {
+        radius: 18,
+        fill: am5.color(0xFFFFFF),
+        fillOpacity: 0.8,
+        stroke: am5.color(0xCCCCCC),
+        strokeWidth: 1
+      });
+
+      const text = am5.Label.new(root, {
+        text: "{title}",
         fontWeight: "bold",
         fill: am5.color(0x000000),
         centerX: am5.p50,
         centerY: am5.p50,
-        populateText: true,
-        background: am5.Circle.new(root, {
-          radius: 20,
-          fill: am5.color(0xFFFFFF),
-          fillOpacity: 0.8,
-          stroke: am5.color(0xCCCCCC),
-          strokeWidth: 1
-        })
+        fontSize: 14
       });
-      
-      // Append the label to the polygon
-      target.children.push(valueLabel);
-    };
 
-    // Add heat legend
-    const heatLegend = chart.children.push(am5.HeatLegend.new(root, {
-      orientation: "vertical",
-      startColor: am5.color(0xCFE8FF),
-      endColor: am5.color(0x0984E3),
-      startText: "Lowest",
-      endText: "Highest",
-      stepCount: 5,
-      height: am5.percent(70),
-      y: am5.percent(15)
-    }));
-    
-    // Position the legend
-    heatLegend.set("x", am5.percent(90));
+      // Bungkus circle dan text dalam container
+      const container = am5.Container.new(root, {});
+      container.children.push(circle);
+      container.children.push(text);
 
-    // Make stuff animate on load
+      return am5.Bullet.new(root, {
+        sprite: container
+      });
+    });
+
+    // Tambahkan legend
+    const legend = chart.children.push(
+      am5.Legend.new(root, {
+        x: am5.p50,
+        centerX: am5.p50,
+        y: am5.percent(95)
+      })
+    );
+
+    legend.data.setAll([
+      { name: "Highest", color: am5.color(0x0984E3) },
+      { name: "Medium", color: am5.color(0x74cced) },
+      { name: "Lowest", color: am5.color(0xCFE8FF) }
+    ]);
+
+    // Animasi
     chart.appear(1000, 100);
 
     return () => {
-      // Clean up on unmount
+      // Bersihkan resources saat unmount
       if (rootRef.current) {
         rootRef.current.dispose();
       }
