@@ -216,6 +216,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(employeeInsights.sentimen, 'netral'));
     const neutralCount = Number(neutCountResult[0].count);
     
+    // Get unique employee count
+    const uniqueEmployeeCountResult = await db
+      .select({
+        count: sql`COUNT(DISTINCT ${employeeInsights.employeeName})`
+      })
+      .from(employeeInsights)
+      .where(sql`${employeeInsights.employeeName} IS NOT NULL AND ${employeeInsights.employeeName} <> ''`);
+    const uniqueEmployeeCount = Number(uniqueEmployeeCountResult[0].count);
+    
     // Get counts by source
     const bySourceResult = await db
       .select({
@@ -263,6 +272,7 @@ export class DatabaseStorage implements IStorage {
       positiveCount,
       negativeCount,
       neutralCount,
+      uniqueEmployeeCount,
       bySource,
       byWitel,
       byWord
@@ -536,12 +546,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnalytics(): Promise<AnalyticsFullData> {
-    // In a real application, this would fetch analytics data from a database
+    // Fetch real analytics data from database
+    const stats = await this.getInsightStats();
+    
     return {
-      totalEmployees: 373,
-      totalInsights: 500,
-      totalNegative: 118,
-      totalPositive: 194,
+      totalEmployees: stats.uniqueEmployeeCount,
+      totalInsights: stats.totalInsights,
+      totalNegative: stats.negativeCount,
+      totalPositive: stats.positiveCount,
       monthlyData: [
         {
           name: "Jan",

@@ -247,10 +247,10 @@ export default function SmartAnalytics() {
                 <div>
                   <p className="text-sm text-gray-500">Total Karyawan Terlibat</p>
                   <h3 className="text-2xl font-bold mt-1">
-                    {isLoadingInsights ? (
+                    {isLoadingStats ? (
                       <div className="w-12 h-8 bg-gray-200 animate-pulse rounded"></div>
                     ) : (
-                      uniqueEmployeesCount
+                      sentimentStats?.uniqueEmployeeCount || uniqueEmployeesCount
                     )}
                   </h3>
                 </div>
