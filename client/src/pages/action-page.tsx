@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Chatbot from "@/components/dashboard/chatbot";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, AlertTriangle, Clipboard, Activity, TrendingUp, ThumbsUp } from "lucide-react";
-import AIInsightConclusion from "@/components/dashboard/ai-conclusion";
+
 
 interface ActionItem {
   id: number;
@@ -168,8 +168,6 @@ export default function ActionPage() {
         </Card>
       </div>
 
-      <AIInsightConclusion pageContext="action-page" />
-      
       <div className="mb-6">
         <Card>
           <CardContent className="p-6">
