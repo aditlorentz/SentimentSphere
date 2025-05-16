@@ -131,7 +131,7 @@ export default function Settings() {
 
   return (
     <div className="flex-1 overflow-x-hidden">
-      <Header title="Settings" totalInsights={101} />
+      <Header title="Settings" showFilters={false} />
       
       <div className="p-6">
         <Card className="mb-6 shadow-[0_10px_20px_rgba(0,0,0,0.05)]">
