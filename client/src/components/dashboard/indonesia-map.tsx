@@ -26,13 +26,6 @@ interface IndonesiaMapProps {
   useApiData?: boolean;
 }
 
-// Warna untuk sentimen berbeda
-const SENTIMENT_COLORS = {
-  positive: 0x00B894, // Hijau
-  negative: 0xE74C3C, // Merah
-  neutral: 0xF1C40F   // Kuning
-};
-
 const IndonesiaMap: React.FC<IndonesiaMapProps> = ({ 
   data = [], 
   title = "Regional Insights", 
@@ -44,7 +37,7 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
   const rootRef = useRef<am5.Root | null>(null);
   
   // Ambil data dari API jika useApiData = true
-  const { data: apiData, isLoading, error } = useQuery({
+  const { data: apiData, isLoading } = useQuery({
     queryKey: ['/api/map-geo-data'],
     queryFn: async () => {
       if (!useApiData) return null;
@@ -109,13 +102,13 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
     });
 
     // Data default jika tidak ada data
-    const defaultData = [
-      { id: "ID-JK", name: "Jakarta", value: 42, positiveCount: 25, negativeCount: 10, neutralCount: 7, dominantSentiment: "positive", latitude: -6.2, longitude: 106.8 },
-      { id: "ID-JB", name: "West Java", value: 35, positiveCount: 15, negativeCount: 15, neutralCount: 5, dominantSentiment: "neutral", latitude: -6.9, longitude: 107.6 },
-      { id: "ID-JI", name: "East Java", value: 28, positiveCount: 10, negativeCount: 15, neutralCount: 3, dominantSentiment: "negative", latitude: -7.5, longitude: 112.5 },
-      { id: "ID-JT", name: "Central Java", value: 25, positiveCount: 12, negativeCount: 8, neutralCount: 5, dominantSentiment: "positive", latitude: -7.0, longitude: 110.4 },
-      { id: "ID-SN", name: "South Sulawesi", value: 18, positiveCount: 5, negativeCount: 10, neutralCount: 3, dominantSentiment: "negative", latitude: -5.1, longitude: 119.4 },
-      { id: "ID-BT", name: "Banten", value: 15, positiveCount: 7, negativeCount: 5, neutralCount: 3, dominantSentiment: "positive", latitude: -6.1, longitude: 106.1 }
+    const defaultData: MapGeoDataItem[] = [
+      { id: "ID-JK", name: "Jakarta", value: 42, positiveCount: 25, negativeCount: 10, neutralCount: 7, dominantSentiment: "positive", latitude: -6.2, longitude: 106.8, witel: "Jakarta" },
+      { id: "ID-JB", name: "West Java", value: 35, positiveCount: 15, negativeCount: 15, neutralCount: 5, dominantSentiment: "neutral", latitude: -6.9, longitude: 107.6, witel: "Bandung" },
+      { id: "ID-JI", name: "East Java", value: 28, positiveCount: 10, negativeCount: 15, neutralCount: 3, dominantSentiment: "negative", latitude: -7.5, longitude: 112.5, witel: "Surabaya" },
+      { id: "ID-JT", name: "Central Java", value: 25, positiveCount: 12, negativeCount: 8, neutralCount: 5, dominantSentiment: "positive", latitude: -7.0, longitude: 110.4, witel: "Semarang" },
+      { id: "ID-SN", name: "South Sulawesi", value: 18, positiveCount: 5, negativeCount: 10, neutralCount: 3, dominantSentiment: "negative", latitude: -5.1, longitude: 119.4, witel: "Makassar" },
+      { id: "ID-BT", name: "Banten", value: 15, positiveCount: 7, negativeCount: 5, neutralCount: 3, dominantSentiment: "positive", latitude: -6.1, longitude: 106.1, witel: "Serang" }
     ];
 
     // Pilih data yang akan digunakan
@@ -124,19 +117,50 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
     // Terapkan data ke polygon series
     polygonSeries.data.setAll(dataToUse);
 
-    // Gunakan warna sesuai sentimen dominan
-    polygonSeries.mapPolygons.template.adapters.add("fill", (fill, target) => {
-      if (target.dataItem) {
-        const dataContext = target.dataItem.dataContext as any;
-        const sentiment = dataContext.dominantSentiment;
-        
-        if (sentiment && SENTIMENT_COLORS[sentiment]) {
-          // Tetapkan warna berdasarkan sentiment dengan opacity 0.7
-          return am5.color(SENTIMENT_COLORS[sentiment]).lighten(0.3);
-        }
-      }
-      return fill;
+    // Siapkan rules untuk heatmap berdasarkan sentimen
+    const positivePolygons = am5map.MapPolygonSeries.new(root, {});
+    const negativePolygons = am5map.MapPolygonSeries.new(root, {});
+    const neutralPolygons = am5map.MapPolygonSeries.new(root, {});
+    
+    positivePolygons.mapPolygons.template.setAll({
+      fill: am5.color(0x00B894),  // Hijau
+      fillOpacity: 0.7
     });
+    
+    negativePolygons.mapPolygons.template.setAll({
+      fill: am5.color(0xE74C3C),  // Merah
+      fillOpacity: 0.7
+    });
+    
+    neutralPolygons.mapPolygons.template.setAll({
+      fill: am5.color(0xF1C40F),  // Kuning
+      fillOpacity: 0.7
+    });
+    
+    // Kelompokkan data berdasarkan sentimen
+    const positiveData: MapGeoDataItem[] = [];
+    const negativeData: MapGeoDataItem[] = [];
+    const neutralData: MapGeoDataItem[] = [];
+    
+    dataToUse.forEach(item => {
+      if (item.dominantSentiment === "positive") {
+        positiveData.push(item);
+      } else if (item.dominantSentiment === "negative") {
+        negativeData.push(item);
+      } else if (item.dominantSentiment === "neutral") {
+        neutralData.push(item);
+      }
+    });
+    
+    // Terapkan data ke masing-masing series
+    positivePolygons.data.setAll(positiveData);
+    negativePolygons.data.setAll(negativeData);
+    neutralPolygons.data.setAll(neutralData);
+    
+    // Tambahkan series ke chart
+    chart.series.push(positivePolygons);
+    chart.series.push(negativePolygons);
+    chart.series.push(neutralPolygons);
 
     // Buat point series untuk label angka
     const textSeries = chart.series.push(
@@ -191,9 +215,9 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
     );
 
     legend.data.setAll([
-      { name: "Positive", color: am5.color(SENTIMENT_COLORS.positive).lighten(0.3) },
-      { name: "Neutral", color: am5.color(SENTIMENT_COLORS.neutral).lighten(0.3) },
-      { name: "Negative", color: am5.color(SENTIMENT_COLORS.negative).lighten(0.3) }
+      { name: "Positive", fill: am5.color(0x00B894) },
+      { name: "Neutral", fill: am5.color(0xF1C40F) },
+      { name: "Negative", fill: am5.color(0xE74C3C) }
     ]);
 
     // Animasi
