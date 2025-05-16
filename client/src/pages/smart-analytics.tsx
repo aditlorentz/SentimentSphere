@@ -228,7 +228,6 @@ export default function SmartAnalytics() {
                       sentimentStats?.bySource?.length || 0
                     )}
                   </h3>
-                  <span className="text-green-500 text-sm">Data dari employee_insights</span>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users">
@@ -254,7 +253,6 @@ export default function SmartAnalytics() {
                       sentimentStats?.totalInsights || 0
                     )}
                   </h3>
-                  <span className="text-green-500 text-sm">Data dari employee_insights</span>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-lightbulb">
@@ -279,7 +277,6 @@ export default function SmartAnalytics() {
                       sentimentStats?.negativeCount || 0
                     )}
                   </h3>
-                  <span className="text-red-500 text-sm">Data dari employee_insights</span>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-thumbs-down">
@@ -303,7 +300,6 @@ export default function SmartAnalytics() {
                       sentimentStats?.positiveCount || 0
                     )}
                   </h3>
-                  <span className="text-green-500 text-sm">Data dari employee_insights</span>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-thumbs-up">
