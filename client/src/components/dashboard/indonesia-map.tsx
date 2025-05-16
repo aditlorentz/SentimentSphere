@@ -8,8 +8,6 @@ interface RegionData {
   id: string;
   name: string;
   value: number;
-  latitude?: number;
-  longitude?: number;
 }
 
 interface IndonesiaMapProps {
@@ -18,18 +16,6 @@ interface IndonesiaMapProps {
   width?: string;
   height?: string;
 }
-
-// Koordinat pusat dari provinsi-provinsi utama di Indonesia
-const REGION_COORDS = {
-  "ID-JK": { latitude: -6.2, longitude: 106.8 },  // Jakarta
-  "ID-JB": { latitude: -6.9, longitude: 107.6 },  // West Java (Bandung)
-  "ID-JI": { latitude: -7.5, longitude: 112.5 },  // East Java (Surabaya)
-  "ID-JT": { latitude: -7.0, longitude: 110.4 },  // Central Java (Semarang)
-  "ID-SN": { latitude: -5.1, longitude: 119.4 },  // South Sulawesi (Makassar)
-  "ID-BT": { latitude: -6.1, longitude: 106.1 },  // Banten (Serang)
-  "ID-SU": { latitude: 3.6, longitude: 98.7 },    // North Sumatra (Medan)
-  "ID-KT": { latitude: -0.5, longitude: 117.1 }   // East Kalimantan (Samarinda)
-};
 
 const IndonesiaMap: React.FC<IndonesiaMapProps> = ({ 
   data = [], 
@@ -104,95 +90,7 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       key: "fill"
     }]);
 
-    // Simplified point series for map labels
-    const pointSeries = chart.series.push(
-      am5map.MapPointSeries.new(root, {
-        latitudeField: "latitude",
-        longitudeField: "longitude"
-      })
-    );
-
-    // Simplified bullet appearance for points
-    pointSeries.bullets.push(function() {
-      // Create a container for label and background
-      const container = am5.Container.new(root, {});
-      
-      // Create background circle for better visibility
-      const circle = container.children.push(
-        am5.Circle.new(root, {
-          radius: 22,
-          fill: am5.color(0xFFFFFF),
-          fillOpacity: 0.8,
-          strokeWidth: 1,
-          stroke: am5.color(0xCCCCCC)
-        })
-      );
-      
-      // Create the text label that will show the actual number
-      const label = container.children.push(
-        am5.Label.new(root, {
-          centerX: am5.p50,
-          centerY: am5.p50,
-          fontSize: 14,
-          fontWeight: "bold",
-          fill: am5.color(0x000000)
-        })
-      );
-      
-      // This template function runs for each point in the data
-      pointSeries.events.on("datavalidated", function() {
-        pointSeries.bulletsContainer.children.each(function(bullet) {
-          if (bullet.dataItem) {
-            // Get the actual text element from the bullet's container
-            const labelElement = bullet.get("sprite").children.getIndex(1);
-            if (labelElement && bullet.dataItem.dataContext) {
-              // Set the text directly with the value from data
-              const value = bullet.dataItem.dataContext.value;
-              labelElement.set("text", value);
-            }
-          }
-        });
-      });
-      
-      // Return the container as the bullet
-      return am5.Bullet.new(root, {
-        sprite: container
-      });
-    });
-
-    // Add events to polygons
-    polygonSeries.mapPolygons.template.events.on("click", (ev) => {
-      const dataItem = ev.target.dataItem;
-      
-      if (dataItem && dataItem.dataContext) {
-        const dataContext = dataItem.dataContext as any;
-        const id = dataContext.id;
-        const name = dataContext.name;
-        const value = dataContext.value;
-        
-        if (id && name) {
-          console.log(`Clicked region: ${name} (${id}), value: ${value}`);
-          // Handle click event here (e.g., filter data by region)
-        }
-      }
-
-      // Toggle active state
-      polygonSeries.mapPolygons.each((polygon) => {
-        if (polygon !== ev.target) {
-          polygon.states.applyAnimate("default");
-        }
-      });
-      
-      if (ev.target.get("active")) {
-        ev.target.states.applyAnimate("default");
-        ev.target.set("active", false);
-      } else {
-        ev.target.states.applyAnimate("active");
-        ev.target.set("active", true);
-      }
-    });
-
-    // Process data for both polygon and point series
+    // Setup data
     let defaultData;
     if (data.length > 0) {
       // Use provided data
@@ -214,18 +112,64 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
     // Set polygon data
     polygonSeries.data.setAll(defaultData);
 
-    // Create point data with coordinates for labels
-    const pointData = defaultData.map(region => {
-      const coords = REGION_COORDS[region.id as keyof typeof REGION_COORDS];
-      return {
-        ...region,
-        latitude: coords?.latitude,
-        longitude: coords?.longitude
-      };
+    // Custom adapter to add labels on polygons
+    polygonSeries.mapPolygons.template.adapters.add("onHit", function(onHit, target) {
+      // Get data item
+      const dataItem = target.dataItem;
+      
+      if (dataItem && dataItem.dataContext) {
+        const dataContext = dataItem.dataContext as any;
+        const id = dataContext.id;
+        const name = dataContext.name;
+        const value = dataContext.value;
+        
+        if (id && name) {
+          console.log(`Clicked region: ${name} (${id}), value: ${value}`);
+          // Handle click event here (e.g., filter data by region)
+        }
+      }
+
+      // Toggle active state
+      polygonSeries.mapPolygons.each((polygon) => {
+        if (polygon !== target) {
+          polygon.states.applyAnimate("default");
+        }
+      });
+      
+      if (target.get("active")) {
+        target.states.applyAnimate("default");
+        target.set("active", false);
+      } else {
+        target.states.applyAnimate("active");
+        target.set("active", true);
+      }
+      
+      return onHit;
     });
 
-    // Set data for points
-    pointSeries.data.setAll(pointData);
+    // Add labels directly on the polygons
+    polygonSeries.mapPolygons.template.setup = (target) => {
+      // Create label for the value
+      const valueLabel = am5.Label.new(root, {
+        text: "{value}",
+        fontSize: 14,
+        fontWeight: "bold",
+        fill: am5.color(0x000000),
+        centerX: am5.p50,
+        centerY: am5.p50,
+        populateText: true,
+        background: am5.Circle.new(root, {
+          radius: 20,
+          fill: am5.color(0xFFFFFF),
+          fillOpacity: 0.8,
+          stroke: am5.color(0xCCCCCC),
+          strokeWidth: 1
+        })
+      });
+      
+      // Append the label to the polygon
+      target.children.push(valueLabel);
+    };
 
     // Add heat legend
     const heatLegend = chart.children.push(am5.HeatLegend.new(root, {
