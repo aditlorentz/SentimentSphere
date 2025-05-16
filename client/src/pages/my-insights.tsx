@@ -3,7 +3,7 @@ import { SentimentCategoryCard, InsightData } from "@/components/cards/insight-c
 import Chatbot from "@/components/dashboard/chatbot";
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 export default function MyInsights() {
   // State untuk menyimpan insights yang dipin
@@ -16,6 +16,10 @@ export default function MyInsights() {
     negative: [],
     positive: []
   });
+  
+  // State untuk filter
+  const [wordInsight, setWordInsight] = useState("all");
+  const [sentiment, setSentiment] = useState("all");
   
   // State untuk loading
   const [isLoading, setIsLoading] = useState(true);
@@ -70,6 +74,75 @@ export default function MyInsights() {
       window.removeEventListener('storage', loadPinnedInsights);
     };
   }, []);
+  
+  // Handler untuk mengubah filter word insight
+  const handleWordInsightChange = (value: string) => {
+    setWordInsight(value);
+  };
+  
+  // Handler untuk mengubah filter sentiment
+  const handleSentimentChange = (value: string) => {
+    setSentiment(value);
+  };
+  
+  // Handler untuk reset filter
+  const handleResetFilters = () => {
+    setWordInsight("all");
+    setSentiment("all");
+  };
+  
+  // Dapatkan daftar word insights yang unik dari semua insight yang dipin
+  const wordInsightOptions = useMemo(() => {
+    const allInsights = [
+      ...pinnedInsights.neutral,
+      ...pinnedInsights.negative,
+      ...pinnedInsights.positive
+    ];
+    
+    const uniqueWordInsights = Array.from(new Set(allInsights.map(insight => insight.title)));
+    
+    return uniqueWordInsights.map(title => ({
+      label: title,
+      value: title
+    }));
+  }, [pinnedInsights]);
+  
+  // Filter insights berdasarkan kriteria yang dipilih
+  const filteredInsights = useMemo(() => {
+    // Fungsi untuk memfilter insight berdasarkan kriteria
+    const filterInsight = (insight: InsightData) => {
+      // Filter berdasarkan word insight
+      if (wordInsight !== "all" && insight.title !== wordInsight) {
+        return false;
+      }
+      
+      // Filter berdasarkan sentiment
+      if (sentiment !== "all") {
+        const { neutralPercentage, negativePercentage, positivePercentage } = insight;
+        const maxPercent = Math.max(neutralPercentage, negativePercentage, positivePercentage);
+        
+        const dominantSentiment = (() => {
+          if (maxPercent === neutralPercentage && maxPercent > 0) return "netral";
+          if (maxPercent === negativePercentage && maxPercent > 0) return "negatif";
+          if (maxPercent === positivePercentage && maxPercent > 0) return "positif";
+          return "unknown";
+        })();
+        
+        if (dominantSentiment !== sentiment) {
+          return false;
+        }
+      }
+      
+      return true;
+    };
+    
+    // Terapkan filter ke semua kategori
+    return {
+      neutral: pinnedInsights.neutral.filter(filterInsight),
+      negative: pinnedInsights.negative.filter(filterInsight),
+      positive: pinnedInsights.positive.filter(filterInsight)
+    };
+  }, [pinnedInsights, wordInsight, sentiment]);
 
   const handleRemoveInsight = (id: number) => {
     // Get existing pinned insights
@@ -112,7 +185,21 @@ export default function MyInsights() {
 
   return (
     <div className="flex-1 overflow-x-hidden">
-      <Header title="My Insight" />
+      <Header 
+        title="My Insight" 
+        showFilters={true}
+        // Sembunyikan filter Source, Survey, dan Date di halaman my insights
+        showSourceFilter={false}
+        showSurveyFilter={false}
+        showDateFilter={false}
+        onWordInsightChange={handleWordInsightChange}
+        onSentimentChange={handleSentimentChange}
+        onResetFilters={handleResetFilters}
+        wordInsightValue={wordInsight}
+        sentimentValue={sentiment}
+        // Pass word insight options dari data yang di-pin
+        wordInsightOptions={wordInsightOptions}
+      />
       
       <div className="p-6">
         <div className="bg-white rounded-[12px] p-6 mb-6 shadow-[0_10px_20px_rgba(0,0,0,0.05)]">
@@ -133,25 +220,25 @@ export default function MyInsights() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <SentimentCategoryCard
             title="Netral"
-            badge={pinnedInsights.neutral.length}
+            badge={filteredInsights.neutral.length}
             type="neutral"
-            insights={pinnedInsights.neutral}
+            insights={filteredInsights.neutral}
             onRemoveInsight={handleRemoveInsight}
           />
           
           <SentimentCategoryCard
             title="Negatif"
-            badge={pinnedInsights.negative.length}
+            badge={filteredInsights.negative.length}
             type="negative"
-            insights={pinnedInsights.negative}
+            insights={filteredInsights.negative}
             onRemoveInsight={handleRemoveInsight}
           />
           
           <SentimentCategoryCard
             title="Positif"
-            badge={pinnedInsights.positive.length}
+            badge={filteredInsights.positive.length}
             type="positive"
-            insights={pinnedInsights.positive}
+            insights={filteredInsights.positive}
             onRemoveInsight={handleRemoveInsight}
           />
         </div>
