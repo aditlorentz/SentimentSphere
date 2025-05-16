@@ -341,6 +341,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API untuk mendapatkan data word cloud dari survey_dashboard_summary
   app.get("/api/word-cloud-data", async (req: Request, res: Response) => {
     try {
+      // Set header untuk mendefinisikan tipe konten
+      res.setHeader('Content-Type', 'application/json');
+      
       // Ambil data untuk word cloud dari survey_dashboard_summary
       const wordCloudData = await db
         .select({
@@ -354,13 +357,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .orderBy(sql`${surveyDashboardSummary.totalCount} DESC`)
         .limit(50); // Batasi jumlah data yang diambil
       
-      res.json({
+      // Log data untuk debugging
+      console.log("Word cloud data:", JSON.stringify(wordCloudData).substring(0, 100) + "...");
+      
+      // Kirim respons JSON
+      return res.json({
         success: true,
         data: wordCloudData
       });
     } catch (error: any) {
       console.error("Error fetching word cloud data:", error);
-      res.status(500).json({ 
+      return res.status(500).json({ 
         success: false,
         message: "Failed to fetch word cloud data",
         error: error.message

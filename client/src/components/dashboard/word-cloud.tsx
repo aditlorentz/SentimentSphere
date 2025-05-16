@@ -34,11 +34,11 @@ const WordCloud: React.FC<WordCloudProps> = ({
   
   // Fetch real data from the API if useRealData is true
   const { data: apiData, isLoading } = useQuery({
-    queryKey: ['/api/word-cloud-data'],
+    queryKey: ['/api/survey-dashboard/summary'],
     queryFn: async () => {
       if (!useRealData) return null;
       
-      const response = await fetch('/api/word-cloud-data');
+      const response = await fetch('/api/survey-dashboard/summary');
       if (!response.ok) {
         throw new Error('Failed to fetch word cloud data');
       }
