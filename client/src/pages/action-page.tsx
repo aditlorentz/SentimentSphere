@@ -5,7 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Chatbot from "@/components/dashboard/chatbot";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, AlertTriangle, Clipboard, Activity } from "lucide-react";
+import { Check, AlertTriangle, Clipboard, Activity, Brain, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Avatar } from "@/components/ui/avatar";
 
 
 interface ActionItem {
@@ -164,6 +166,44 @@ export default function ActionPage() {
                 )}
               </div>
             )}
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="mt-6 mb-6">
+        <Card className="shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-display font-semibold text-gray-800">
+                Chat dengan Gemini 2.0 Flash
+              </h3>
+              <div className="bg-teal-50 rounded-full p-2">
+                <Brain className="h-5 w-5 text-teal-500" />
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Tanyakan pada AI tentang program yang memiliki sentimen negatif dan dapatkan rekomendasi tambahan.
+            </p>
+            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <div className="flex items-center space-x-3 mb-2">
+                <Avatar className="h-8 w-8 bg-teal-100 border border-teal-200">
+                  <Brain className="h-4 w-4 text-teal-600" />
+                </Avatar>
+                <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm text-sm text-gray-700">
+                  Halo, saya Gemini 2.0 Flash. Bagaimana saya bisa membantu Anda dengan program yang memiliki sentimen negatif?
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Input 
+                  className="flex-1 bg-white" 
+                  placeholder="Ketik pesan Anda di sini..." 
+                />
+                <Button type="submit" className="bg-teal-600 hover:bg-teal-700">
+                  <Send className="h-4 w-4 mr-2" />
+                  Kirim
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
