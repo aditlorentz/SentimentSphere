@@ -107,18 +107,27 @@ export default function SmartAnalytics() {
     },
   });
   
-  // Query untuk data employee insights
-  const { data: employeeInsightsData, isLoading: isLoadingInsights } = useQuery({
-    queryKey: ['/api/postgres/insights'],
+  // State untuk paginasi
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  // Query untuk data employee insights dengan paginasi
+  const { data: employeeInsightsResponse, isLoading: isLoadingInsights } = useQuery({
+    queryKey: ['/api/postgres/insights', page],
     queryFn: async () => {
-      const response = await fetch('/api/postgres/insights');
+      const response = await fetch(`/api/postgres/insights?page=${page}&limit=${pageSize}`);
       if (!response.ok) {
         throw new Error('Failed to fetch employee insights');
       }
       const result = await response.json();
-      return result.data;
+      return result;
     },
   });
+  
+  // Extract data dan total count untuk paginasi
+  const employeeInsightsData = employeeInsightsResponse?.data || [];
+  const totalInsights = employeeInsightsResponse?.total || 0;
+  const totalPages = Math.ceil(totalInsights / pageSize);
 
   const COLORS = ["#00B894", "#FF7675", "#FDCB6E"];
 
@@ -543,6 +552,73 @@ export default function SmartAnalytics() {
                   )}
                 </TableBody>
               </Table>
+              
+              {/* Pagination Controls */}
+              {!isLoadingInsights && totalPages > 1 && (
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    Menampilkan {employeeInsightsData.length} dari {totalInsights} data
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <button 
+                      className={`px-3 py-1 rounded border ${page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50 text-gray-800'}`}
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M15 18l-6-6 6-6" />
+                      </svg>
+                    </button>
+                    
+                    <div className="flex items-center space-x-1">
+                      {/* Create page buttons with logic to show limited range */}
+                      {Array.from({ length: Math.min(5, totalPages) }).map((_, idx) => {
+                        // Calculate which page numbers to show
+                        let pageNum = 1;
+                        
+                        if (totalPages <= 5) {
+                          // If 5 or less pages, show all
+                          pageNum = idx + 1;
+                        } else if (page <= 3) {
+                          // Near start
+                          pageNum = idx + 1;
+                        } else if (page >= totalPages - 2) {
+                          // Near end
+                          pageNum = totalPages - 4 + idx;
+                        } else {
+                          // In middle
+                          pageNum = page - 2 + idx;
+                        }
+                        
+                        return (
+                          <button
+                            key={`page-${pageNum}`}
+                            className={`w-8 h-8 rounded flex items-center justify-center ${
+                              page === pageNum
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white hover:bg-gray-50 text-gray-800 border'
+                            }`}
+                            onClick={() => setPage(pageNum)}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    <button 
+                      className={`px-3 py-1 rounded border ${page === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50 text-gray-800'}`}
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
