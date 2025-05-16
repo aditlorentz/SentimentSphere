@@ -57,6 +57,8 @@ export default function SurveyDashboard() {
   const [source, setSource] = useState<string>("all");
   const [survey, setSurvey] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [wordInsight, setWordInsight] = useState<string>("all");
+  const [sentiment, setSentiment] = useState<string>("all");
   
   // Fetch insights
   const { data: insights, isLoading: insightsLoading } = useQuery<CategoryInsights>({
@@ -89,6 +91,14 @@ export default function SurveyDashboard() {
       queryString += `&survey=${encodeURIComponent(survey)}`;
     }
     
+    if (wordInsight && wordInsight !== 'all') {
+      queryString += `&wordInsight=${encodeURIComponent(wordInsight)}`;
+    }
+    
+    if (sentiment && sentiment !== 'all') {
+      queryString += `&sentiment=${encodeURIComponent(sentiment)}`;
+    }
+    
     if (dateRange && dateRange.from) {
       queryString += `&startDate=${dateRange.from.toISOString()}`;
       
@@ -111,7 +121,7 @@ export default function SurveyDashboard() {
     data: SurveyDashboardSummary[];
     total: string;
   }>({
-    queryKey: ['/api/survey-dashboard/summary', { source, survey, dateRange }],
+    queryKey: ['/api/survey-dashboard/summary', { source, survey, dateRange, wordInsight, sentiment }],
     queryFn: async () => {
       const response = await fetch(buildQueryString());
       if (!response.ok) {
@@ -202,11 +212,21 @@ export default function SurveyDashboard() {
     setDateRange(range);
   };
   
+  const handleWordInsightChange = (value: string) => {
+    setWordInsight(value);
+  };
+  
+  const handleSentimentChange = (value: string) => {
+    setSentiment(value);
+  };
+  
   // Reset filters
   const handleResetFilters = () => {
     setSource("all");
     setSurvey("all");
     setDateRange(undefined);
+    setWordInsight("all");
+    setSentiment("all");
   };
   
   // Informasi jumlah total data
@@ -221,10 +241,14 @@ export default function SurveyDashboard() {
         onSourceChange={handleSourceChange}
         onSurveyChange={handleSurveyChange}
         onDateRangeChange={handleDateRangeChange}
+        onWordInsightChange={handleWordInsightChange}
+        onSentimentChange={handleSentimentChange}
         onResetFilters={handleResetFilters}
         sourceValue={source}
         surveyValue={survey}
         dateRangeValue={dateRange}
+        wordInsightValue={wordInsight}
+        sentimentValue={sentiment}
         // Pass source options based on stats data
         sourceOptions={stats?.bySource.map(s => ({ 
           label: `${s.source} (${s.count})`, 
@@ -234,6 +258,11 @@ export default function SurveyDashboard() {
         surveyOptions={stats?.byWitel.map(w => ({ 
           label: `${w.witel} (${w.count})`, 
           value: w.witel 
+        })) || []}
+        // Pass word insight options based on stats data
+        wordInsightOptions={stats?.byWord.map(w => ({ 
+          label: `${w.word} (${w.count})`, 
+          value: w.word 
         })) || []}
       />
       
