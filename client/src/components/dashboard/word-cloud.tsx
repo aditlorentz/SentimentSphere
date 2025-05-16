@@ -123,7 +123,7 @@ const WordCloud: React.FC<WordCloudProps> = ({
     return COLORS[hashCode % COLORS.length];
   };
   
-  // Generate words with proper placement
+  // Generate words with more natural placement
   const renderWords = () => {
     if (!cloudData || cloudData.length === 0) return [];
     
@@ -131,26 +131,27 @@ const WordCloud: React.FC<WordCloudProps> = ({
     const sortedData = [...cloudData].sort((a, b) => b.weight - a.weight);
     const limitedData = sortedData.slice(0, 9); // Further reduce to only 9 words
     
-    // Define layout grid - 3 columns x 3 rows with more spacing
-    const rows = 3;
-    const cols = 3;
-    
+    // Use custom placement instead of strict grid
     return limitedData.map((item, index) => {
-      // Calculate position in grid
-      const row = Math.floor(index / cols);
-      const col = index % cols;
+      // Generate semi-random positions that still ensure readability
+      // Add some noise to prevent perfect grid alignment
+      const noise = () => (Math.random() * 10) - 5; // -5 to +5 percent variation
       
-      // Calculate position as percentage with larger spacing between words
-      // Add substantial padding to avoid edges (15% on each side)
+      // Division of visual space into general areas, with padding
       const padding = 15;
       const availableWidth = 100 - (padding * 2);
       const availableHeight = 100 - (padding * 2);
       
-      const cellWidth = availableWidth / cols;
-      const cellHeight = availableHeight / rows;
+      // Basic position calculation (still roughly in a 3x3 grid)
+      const row = Math.floor(index / 3);
+      const col = index % 3;
       
-      const x = padding + (col * cellWidth) + (cellWidth / 2);
-      const y = padding + (row * cellHeight) + (cellHeight / 2);
+      const baseX = padding + (col * (availableWidth / 3)) + (availableWidth / 6);
+      const baseY = padding + (row * (availableHeight / 3)) + (availableHeight / 6);
+      
+      // Apply noise to create more natural, less grid-like placement
+      const x = baseX + noise();
+      const y = baseY + noise();
       
       // Get a consistent color for this word
       const color = getColor(item.tag);
