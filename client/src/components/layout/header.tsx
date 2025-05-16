@@ -42,15 +42,20 @@ interface HeaderProps {
   sourceValue?: string;
   surveyValue?: string;
   dateRangeValue?: DateRange;
+  wordInsightValue?: string;
+  sentimentValue?: string;
   
   // Filter options
   sourceOptions?: SelectOption[];
   surveyOptions?: SelectOption[];
+  wordInsightOptions?: SelectOption[];
   
   // Filter callbacks
   onSourceChange?: (value: string) => void;
   onSurveyChange?: (value: string) => void;
   onDateRangeChange?: (range: DateRange | undefined) => void;
+  onWordInsightChange?: (value: string) => void;
+  onSentimentChange?: (value: string) => void;
   onResetFilters?: () => void;
 }
 
@@ -61,11 +66,16 @@ export default function Header({
   sourceValue = "all",
   surveyValue = "all",
   dateRangeValue,
+  wordInsightValue = "all",
+  sentimentValue = "all",
   sourceOptions = [],
   surveyOptions = [],
+  wordInsightOptions = [],
   onSourceChange,
   onSurveyChange,
   onDateRangeChange,
+  onWordInsightChange,
+  onSentimentChange,
   onResetFilters,
 }: HeaderProps) {
   const [location] = useLocation();
@@ -211,6 +221,54 @@ export default function Header({
                     {option.label}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Word Insight Filter - NEW */}
+          <div className="relative w-full sm:w-auto">
+            <Select 
+              value={wordInsightValue} 
+              onValueChange={(value) => {
+                if (onWordInsightChange) onWordInsightChange(value);
+              }}
+            >
+              <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
+                <div className="flex items-center">
+                  <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                  <SelectValue placeholder="Topic" className="text-sm truncate" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Topics</SelectItem>
+                {wordInsightOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Sentiment Filter - NEW */}
+          <div className="relative w-full sm:w-auto">
+            <Select 
+              value={sentimentValue} 
+              onValueChange={(value) => {
+                if (onSentimentChange) onSentimentChange(value);
+              }}
+            >
+              <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
+                <div className="flex items-center">
+                  <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                  <SelectValue placeholder="Sentiment" className="text-sm truncate" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sentiments</SelectItem>
+                <SelectItem value="positif">Positif</SelectItem>
+                <SelectItem value="negatif">Negatif</SelectItem>
+                <SelectItem value="netral">Netral</SelectItem>
               </SelectContent>
             </Select>
           </div>
