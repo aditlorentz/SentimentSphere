@@ -1,7 +1,6 @@
-import React, { useLayoutEffect, useRef } from 'react';
-import * as am5 from '@amcharts/amcharts5';
-import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
+import React, { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import './word-cloud.css';
 
 interface WordCloudDataItem {
   wordInsight: string;
@@ -37,8 +36,11 @@ const WordCloud: React.FC<WordCloudProps> = ({
   title = "Common Topics",
   useRealData = true
 }) => {
-  const chartRef = useRef<HTMLDivElement>(null);
-  const rootRef = useRef<am5.Root | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
   
   // Fetch real data from the API if useRealData is true
   const { data: apiData, isLoading } = useQuery({
@@ -58,130 +60,117 @@ const WordCloud: React.FC<WordCloudProps> = ({
   });
   
   // Determine which data to use (API data or prop data)
-  const chartData = useRealData && apiData 
+  const cloudData = useRealData && apiData 
     ? apiData.map(item => ({
         tag: item.wordInsight,
         weight: item.totalCount
       }))
     : data || [];
-
-  useLayoutEffect(() => {
-    // Initialize chart only if we have data and DOM is ready
-    if ((!chartData || chartData.length === 0) || !chartRef.current) return;
-
-    // Dispose previous chart if exists
-    if (rootRef.current) {
-      rootRef.current.dispose();
-    }
-
-    // Create a root element
-    const root = am5.Root.new(chartRef.current);
-    rootRef.current = root;
-
-    // Set themes
-    root.setThemes([am5themes_Animated.new(root)]);
-
-    // Create a container for words
-    const container = root.container.children.push(
-      am5.Container.new(root, {
-        width: am5.percent(100),
-        height: am5.percent(100),
-        layout: root.horizontalLayout
-      })
-    );
-
-    // Function to create a simple grid layout
-    const renderWords = () => {
-      // Clear existing words
-      container.children.clear();
-      
-      // Sort words by weight (for grid layout)
-      const sortedData = [...chartData].sort((a, b) => b.weight - a.weight);
-      
-      // Define a more compact layout
-      const COLS = 4;
-      const ROWS = 8;
-      const CELL_WIDTH = 100 / COLS;
-      const CELL_HEIGHT = 100 / ROWS;
-      
-      // Padding to center the whole grid in the container
-      const PADDING_X = 10; // % padding on left and right
-      const PADDING_Y = 10; // % padding on top and bottom
-      
-      // Calculate actual grid area
-      const GRID_WIDTH = 100 - (PADDING_X * 2);
-      const GRID_HEIGHT = 100 - (PADDING_Y * 2);
-      const ACTUAL_CELL_WIDTH = GRID_WIDTH / COLS;
-      const ACTUAL_CELL_HEIGHT = GRID_HEIGHT / ROWS;
-      
-      // Helper function to get position in grid
-      const getPosition = (index: number) => {
-        const row = Math.floor(index / COLS);
-        const col = index % COLS;
-        
-        // Center each word in its cell with minimal random offset
-        const x = PADDING_X + (col * ACTUAL_CELL_WIDTH) + (ACTUAL_CELL_WIDTH / 2);
-        const y = PADDING_Y + (row * ACTUAL_CELL_HEIGHT) + (ACTUAL_CELL_HEIGHT / 2);
-        
-        return { x, y };
-      };
-      
-      // Add words to grid - limited to 32 words to prevent overcrowding
-      const limitedData = sortedData.slice(0, COLS * ROWS);
-      
-      limitedData.forEach((item, index) => {
-        // Get word position
-        const { x, y } = getPosition(index);
-        
-        // Get deterministic color - same word always gets same color
-        const hashCode = item.tag.split('').reduce((acc, char) => {
-          return acc + char.charCodeAt(0);
-        }, 0);
-        const colorIndex = hashCode % COLORS.length;
-        const color = COLORS[colorIndex];
-        
-        // Create label for word - slightly larger font
-        const label = container.children.push(
-          am5.Label.new(root, {
-            text: item.tag,
-            fontSize: 18, // Slightly larger font for better readability
-            fontFamily: "Inter, sans-serif",
-            fontWeight: "500", // Medium weight for better visibility
-            fill: am5.color(color),
-            x: am5.percent(x),
-            y: am5.percent(y),
-            centerX: am5.p50,
-            centerY: am5.p50
-          })
-        );
-        
-        // Add hover effect
-        label.states.create("hover", {
-          scale: 1.2,
-          fill: am5.color(COLORS[0])
-        });
-        
-        // Add interactivity
-        label.events.on("pointerover", () => {
-          label.states.applyAnimate("hover");
-        });
-        
-        label.events.on("pointerout", () => {
-          label.states.applyAnimate("default");
-        });
-      });
-    };
     
-    // Render the word cloud
-    renderWords();
-
-    return () => {
-      // Clean up on unmount
-      if (rootRef.current) {
-        rootRef.current.dispose();
-      }
-    };
-  }, [chartData, useRealData]);
+  // Zoom in/out functions
+  const zoomIn = () => {
+    setScale(prev => Math.min(prev + 0.2, 3));
+  };
+  
+  const zoomOut = () => {
+    setScale(prev => Math.max(prev - 0.2, 0.5));
+  };
+  
+  // Reset function
+  const resetZoom = () => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  };
+  
+  // Handle mouse wheel for zooming
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      // Zoom in
+      setScale(prev => Math.min(prev + 0.1, 3));
+    } else {
+      // Zoom out
+      setScale(prev => Math.max(prev - 0.1, 0.5));
+    }
+  };
+  
+  // Mouse drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartPosition({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  };
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - startPosition.x,
+      y: e.clientY - startPosition.y
+    });
+  };
+  
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+  
+  // Get deterministic color for a word
+  const getColor = (word: string) => {
+    const hashCode = word.split('').reduce((acc, char) => {
+      return acc + char.charCodeAt(0);
+    }, 0);
+    return COLORS[hashCode % COLORS.length];
+  };
+  
+  // Generate words with proper placement
+  const renderWords = () => {
+    if (!cloudData || cloudData.length === 0) return [];
+    
+    // Sort and limit data to prevent overcrowding
+    const sortedData = [...cloudData].sort((a, b) => b.weight - a.weight);
+    const limitedData = sortedData.slice(0, 24); // Limit to 24 words
+    
+    // Define layout grid - 6 columns x 4 rows
+    const rows = 4;
+    const cols = 6;
+    
+    return limitedData.map((item, index) => {
+      // Calculate position in grid
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+      
+      // Calculate position as percentage (with spacing between words)
+      const x = (col * (100 / cols)) + (100 / cols / 2);
+      const y = (row * (100 / rows)) + (100 / rows / 2);
+      
+      // Get a consistent color for this word
+      const color = getColor(item.tag);
+      
+      // Calculate font size based on weight
+      const maxWeight = Math.max(...limitedData.map(d => d.weight));
+      const minSize = 14;
+      const maxSize = 22;
+      const fontSize = minSize + ((item.weight / maxWeight) * (maxSize - minSize));
+      
+      return (
+        <div
+          key={`word-${index}`}
+          className="word-item"
+          style={{
+            left: `${x}%`,
+            top: `${y}%`,
+            fontSize: `${fontSize}px`,
+            color: color,
+            transform: `translate(-50%, -50%)`,
+            fontWeight: item.weight === maxWeight ? "bold" : "normal"
+          }}
+        >
+          {item.tag}
+        </div>
+      );
+    });
+  };
 
   // Show loading state
   if (useRealData && isLoading) {
@@ -199,10 +188,63 @@ const WordCloud: React.FC<WordCloudProps> = ({
 
   return (
     <div className="rounded-xl bg-white shadow-[0_10px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b border-gray-100 flex justify-between items-center">
         <h3 className="font-medium text-gray-800">{title}</h3>
+        <div className="flex space-x-2">
+          <button 
+            className="zoom-button" 
+            onClick={zoomIn}
+            aria-label="Zoom In"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <button 
+            className="zoom-button" 
+            onClick={zoomOut}
+            aria-label="Zoom Out"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <button 
+            className="zoom-button" 
+            onClick={resetZoom}
+            aria-label="Reset Zoom"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3M3 12H9M3 12L5.5 9.5M3 12L5.5 14.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
-      <div ref={chartRef} style={{ width, height }} />
+      <div 
+        ref={containerRef}
+        className="word-cloud-container"
+        style={{ 
+          width, 
+          height,
+          cursor: isDragging ? 'grabbing' : 'grab'
+        }}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <div 
+          className="word-cloud-inner"
+          style={{
+            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transformOrigin: 'center center',
+            transition: isDragging ? 'none' : 'transform 0.2s ease'
+          }}
+        >
+          {renderWords()}
+        </div>
+      </div>
     </div>
   );
 };
