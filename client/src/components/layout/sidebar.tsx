@@ -42,7 +42,7 @@ interface TopInsightItemProps {
 
 const TopInsightItem = ({ label, count }: TopInsightItemProps) => (
   <div className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
-    <span className="truncate"># {label}</span>
+    <span className="truncate">{label}</span>
     <span className="bg-gray-100 text-xs rounded-full px-2 py-1">{count}</span>
   </div>
 );
