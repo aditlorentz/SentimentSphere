@@ -101,7 +101,7 @@ export function InsightStats({ views, comments }: InsightStatsProps) {
     <div className="flex items-center space-x-6 mt-3 text-xs text-gray-500">
       <div className="flex items-center space-x-1">
         <span className="font-bold">#</span>
-        <span>Jumlah: {views}</span>
+        <span>{views}</span>
       </div>
       <div className="flex items-center space-x-1">
         <svg
