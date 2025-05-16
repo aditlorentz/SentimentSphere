@@ -113,13 +113,11 @@ export default function TopInsights() {
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                {topInsights?.wordCloudData && (
-                  <WordCloud 
-                    data={topInsights.wordCloudData} 
-                    height="320px" 
-                    title="Word Cloud Analysis"
-                  />
-                )}
+                <WordCloud 
+                  useRealData={true}
+                  height="320px" 
+                  title="Word Cloud Analysis"
+                />
               </div>
               <div>
                 <IndonesiaMap 

@@ -337,6 +337,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // API untuk mendapatkan data word cloud dari survey_dashboard_summary
+  app.get("/api/word-cloud-data", async (req: Request, res: Response) => {
+    try {
+      // Ambil data untuk word cloud dari survey_dashboard_summary
+      const wordCloudData = await db
+        .select({
+          wordInsight: surveyDashboardSummary.wordInsight,
+          totalCount: surveyDashboardSummary.totalCount,
+          positivePercentage: surveyDashboardSummary.positivePercentage,
+          neutralPercentage: surveyDashboardSummary.neutralPercentage,
+          negativePercentage: surveyDashboardSummary.negativePercentage
+        })
+        .from(surveyDashboardSummary)
+        .orderBy(sql`${surveyDashboardSummary.totalCount} DESC`)
+        .limit(50); // Batasi jumlah data yang diambil
+      
+      res.json({
+        success: true,
+        data: wordCloudData
+      });
+    } catch (error: any) {
+      console.error("Error fetching word cloud data:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch word cloud data",
+        error: error.message
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

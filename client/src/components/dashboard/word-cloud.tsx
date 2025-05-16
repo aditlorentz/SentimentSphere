@@ -1,29 +1,68 @@
-import React, { useLayoutEffect, useRef, useEffect } from 'react';
+import React, { useLayoutEffect, useRef, useEffect, useState } from 'react';
 import * as am5 from '@amcharts/amcharts5';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
+import { useQuery } from '@tanstack/react-query';
+
+interface WordCloudDataItem {
+  wordInsight: string;
+  totalCount: number;
+  positivePercentage: number;
+  neutralPercentage: number;
+  negativePercentage: number;
+}
 
 interface WordCloudProps {
-  data: Array<{
+  data?: Array<{
     tag: string;
     weight: number;
   }>;
   width?: string;
   height?: string;
   title?: string;
+  useRealData?: boolean;
 }
 
 const WordCloud: React.FC<WordCloudProps> = ({ 
   data, 
   width = '100%', 
   height = '300px',
-  title = "Common Topics"
+  title = "Common Topics",
+  useRealData = true
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<am5.Root | null>(null);
+  
+  // Fetch real data from the API if useRealData is true
+  const { data: apiData, isLoading } = useQuery({
+    queryKey: ['/api/word-cloud-data'],
+    queryFn: async () => {
+      if (!useRealData) return null;
+      
+      const response = await fetch('/api/word-cloud-data');
+      if (!response.ok) {
+        throw new Error('Failed to fetch word cloud data');
+      }
+      
+      const result = await response.json();
+      return result.data as WordCloudDataItem[];
+    },
+    enabled: useRealData
+  });
+  
+  // Determine which data to use (API data or prop data)
+  const chartData = useRealData && apiData 
+    ? apiData.map(item => ({
+        tag: item.wordInsight,
+        weight: item.totalCount,
+        positivePercentage: item.positivePercentage,
+        neutralPercentage: item.neutralPercentage,
+        negativePercentage: item.negativePercentage
+      }))
+    : data || [];
 
   useLayoutEffect(() => {
     // Initialize chart only if we have data and DOM is ready
-    if (!data || !chartRef.current) return;
+    if ((!chartData || chartData.length === 0) || !chartRef.current) return;
 
     // Dispose previous chart if exists
     if (rootRef.current) {
@@ -46,13 +85,35 @@ const WordCloud: React.FC<WordCloudProps> = ({
       })
     );
 
+    // Function to determine color based on sentiment
+    const getColorFromSentiment = (item: any) => {
+      // Default color for non-real data
+      if (!useRealData || !('positivePercentage' in item)) {
+        return am5.color(0x333333);
+      }
+      
+      // Determine the dominant sentiment
+      const { positivePercentage, neutralPercentage, negativePercentage } = item;
+      
+      if (positivePercentage > neutralPercentage && positivePercentage > negativePercentage) {
+        // Green for positive (darker green for higher percentage)
+        return am5.color(0x00B894); // Primary positive color
+      } else if (neutralPercentage > positivePercentage && neutralPercentage > negativePercentage) {
+        // Yellow for neutral
+        return am5.color(0xF1C40F); // Primary neutral color
+      } else {
+        // Red for negative
+        return am5.color(0xE74C3C); // Primary negative color
+      }
+    };
+
     // Function to distribute words in a cloud-like pattern
     const renderWords = () => {
       // Clear existing words
       container.children.clear();
       
       // Sort by weight to place more important words first
-      const sortedData = [...data].sort((a, b) => b.weight - a.weight);
+      const sortedData = [...chartData].sort((a, b) => b.weight - a.weight);
       
       // Set positions in a circular pattern
       sortedData.forEach((item, index) => {
@@ -60,7 +121,7 @@ const WordCloud: React.FC<WordCloudProps> = ({
         const minSize = 10;
         const maxSize = 36;
         const range = maxSize - minSize;
-        const maxWeight = Math.max(...data.map(item => item.weight));
+        const maxWeight = Math.max(...chartData.map(item => item.weight));
         const fontSize = minSize + (item.weight / maxWeight) * range;
         
         // Calculate position (spiral-like arrangement)
@@ -68,6 +129,9 @@ const WordCloud: React.FC<WordCloudProps> = ({
         const radius = index * 3; // Controls spiral size
         const x = Math.cos(angle) * radius + 50; // Center x percentage
         const y = Math.sin(angle) * radius + 50; // Center y percentage
+        
+        // Determine color based on sentiment
+        const fillColor = getColorFromSentiment(item);
         
         // Create a text element for the word
         const label = container.children.push(
@@ -78,7 +142,7 @@ const WordCloud: React.FC<WordCloudProps> = ({
             centerY: am5.percent(50),
             text: item.tag,
             fontSize: fontSize,
-            fill: am5.color(0x333333 + (index * 111111) % 0xCCCCCC), // Vary color
+            fill: fillColor,
             fontFamily: "Inter, sans-serif",
             fontWeight: "500",
             oversizedBehavior: "wrap"
@@ -97,7 +161,7 @@ const WordCloud: React.FC<WordCloudProps> = ({
         });
         
         label.events.on("pointerout", function() {
-          label.set("fill", am5.color(0x333333 + (index * 111111) % 0xCCCCCC));
+          label.set("fill", fillColor);
           label.set("scale", 1);
         });
       });
@@ -117,7 +181,21 @@ const WordCloud: React.FC<WordCloudProps> = ({
         rootRef.current.dispose();
       }
     };
-  }, [data]);
+  }, [chartData, useRealData]);
+
+  // Show loading state
+  if (useRealData && isLoading) {
+    return (
+      <div className="rounded-xl bg-white shadow-[0_10px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="p-4 border-b border-gray-100">
+          <h3 className="font-medium text-gray-800">{title}</h3>
+        </div>
+        <div style={{ width, height }} className="flex items-center justify-center">
+          <div className="animate-pulse text-gray-400">Loading word cloud data...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl bg-white shadow-[0_10px_20px_rgba(0,0,0,0.05)] overflow-hidden">
