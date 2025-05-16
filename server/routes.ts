@@ -15,6 +15,8 @@ const logRequests = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
+import { generateAISummary } from './openrouter-api';
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Use the logging middleware
   app.use(logRequests);
