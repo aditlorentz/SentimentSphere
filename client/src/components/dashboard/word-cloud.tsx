@@ -1,6 +1,5 @@
-import React, { useLayoutEffect, useRef, useEffect, useState } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import * as am5 from '@amcharts/amcharts5';
-import * as am5wc from '@amcharts/amcharts5/wc';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import { useQuery } from '@tanstack/react-query';
 
@@ -70,205 +69,232 @@ const WordCloud: React.FC<WordCloudProps> = ({
       rootRef.current.dispose();
     }
 
-    // Create root element
+    // Create a root element
     const root = am5.Root.new(chartRef.current);
     rootRef.current = root;
 
     // Set themes
     root.setThemes([am5themes_Animated.new(root)]);
 
-    // Create series
-    const series = root.container.children.push(
-      am5wc.WordCloud.new(root, {
-        minFontSize: 10,
-        maxFontSize: 40,
-        minWordLength: 2,
-        text: chartData.map(item => item.tag).join(' '),
-        randomness: 0.5,
-        calculateWeight: (word: string) => {
-          // Find the corresponding data item for this word
-          const dataItem = chartData.find(item => item.tag === word);
-          return dataItem ? dataItem.weight : 1;
-        },
-        categoryField: "tag",
-        valueField: "weight",
-        colors: am5.ColorSet.new(root, {}),
-        fillModifier: () => {
-          // Empty function so that we can set colors manually in the processor
-        }
-      })
-    );
-
-    // Set up rotation for the words
-    series.labels.template.setAll({
-      paddingTop: 5,
-      paddingBottom: 5,
-      paddingLeft: 5,
-      paddingRight: 5,
-      fontFamily: "Inter, sans-serif",
-      cursorOverStyle: "pointer",
-      oversizedBehavior: "fit"
-    });
-
-    // Add some interactivity
-    series.labels.template.adapters.add("fill", (fill, target: any) => {
-      const dataItem = chartData.find(item => item.tag === target.dataItem?.get("category"));
-      
-      if (dataItem) {
-        const { positivePercentage, neutralPercentage, negativePercentage } = dataItem;
-        
-        if (positivePercentage > neutralPercentage && positivePercentage > negativePercentage) {
-          // Green for positive
-          return am5.color(0x00B894);
-        } else if (neutralPercentage > positivePercentage && neutralPercentage > negativePercentage) {
-          // Yellow for neutral
-          return am5.color(0xF1C40F);
-        } else {
-          // Red for negative
-          return am5.color(0xE74C3C);
-        }
-      }
-      
-      return fill;
-    });
-
-    // Add hover effect
-    series.labels.template.states.create("hover", {
-      fill: am5.color(0x0984E3),
-      scale: 1.1
-    });
-
-    // Add click interaction
-    series.labels.template.events.on("click", (ev) => {
-      const category = ev.target.dataItem?.get("category");
-      if (category) {
-        console.log(`Clicked on word: ${category}`);
-        // You can add filtering logic here
-      }
-    });
-
-    // Create data
-    const seriesData = chartData.map(item => ({
-      tag: item.tag,
-      weight: item.weight
-    }));
-    
-    // Add data
-    series.data.setAll(seriesData);
-
-    // Create controls container for zoom
-    const controls = root.container.children.push(
+    // Create a container for our content
+    const container = root.container.children.push(
       am5.Container.new(root, {
-        x: am5.p100,
-        y: 10,
-        paddingRight: 15,
-        layout: root.verticalLayout,
-        centerY: am5.p50,
-        y: am5.p50,
-        zIndex: 10
+        width: am5.percent(100),
+        height: am5.percent(100),
+        layout: root.horizontalLayout
       })
     );
-    
-    // Add zoom buttons with clear styling
-    const zoomIn = controls.children.push(
+
+    // Create a container for the word cloud
+    const wordCloudContainer = container.children.push(
+      am5.Container.new(root, {
+        width: am5.percent(100),
+        height: am5.percent(100),
+        layout: root.horizontalLayout
+      })
+    );
+
+    // Create the control panel
+    const controlPanel = root.container.children.push(
+      am5.Container.new(root, {
+        x: am5.percent(95),
+        y: am5.percent(10),
+        layout: root.verticalLayout,
+        paddingRight: 10,
+        zIndex: 100
+      })
+    );
+
+    // Add controls for zoom
+    const zoomIn = controlPanel.children.push(
       am5.Button.new(root, {
+        width: 30,
+        height: 30,
         marginBottom: 10,
-        paddingTop: 8,
-        paddingBottom: 8,
-        paddingLeft: 8,
-        paddingRight: 8,
-        centerX: am5.p50,
-        centerY: am5.p50,
-        backgroundColor: am5.color(0xFFFFFF),
-        backgroundColorHover: am5.color(0xF5F5F5),
-        fill: am5.color(0x0984E3),
-        stroke: am5.color(0xDDDDDD),
         icon: am5.Graphics.new(root, {
           svgPath: "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z",
           fill: am5.color(0x0984E3),
           width: 16,
-          height: 16
+          height: 16,
+          centerX: am5.percent(50),
+          centerY: am5.percent(50)
+        }),
+        background: am5.RoundedRectangle.new(root, {
+          fill: am5.color(0xFFFFFF),
+          stroke: am5.color(0xDDDDDD),
+          cornerRadiusTL: 5,
+          cornerRadiusTR: 5,
+          cornerRadiusBL: 5,
+          cornerRadiusBR: 5
         })
       })
     );
 
-    const zoomOut = controls.children.push(
+    const zoomOut = controlPanel.children.push(
       am5.Button.new(root, {
-        paddingTop: 8,
-        paddingBottom: 8,
-        paddingLeft: 8,
-        paddingRight: 8,
-        centerX: am5.p50,
-        centerY: am5.p50,
-        backgroundColor: am5.color(0xFFFFFF),
-        backgroundColorHover: am5.color(0xF5F5F5),
-        fill: am5.color(0x0984E3),
-        stroke: am5.color(0xDDDDDD),
+        width: 30,
+        height: 30,
         icon: am5.Graphics.new(root, {
           svgPath: "M19 13H5v-2h14v2z",
           fill: am5.color(0x0984E3),
           width: 16,
-          height: 16
+          height: 16,
+          centerX: am5.percent(50),
+          centerY: am5.percent(50)
+        }),
+        background: am5.RoundedRectangle.new(root, {
+          fill: am5.color(0xFFFFFF),
+          stroke: am5.color(0xDDDDDD),
+          cornerRadiusTL: 5,
+          cornerRadiusTR: 5,
+          cornerRadiusBL: 5,
+          cornerRadiusBR: 5
         })
       })
     );
-    
-    // Set up zoom functionality for buttons
+
+    // Scale parameters
     let currentScale = 1;
-    const maxScale = 3;
     const minScale = 0.5;
+    const maxScale = 2;
+
+    // Function to distribute words in a cloud-like pattern
+    const renderWords = () => {
+      // Clear existing words
+      wordCloudContainer.children.clear();
+      
+      // Sort by weight to place more important words first
+      const sortedData = [...chartData].sort((a, b) => b.weight - a.weight);
+      
+      // Get the maximum weight for scale calculation
+      const maxWeight = Math.max(...sortedData.map(item => item.weight));
+      
+      // Helper function to determine color based on sentiment
+      const getColorBySentiment = (item: any) => {
+        const { positivePercentage, neutralPercentage, negativePercentage } = item;
+        
+        if (positivePercentage > neutralPercentage && positivePercentage > negativePercentage) {
+          return am5.color(0x00B894); // Green for positive
+        } else if (neutralPercentage > positivePercentage && neutralPercentage > negativePercentage) {
+          return am5.color(0xF1C40F); // Yellow for neutral
+        } else {
+          return am5.color(0xE74C3C); // Red for negative
+        }
+      };
+      
+      // Spiral layout variables
+      const center = { x: 50, y: 50 }; // Center of container in percentage
+      let angle = 0;
+      let radius = 0;
+      const angleStep = 0.3; // Controls spiral tightness
+      
+      sortedData.forEach((item, index) => {
+        // Calculate font size based on weight
+        const minFontSize = 12;
+        const maxFontSize = 36;
+        const fontRange = maxFontSize - minFontSize;
+        const fontSize = minFontSize + (item.weight / maxWeight) * fontRange;
+        
+        // Calculate position in spiral layout
+        angle += angleStep;
+        radius += 0.4;
+        const x = center.x + radius * Math.cos(angle);
+        const y = center.y + radius * Math.sin(angle);
+        
+        // Get color based on sentiment
+        const textColor = getColorBySentiment(item);
+        
+        // Create word label
+        const label = wordCloudContainer.children.push(
+          am5.Label.new(root, {
+            text: item.tag,
+            fontSize: fontSize,
+            fontFamily: "Inter, sans-serif",
+            fontWeight: "500",
+            fill: textColor,
+            x: am5.percent(x),
+            y: am5.percent(y),
+            centerX: am5.p50,
+            centerY: am5.p50,
+            interactive: true
+          })
+        );
+        
+        // Add hover and click effects
+        label.states.create("hover", {
+          fill: am5.color(0x0984E3),
+          scale: 1.1
+        });
+        
+        label.events.on("pointerover", () => {
+          label.states.applyAnimate("hover");
+        });
+        
+        label.events.on("pointerout", () => {
+          label.states.applyAnimate("default");
+        });
+        
+        label.events.on("click", () => {
+          console.log(`Word clicked: ${item.tag}`);
+          // Add filtering logic here if needed
+        });
+      });
+    };
     
-    zoomIn.events.on("click", function() {
+    // Make container draggable
+    wordCloudContainer.set("draggable", true);
+    
+    // Initial render of words
+    renderWords();
+    
+    // Add zoom functionality to buttons
+    zoomIn.events.on("click", () => {
       if (currentScale < maxScale) {
         currentScale *= 1.2;
-        
-        // Apply zoom to the entire series
-        series.set("scale", currentScale);
-        
-        // Center the content after zoom
-        series.set("x", series.get("x") || 0);
-        series.set("y", series.get("y") || 0);
+        wordCloudContainer.animate({
+          key: "scale",
+          to: currentScale,
+          duration: 300,
+          easing: am5.ease.out(am5.ease.cubic)
+        });
       }
     });
     
-    zoomOut.events.on("click", function() {
+    zoomOut.events.on("click", () => {
       if (currentScale > minScale) {
         currentScale *= 0.8;
-        
-        // Apply zoom to the entire series
-        series.set("scale", currentScale);
-        
-        // Center the content after zoom
-        series.set("x", series.get("x") || 0);
-        series.set("y", series.get("y") || 0);
+        wordCloudContainer.animate({
+          key: "scale",
+          to: currentScale,
+          duration: 300,
+          easing: am5.ease.out(am5.ease.cubic)
+        });
       }
     });
     
-    // Make the word cloud draggable
-    series.set("draggable", true);
-    
-    // Mouse wheel zoom support
+    // Add mouse wheel zoom
     root.container.set("wheelable", true);
-    root.container.events.on("wheel", function(e) {
-      const delta = e.originalEvent.deltaY;
-      const zoomFactor = delta > 0 ? 0.9 : 1.1;
-      
-      // Apply limits to scaling
-      if ((delta > 0 && currentScale > minScale) || 
-          (delta < 0 && currentScale < maxScale)) {
-        
-        currentScale *= zoomFactor;
-        
-        // Apply zoom to the series
-        series.set("scale", currentScale);
-        
-        // Prevent default browser behavior (page scrolling)
-        e.originalEvent.preventDefault();
+    root.container.events.on("wheel", (ev) => {
+      if (ev.originalEvent) {
+        const delta = ev.originalEvent.deltaY;
+        if (delta < 0 && currentScale < maxScale) {
+          // Zoom in
+          currentScale = Math.min(currentScale * 1.1, maxScale);
+          wordCloudContainer.set("scale", currentScale);
+          ev.originalEvent.preventDefault();
+        } else if (delta > 0 && currentScale > minScale) {
+          // Zoom out
+          currentScale = Math.max(currentScale * 0.9, minScale);
+          wordCloudContainer.set("scale", currentScale);
+          ev.originalEvent.preventDefault();
+        }
       }
     });
-
-    // Make chart responsive
-    series.appear(1000, 100);
+    
+    // Animate words in
+    wordCloudContainer.children.each((child) => {
+      child.appear(1000, 100);
+    });
 
     return () => {
       // Clean up on unmount
