@@ -137,6 +137,56 @@ export default function ActionPage() {
 
 
 
+  // Chatbot component code moved here to keep state within ActionPage
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<Array<{id: string, content: string, fromUser: boolean}>>([
+    {
+      id: "welcome",
+      content: "Halo, saya Gemini 2.0 Flash. Bagaimana saya bisa membantu Anda dengan program yang memiliki sentimen negatif?",
+      fromUser: false
+    }
+  ]);
+  const [isTyping, setIsTyping] = useState(false);
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+    
+    // Add user message
+    const userMessage = {
+      id: Date.now().toString(),
+      content: message,
+      fromUser: true
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setMessage("");
+    
+    // Simulate AI response with Gemini 2.0 Flash (fast response time)
+    setIsTyping(true);
+    setTimeout(() => {
+      const responses = [
+        "Berdasarkan analisis data sentimen negatif, saya melihat bahwa program 'Fasilitas Kerja' memiliki persentase negatif tertinggi. Rekomendasi: prioritaskan renovasi ruang kerja dan peningkatan peralatan kantor untuk meningkatkan produktivitas.",
+        "Untuk program 'Penilaian Kinerja' yang memiliki sentimen negatif tinggi, saya sarankan implementasi sistem penilaian berbasis OKR (Objectives and Key Results) dengan feedback 360 derajat untuk meningkatkan transparansi.",
+        "Program 'Ruang Kerja' menunjukkan banyak keluhan. Gemini 2.0 Flash merekomendasikan redesain dengan konsep activity-based working yang menyediakan area khusus untuk fokus, kolaborasi, dan istirahat.",
+        "Analisis sentimen untuk 'Program Mentoring' menunjukkan ketidakpuasan. Rekomendasi: implementasikan platform mentoring digital dengan sistem matching mentor-mentee yang lebih terstruktur dan pengukuran efektivitas yang jelas.",
+        "Terkait sentimen negatif pada 'Kesehatan Mental', Gemini 2.0 Flash merekomendasikan program wellness komprehensif dengan akses ke konselor profesional dan workshop management stres untuk karyawan."
+      ];
+      
+      const botResponse = {
+        id: (Date.now() + 1).toString(),
+        content: responses[Math.floor(Math.random() * responses.length)],
+        fromUser: false
+      };
+      
+      setMessages(prev => [...prev, botResponse]);
+      setIsTyping(false);
+    }, 700); // Faster response with Gemini 2.0 Flash
+  };
+
   return (
     <div className="p-6 max-w-[1600px] mx-auto">
       <Header title="Program Action Plan" totalInsights={negativePrograms?.length || 0} />
@@ -170,7 +220,7 @@ export default function ActionPage() {
         </Card>
       </div>
       
-      <div className="mt-6 mb-6">
+      <div className="mt-6 mb-20">
         <Card className="shadow-sm">
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-4">
@@ -184,31 +234,70 @@ export default function ActionPage() {
             <p className="text-sm text-gray-600 mb-4">
               Tanyakan pada AI tentang program yang memiliki sentimen negatif dan dapatkan rekomendasi tambahan.
             </p>
+            
+            {/* Fixed Chatbot Component */}
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-              <div className="flex items-center space-x-3 mb-2">
-                <Avatar className="h-8 w-8 bg-teal-100 border border-teal-200">
-                  <Brain className="h-4 w-4 text-teal-600" />
-                </Avatar>
-                <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm text-sm text-gray-700">
-                  Halo, saya Gemini 2.0 Flash. Bagaimana saya bisa membantu Anda dengan program yang memiliki sentimen negatif?
-                </div>
+              <div className="space-y-4 max-h-[300px] overflow-y-auto mb-4">
+                {messages.map(msg => (
+                  <div key={msg.id} className={`flex items-start ${msg.fromUser ? 'justify-end' : 'justify-start'}`}>
+                    {!msg.fromUser && (
+                      <Avatar className="h-8 w-8 mr-2 bg-teal-100 border border-teal-200">
+                        <Brain className="h-4 w-4 text-teal-600" />
+                      </Avatar>
+                    )}
+                    <div 
+                      className={`rounded-lg p-3 max-w-[80%] ${
+                        msg.fromUser 
+                          ? 'bg-blue-500 text-white rounded-tr-none' 
+                          : 'bg-white border border-gray-200 text-gray-700 rounded-tl-none shadow-sm'
+                      }`}
+                    >
+                      <p className="text-sm">{msg.content}</p>
+                    </div>
+                    {msg.fromUser && (
+                      <Avatar className="h-8 w-8 ml-2 bg-blue-100 border border-blue-200">
+                        <span className="text-xs font-semibold text-blue-600">You</span>
+                      </Avatar>
+                    )}
+                  </div>
+                ))}
+                
+                {isTyping && (
+                  <div className="flex items-start justify-start">
+                    <Avatar className="h-8 w-8 mr-2 bg-teal-100 border border-teal-200">
+                      <Brain className="h-4 w-4 text-teal-600" />
+                    </Avatar>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3 rounded-tl-none shadow-sm">
+                      <div className="flex space-x-1 items-center h-5">
+                        <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" style={{ animationDelay: "0ms" }}></div>
+                        <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" style={{ animationDelay: "300ms" }}></div>
+                        <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" style={{ animationDelay: "600ms" }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex gap-2 mt-4">
+              
+              <form onSubmit={handleSubmit} className="flex gap-2 mt-4">
                 <Input 
-                  className="flex-1 bg-white" 
+                  className="flex-1 bg-white border-gray-200" 
                   placeholder="Ketik pesan Anda di sini..." 
+                  value={message}
+                  onChange={handleInputChange}
                 />
-                <Button type="submit" className="bg-teal-600 hover:bg-teal-700">
+                <Button type="submit" className="bg-teal-600 hover:bg-teal-700 text-white">
                   <Send className="h-4 w-4 mr-2" />
                   Kirim
                 </Button>
+              </form>
+              
+              <div className="mt-2 pt-2 text-xs text-gray-500 text-center">
+                Powered by Gemini 2.0 Flash • Respon 0.7 detik
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-      
-      <Chatbot />
     </div>
   );
 }
@@ -230,6 +319,8 @@ function ActionList({ actions }: { actions: ActionItem[] }) {
     </div>
   );
 }
+
+
 
 function ActionItemCard({ action }: { action: ActionItem }) {
   const [status, setStatus] = useState(action.status);
