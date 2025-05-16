@@ -1,17 +1,28 @@
 import { X, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 
 interface AIInsightConclusionProps {
   onClose?: () => void;
+  pageContext?: string; // Optional custom page context
 }
 
 export default function AIInsightConclusion({
   onClose,
+  pageContext,
 }: AIInsightConclusionProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const [location] = useLocation();
+  
+  // Determine page context from current route if not explicitly provided
+  const currentPage = pageContext || (() => {
+    if (location.includes("top-insights")) return "top-insights";
+    if (location.includes("smart-analytics")) return "analytics";
+    return "dashboard"; // default
+  })();
 
-  // Fetch AI summary from the API
+  // Fetch AI summary from the API with page context
   const { 
     data, 
     isLoading, 
@@ -19,9 +30,9 @@ export default function AIInsightConclusion({
     error, 
     refetch 
   } = useQuery({
-    queryKey: ['/api/ai-summary'],
+    queryKey: ['/api/ai-summary', currentPage],
     queryFn: async () => {
-      const response = await fetch('/api/ai-summary');
+      const response = await fetch(`/api/ai-summary?page=${currentPage}`);
       if (!response.ok) {
         throw new Error('Failed to fetch AI summary');
       }
