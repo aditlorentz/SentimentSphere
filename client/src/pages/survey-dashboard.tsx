@@ -161,6 +161,23 @@ export default function SurveyDashboard() {
         comments: 0
       };
       
+      // Apply wordInsight filter
+      if (wordInsight !== "all" && item.wordInsight !== wordInsight) {
+        return; // Skip this item if it doesn't match the wordInsight filter
+      }
+      
+      // Apply sentiment filter
+      const dominantSentiment = (() => {
+        if (maxPercent === posPercent && maxPercent > 0) return "positif";
+        if (maxPercent === negPercent && maxPercent > 0) return "negatif";
+        if (maxPercent === neutPercent && maxPercent > 0) return "netral";
+        return "unknown";
+      })();
+      
+      if (sentiment !== "all" && dominantSentiment !== sentiment) {
+        return; // Skip this item if it doesn't match the sentiment filter
+      }
+      
       // Add to appropriate category based on highest percentage
       if (maxPercent === posPercent && maxPercent > 0) {
         result.positive.push(insight);
@@ -172,7 +189,7 @@ export default function SurveyDashboard() {
     });
     
     return result;
-  }, [summaryData]);
+  }, [summaryData, wordInsight, sentiment]);
   
   // Handler for removing insights
   const handleRemoveInsight = (id: number) => {
