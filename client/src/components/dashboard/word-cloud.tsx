@@ -98,39 +98,55 @@ const WordCloud: React.FC<WordCloudProps> = ({
       // Sort words by weight (for grid layout)
       const sortedData = [...chartData].sort((a, b) => b.weight - a.weight);
       
-      // Define grid layout
-      const COLS = 5;
-      const ROWS = 10;
+      // Define a more compact layout
+      const COLS = 4;
+      const ROWS = 8;
       const CELL_WIDTH = 100 / COLS;
       const CELL_HEIGHT = 100 / ROWS;
+      
+      // Padding to center the whole grid in the container
+      const PADDING_X = 10; // % padding on left and right
+      const PADDING_Y = 10; // % padding on top and bottom
+      
+      // Calculate actual grid area
+      const GRID_WIDTH = 100 - (PADDING_X * 2);
+      const GRID_HEIGHT = 100 - (PADDING_Y * 2);
+      const ACTUAL_CELL_WIDTH = GRID_WIDTH / COLS;
+      const ACTUAL_CELL_HEIGHT = GRID_HEIGHT / ROWS;
       
       // Helper function to get position in grid
       const getPosition = (index: number) => {
         const row = Math.floor(index / COLS);
         const col = index % COLS;
         
-        // Center each word in its cell with small random offset
-        const x = (col * CELL_WIDTH) + (CELL_WIDTH / 2) + (Math.random() * 8 - 4);
-        const y = (row * CELL_HEIGHT) + (CELL_HEIGHT / 2) + (Math.random() * 8 - 4);
+        // Center each word in its cell with minimal random offset
+        const x = PADDING_X + (col * ACTUAL_CELL_WIDTH) + (ACTUAL_CELL_WIDTH / 2);
+        const y = PADDING_Y + (row * ACTUAL_CELL_HEIGHT) + (ACTUAL_CELL_HEIGHT / 2);
         
         return { x, y };
       };
       
-      // Add words to grid
-      sortedData.forEach((item, index) => {
+      // Add words to grid - limited to 32 words to prevent overcrowding
+      const limitedData = sortedData.slice(0, COLS * ROWS);
+      
+      limitedData.forEach((item, index) => {
         // Get word position
         const { x, y } = getPosition(index);
         
-        // Get random color
-        const colorIndex = index % COLORS.length;
+        // Get deterministic color - same word always gets same color
+        const hashCode = item.tag.split('').reduce((acc, char) => {
+          return acc + char.charCodeAt(0);
+        }, 0);
+        const colorIndex = hashCode % COLORS.length;
         const color = COLORS[colorIndex];
         
-        // Create label for word
+        // Create label for word - slightly larger font
         const label = container.children.push(
           am5.Label.new(root, {
             text: item.tag,
-            fontSize: 16, // Fixed size font
+            fontSize: 18, // Slightly larger font for better readability
             fontFamily: "Inter, sans-serif",
+            fontWeight: "500", // Medium weight for better visibility
             fill: am5.color(color),
             x: am5.percent(x),
             y: am5.percent(y),
