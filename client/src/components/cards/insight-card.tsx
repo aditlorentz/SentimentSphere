@@ -325,6 +325,7 @@ export interface SentimentCategoryProps {
   type: "neutral" | "negative" | "positive";
   insights: InsightData[];
   onRemoveInsight?: (id: number) => void;
+  onPinInsight?: (insight: InsightData) => void;
   className?: string;
 }
 
@@ -334,6 +335,7 @@ export function SentimentCategoryCard({
   type,
   insights,
   onRemoveInsight,
+  onPinInsight,
   className,
 }: SentimentCategoryProps) {
   const getBadgeColor = () => {
@@ -366,6 +368,7 @@ export function SentimentCategoryCard({
           key={insight.id} 
           insight={insight} 
           onRemove={onRemoveInsight}
+          onPin={onPinInsight}
         />
       ))}
     </div>

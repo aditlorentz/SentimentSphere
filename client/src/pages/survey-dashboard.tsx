@@ -326,6 +326,7 @@ export default function SurveyDashboard() {
             type="neutral"
             insights={categories.neutral}
             onRemoveInsight={handleRemoveInsight}
+            onPinInsight={handlePinInsight}
           />
           
           <SentimentCategoryCard
@@ -334,6 +335,7 @@ export default function SurveyDashboard() {
             type="negative"
             insights={categories.negative}
             onRemoveInsight={handleRemoveInsight}
+            onPinInsight={handlePinInsight}
           />
           
           <SentimentCategoryCard
@@ -342,6 +344,7 @@ export default function SurveyDashboard() {
             type="positive"
             insights={categories.positive}
             onRemoveInsight={handleRemoveInsight}
+            onPinInsight={handlePinInsight}
           />
         </div>
         
