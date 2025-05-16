@@ -238,10 +238,10 @@ export default function SurveyDashboard() {
         title="Survey Dashboard" 
         totalInsights={stats?.totalInsights || 0}
         showFilters={true}
-        // Sembunyikan filter Source dan Survey di halaman survey dashboard
+        // Sembunyikan filter Source, Survey, dan Date di halaman survey dashboard
         showSourceFilter={false}
         showSurveyFilter={false}
-        showDateFilter={true}
+        showDateFilter={false}
         onSourceChange={handleSourceChange}
         onSurveyChange={handleSurveyChange}
         onDateRangeChange={handleDateRangeChange}
