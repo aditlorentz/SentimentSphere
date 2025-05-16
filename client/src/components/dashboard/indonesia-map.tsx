@@ -27,10 +27,10 @@ interface IndonesiaMapProps {
 }
 
 // Warna untuk sentimen berbeda
-const SENTIMENT_COLORS = {
-  positive: 0x00B894, // Hijau
+const SENTIMENT_COLORS: Record<string, number> = {
+  positive: 0x2ECC71, // Hijau
   negative: 0xE74C3C, // Merah
-  neutral: 0xF1C40F   // Kuning
+  neutral: 0xF4D03F   // Kuning
 };
 
 const IndonesiaMap: React.FC<IndonesiaMapProps> = ({ 
@@ -131,8 +131,10 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
         const sentiment = dataContext.dominantSentiment;
         
         if (sentiment && SENTIMENT_COLORS[sentiment]) {
-          // Tetapkan warna berdasarkan sentiment dengan opacity 0.7
-          return am5.color(SENTIMENT_COLORS[sentiment]).lighten(0.3);
+          // Tetapkan warna berdasarkan sentiment 
+          // Untuk lightened version, buat warna baru dengan nilai yang lebih tinggi
+          const colorValue = SENTIMENT_COLORS[sentiment];
+          return am5.color(colorValue);
         }
       }
       return fill;
@@ -190,10 +192,15 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       })
     );
 
+    // Definisikan warna untuk legend yang lebih cerah
+    const positiveLegendColor = am5.color(0x2ECC71); // Hijau yang lebih cerah
+    const neutralLegendColor = am5.color(0xF4D03F);  // Kuning yang lebih cerah
+    const negativeLegendColor = am5.color(0xE74C3C); // Merah
+
     legend.data.setAll([
-      { name: "Positive", color: am5.color(SENTIMENT_COLORS.positive).lighten(0.3) },
-      { name: "Neutral", color: am5.color(SENTIMENT_COLORS.neutral).lighten(0.3) },
-      { name: "Negative", color: am5.color(SENTIMENT_COLORS.negative).lighten(0.3) }
+      { name: "Positive", color: positiveLegendColor },
+      { name: "Neutral", color: neutralLegendColor },
+      { name: "Negative", color: negativeLegendColor }
     ]);
 
     // Animasi

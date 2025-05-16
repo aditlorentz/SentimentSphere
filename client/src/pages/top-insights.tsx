@@ -5,6 +5,7 @@ import AIInsightConclusion from "@/components/dashboard/ai-conclusion";
 import Chatbot from "@/components/dashboard/chatbot";
 import WordCloud from "@/components/dashboard/word-cloud";
 import IndonesiaMap from "@/components/dashboard/indonesia-map";
+import RegionSummaryTable from "@/components/dashboard/region-summary-table";
 import { useQuery } from "@tanstack/react-query";
 import {
   Table,
