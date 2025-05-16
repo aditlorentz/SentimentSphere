@@ -100,21 +100,7 @@ export function InsightStats({ views, comments }: InsightStatsProps) {
   return (
     <div className="flex items-center space-x-6 mt-3 text-xs text-gray-500">
       <div className="flex items-center space-x-1">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="lucide lucide-eye"
-        >
-          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
+        <span className="font-bold">#</span>
         <span>Jumlah: {views}</span>
       </div>
       <div className="flex items-center space-x-1">
