@@ -429,17 +429,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         promptPrefix = "Berdasarkan analisis top insights, ";
         summaryData.pageContext = "Top Insights";
         
-        // Get more detailed data for top insights
-        const topInsightsDetails = await db
+        // Get more detailed data for top insights - fixed SQL query with proper aggregation
+        const totalCount = await db
           .select({
-            wordInsight: topWordInsights.wordInsight,
-            totalCount: topWordInsights.totalCount,
-            distribution: sql<string>`'Top 10 words represent ' || (SUM(${topWordInsights.totalCount}) * 100.0 / 
-              (SELECT SUM(${surveyDashboardSummary.totalCount}) FROM ${surveyDashboardSummary})) || '% of total insights'`
+            count: sql<number>`SUM(${topWordInsights.totalCount})`
           })
           .from(topWordInsights)
-          .limit(1)
-          .then(rows => rows[0]);
+          .then(rows => rows[0]?.count || 0);
+        
+        const totalAllInsights = await db
+          .select({
+            count: sql<number>`SUM(${surveyDashboardSummary.totalCount})`
+          })
+          .from(surveyDashboardSummary)
+          .then(rows => rows[0]?.count || 1);  // Default to 1 to avoid division by zero
+          
+        const percentage = ((Number(totalCount) * 100.0) / Number(totalAllInsights)).toFixed(1);
+        
+        const topInsightsDetails = {
+          distribution: `Top 10 words represent ${percentage}% of total insights`
+        };
           
         if (topInsightsDetails) {
           summaryData.topInsightsDistribution = topInsightsDetails.distribution;
