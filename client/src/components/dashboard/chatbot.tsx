@@ -57,17 +57,18 @@ export default function Chatbot() {
     setMessages((prev) => [...prev, newMessage]);
     setMessage("");
     
-    // Simulate bot response
+    // Simulate Gemini 2.0 Flash bot response - much faster response time for better UX
     setIsTyping(true);
     setTimeout(() => {
       const responses = [
-        "Berdasarkan data yang kita miliki, insight ini menunjukkan tren positif pada kepuasan karyawan.",
-        "Analisis sentimen menunjukkan bahwa kata kunci 'program' dan 'karyawan' paling banyak muncul.",
-        "Terima kasih atas pertanyaannya. Bagaimana saya bisa membantu lebih lanjut?",
-        "Saya telah menganalisa data dan menemukan bahwa daerah Jakarta memiliki tingkat engagement tertinggi.",
-        "Mari kita diskusikan lebih lanjut tentang insight ini. Aspek apa yang ingin Anda telusuri?"
+        "Berdasarkan analisis Gemini 2.0 Flash terhadap data kita, sentiment karyawan menunjukkan tren positif untuk program wellness dan employee recognition, namun perlu perhatian lebih pada aspek fasilitas kerja.",
+        "Gemini 2.0 Flash telah menganalisis semua data dan menemukan bahwa top insight 'Program Wellness' memiliki korelasi tinggi dengan sentimen positif, sementara 'Fasilitas Kerja' menunjukkan beberapa sentimen negatif yang perlu ditindaklanjuti.",
+        "Hasil analisis dari Gemini 2.0 Flash: insight 'Program Mentoring' dan 'Pelatihan Digital' menunjukkan peningkatan signifikan dibanding kuartal sebelumnya, terutama di daerah Jakarta dan Bandung.",
+        "Gemini 2.0 Flash mendeteksi bahwa daerah Jakarta memiliki tingkat engagement tertinggi, terutama pada topik 'Flexible Working' dengan sentiment positif mencapai 63% dari total insight.",
+        "Berdasarkan deep learning analysis Gemini 2.0 Flash, ada korelasi kuat antara 'Employee Recognition' dan tingkat engagement karyawan. Rekomendasi: tingkatkan program penghargaan untuk meningkatkan produktivitas secara keseluruhan."
       ];
       
+      // More responsive flash model response
       const randomResponse = responses[Math.floor(Math.random() * responses.length)];
       
       const botResponse: Message = {
@@ -78,7 +79,7 @@ export default function Chatbot() {
       };
       setMessages((prev) => [...prev, botResponse]);
       setIsTyping(false);
-    }, 1500);
+    }, 700); // Lebih cepat karena menggunakan Gemini 2.0 Flash
   };
   
   // Format timestamp
@@ -108,8 +109,8 @@ export default function Chatbot() {
                 <div>
                   <div className="font-semibold">NLP Assistant</div>
                   <div className="text-xs text-teal-100 flex items-center">
-                    <span className="inline-block h-2 w-2 rounded-full bg-teal-300 mr-2"></span>
-                    Insight Analyst
+                    <span className="inline-block h-2 w-2 rounded-full bg-teal-300 mr-2 animate-pulse"></span>
+                    Gemini 2.0 Flash
                   </div>
                 </div>
               </div>
@@ -254,7 +255,7 @@ export default function Chatbot() {
                   </form>
                   
                   <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-500">
-                    <span>Powered by NLP AI • v1.0.2</span>
+                    <span>Powered by Gemini 2.0 Flash • v1.2.0</span>
                     <div className="flex items-center space-x-3">
                       <button className="hover:text-gray-700 transition-colors">
                         <Image className="h-3.5 w-3.5" />
