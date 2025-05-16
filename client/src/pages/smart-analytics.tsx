@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Header from "@/components/layout/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -51,6 +51,7 @@ interface AnalyticsData {
 }
 
 export default function SmartAnalytics() {
+  // Query untuk data analytics dasar
   const { data, isLoading } = useQuery({
     queryKey: ['/api/analytics'],
     queryFn: async () => {
@@ -99,49 +100,44 @@ export default function SmartAnalytics() {
               { name: "Negative", value: 118 },
               { name: "Neutral", value: 188 },
             ],
-            trendInsights: [
-              {
-                id: 1,
-                city: "Surabaya",
-                source: "Dikleum",
-                employee: "G*** I***",
-                sentiment: "Dengan ini saya ingin mengemukakan kepada manajemen tentang kebijakan baru...",
-                date: "2025-05-14 13:56:02",
-              },
-              {
-                id: 2,
-                city: "Bandung",
-                source: "Dikleum",
-                employee: "S*** Y***",
-                sentiment: "Program pengembangan karir yang ditawarkan sangat membantu saya...",
-                date: "2025-05-14 12:45:19",
-              },
-              {
-                id: 3,
-                city: "Jakarta",
-                source: "Feedback",
-                employee: "A*** B***",
-                sentiment: "Sistem kerja hybrid memberikan fleksibilitas yang baik...",
-                date: "2025-05-14 11:30:45",
-              },
-              {
-                id: 4,
-                city: "Surabaya",
-                source: "Dikleum",
-                employee: "M*** N***",
-                sentiment: "Perlu adanya peningkatan fasilitas kerja di kantor cabang...",
-                date: "2025-05-14 10:15:33",
-              },
-            ],
+            trendInsights: [],  // Akan diisi dari API employee_insights
           });
         }, 500);
       });
     },
   });
+  
+  // Query untuk data employee insights
+  const { data: employeeInsightsData, isLoading: isLoadingInsights } = useQuery({
+    queryKey: ['/api/postgres/insights'],
+    queryFn: async () => {
+      const response = await fetch('/api/postgres/insights');
+      if (!response.ok) {
+        throw new Error('Failed to fetch employee insights');
+      }
+      const result = await response.json();
+      return result.data;
+    },
+  });
 
   const COLORS = ["#00B894", "#FF7675", "#FDCB6E"];
 
-  if (isLoading) {
+  // Mengolah data employee insights untuk Top TREG Insights
+  const processedTrendInsights = useMemo(() => {
+    if (!employeeInsightsData) return [];
+    
+    // Ambil 10 data terbaru
+    return employeeInsightsData.slice(0, 10).map((insight: any) => ({
+      id: insight.id,
+      city: insight.location || "Unknown",
+      source: insight.sourceData || "N/A",
+      employee: insight.employeeName || "Anonymous",
+      sentiment: insight.sentimentText || insight.wordInsight || "N/A",
+      date: new Date(insight.createdAt).toLocaleString('id-ID')
+    }));
+  }, [employeeInsightsData]);
+  
+  if (isLoading || isLoadingInsights) {
     return (
       <div className="flex-1 overflow-x-hidden">
         <Header title="Smart Analytics" />
@@ -501,16 +497,50 @@ export default function SmartAnalytics() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data?.trendInsights.map((insight, index) => (
-                    <TableRow key={insight.id} className="hover:bg-gray-50 transition-all duration-200">
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell>{insight.city}</TableCell>
-                      <TableCell>{insight.source}</TableCell>
-                      <TableCell>{insight.employee}</TableCell>
-                      <TableCell className="max-w-md truncate">{insight.sentiment}</TableCell>
-                      <TableCell>{insight.date}</TableCell>
+                  {isLoadingInsights ? (
+                    // Loading state - menampilkan 5 baris skeleton loading
+                    Array(5).fill(0).map((_, index: number) => (
+                      <TableRow key={`loading-${index}`}>
+                        <TableCell>
+                          <div className="w-6 h-4 bg-gray-200 animate-pulse rounded"></div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="w-20 h-4 bg-gray-200 animate-pulse rounded"></div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="w-24 h-4 bg-gray-200 animate-pulse rounded"></div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="w-28 h-4 bg-gray-200 animate-pulse rounded"></div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="w-40 h-4 bg-gray-200 animate-pulse rounded"></div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="w-28 h-4 bg-gray-200 animate-pulse rounded"></div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : processedTrendInsights.length > 0 ? (
+                    // Data dari employee insights
+                    processedTrendInsights.map((insight: any, index: number) => (
+                      <TableRow key={insight.id} className="hover:bg-gray-50 transition-all duration-200">
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell>{insight.city}</TableCell>
+                        <TableCell>{insight.source}</TableCell>
+                        <TableCell>{insight.employee}</TableCell>
+                        <TableCell className="max-w-md truncate">{insight.sentiment}</TableCell>
+                        <TableCell>{insight.date}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    // No data state
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+                        Tidak ada data insight tersedia
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
