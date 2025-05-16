@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Chatbot from "@/components/dashboard/chatbot";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, AlertTriangle, Clipboard, Activity } from "lucide-react";
 
 
@@ -13,9 +12,8 @@ interface ActionItem {
   program: string;
   issues: string;
   recommendations: string;
-  impact: number; // 1-10
-  effort: number; // 1-10
-  priority: "high" | "medium" | "low";
+  negativeCount: number;
+  negativePercentage: number;
   status: "not-started" | "in-progress" | "completed";
 }
 
