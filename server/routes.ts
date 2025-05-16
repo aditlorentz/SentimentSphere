@@ -375,7 +375,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Endpoint untuk data geografis peta Indonesia
+  // Endpoint untuk data geografis peta Indonesia - dinonaktifkan
+  // Kita menggunakan data statis di client, tidak perlu endpoint ini lagi
+  /*
   app.get("/api/map-geo-data", async (req: Request, res: Response) => {
     try {
       const result = await db.select().from(mapGeoData);
@@ -407,6 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  */
 
   const httpServer = createServer(app);
   return httpServer;
