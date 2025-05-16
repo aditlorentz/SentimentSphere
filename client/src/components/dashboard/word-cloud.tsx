@@ -156,60 +156,115 @@ const WordCloud: React.FC<WordCloudProps> = ({
     // Add data
     series.data.setAll(seriesData);
 
-    // Add zoom capability
-    root.container.set("wheelable", true);
-    const zoomOut = root.container.children.push(am5.Button.new(root, {
-      x: am5.p100,
-      y: 0,
-      paddingTop: 10,
-      paddingRight: 10,
-      icon: am5.Graphics.new(root, {
-        svgPath: "M19 13H5v-2h14v2z",
-        fill: am5.color(0x000000)
+    // Create controls container for zoom
+    const controls = root.container.children.push(
+      am5.Container.new(root, {
+        x: am5.p100,
+        y: 10,
+        paddingRight: 15,
+        layout: root.verticalLayout,
+        centerY: am5.p50,
+        y: am5.p50,
+        zIndex: 10
       })
-    }));
+    );
     
-    const zoomIn = root.container.children.push(am5.Button.new(root, {
-      x: am5.p100,
-      y: 30,
-      paddingTop: 10,
-      paddingRight: 10,
-      icon: am5.Graphics.new(root, {
-        svgPath: "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z",
-        fill: am5.color(0x000000)
+    // Add zoom buttons with clear styling
+    const zoomIn = controls.children.push(
+      am5.Button.new(root, {
+        marginBottom: 10,
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 8,
+        paddingRight: 8,
+        centerX: am5.p50,
+        centerY: am5.p50,
+        backgroundColor: am5.color(0xFFFFFF),
+        backgroundColorHover: am5.color(0xF5F5F5),
+        fill: am5.color(0x0984E3),
+        stroke: am5.color(0xDDDDDD),
+        icon: am5.Graphics.new(root, {
+          svgPath: "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z",
+          fill: am5.color(0x0984E3),
+          width: 16,
+          height: 16
+        })
       })
-    }));
+    );
+
+    const zoomOut = controls.children.push(
+      am5.Button.new(root, {
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 8,
+        paddingRight: 8,
+        centerX: am5.p50,
+        centerY: am5.p50,
+        backgroundColor: am5.color(0xFFFFFF),
+        backgroundColorHover: am5.color(0xF5F5F5),
+        fill: am5.color(0x0984E3),
+        stroke: am5.color(0xDDDDDD),
+        icon: am5.Graphics.new(root, {
+          svgPath: "M19 13H5v-2h14v2z",
+          fill: am5.color(0x0984E3),
+          width: 16,
+          height: 16
+        })
+      })
+    );
     
-    zoomOut.events.on("click", function() {
-      if (series.width() > 200) {
-        series.animate({
-          key: "width",
-          to: series.width() * 0.8,
-          duration: 500,
-          easing: am5.ease.out(am5.ease.cubic)
-        });
-        series.animate({
-          key: "height",
-          to: series.height() * 0.8,
-          duration: 500,
-          easing: am5.ease.out(am5.ease.cubic)
-        });
+    // Set up zoom functionality for buttons
+    let currentScale = 1;
+    const maxScale = 3;
+    const minScale = 0.5;
+    
+    zoomIn.events.on("click", function() {
+      if (currentScale < maxScale) {
+        currentScale *= 1.2;
+        
+        // Apply zoom to the entire series
+        series.set("scale", currentScale);
+        
+        // Center the content after zoom
+        series.set("x", series.get("x") || 0);
+        series.set("y", series.get("y") || 0);
       }
     });
     
-    zoomIn.events.on("click", function() {
-      series.animate({
-        key: "width",
-        to: series.width() * 1.2,
-        duration: 500,
-        easing: am5.ease.out(am5.ease.cubic)
-      });
-      series.animate({
-        key: "height",
-        to: series.height() * 1.2,
-        duration: 500,
-        easing: am5.ease.out(am5.ease.cubic)
-      });
+    zoomOut.events.on("click", function() {
+      if (currentScale > minScale) {
+        currentScale *= 0.8;
+        
+        // Apply zoom to the entire series
+        series.set("scale", currentScale);
+        
+        // Center the content after zoom
+        series.set("x", series.get("x") || 0);
+        series.set("y", series.get("y") || 0);
+      }
+    });
+    
+    // Make the word cloud draggable
+    series.set("draggable", true);
+    
+    // Mouse wheel zoom support
+    root.container.set("wheelable", true);
+    root.container.events.on("wheel", function(e) {
+      const delta = e.originalEvent.deltaY;
+      const zoomFactor = delta > 0 ? 0.9 : 1.1;
+      
+      // Apply limits to scaling
+      if ((delta > 0 && currentScale > minScale) || 
+          (delta < 0 && currentScale < maxScale)) {
+        
+        currentScale *= zoomFactor;
+        
+        // Apply zoom to the series
+        series.set("scale", currentScale);
+        
+        // Prevent default browser behavior (page scrolling)
+        e.originalEvent.preventDefault();
+      }
     });
 
     // Make chart responsive
