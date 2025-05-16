@@ -48,7 +48,7 @@ export default function AIInsightConclusion({
             AI Instant Conclusion
           </h2>
           <span className="bg-blue-900 text-white text-xs font-medium px-2 py-1 rounded-full">
-            Gemini Flash 2.0
+            Gemini Pro
           </span>
         </div>
         <div className="flex space-x-2">
@@ -72,7 +72,7 @@ export default function AIInsightConclusion({
       {isLoading ? (
         <div className="text-gray-600 text-sm flex items-center">
           <div className="h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2"></div>
-          Menghasilkan kesimpulan cerdas dengan Gemini Flash 2.0...
+          Menghasilkan kesimpulan cerdas dengan Gemini Pro...
         </div>
       ) : isError ? (
         <div className="text-red-500 text-sm">
