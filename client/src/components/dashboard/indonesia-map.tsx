@@ -192,15 +192,10 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       })
     );
 
-    // Definisikan warna untuk legend yang lebih cerah
-    const positiveLegendColor = am5.color(0x2ECC71); // Hijau yang lebih cerah
-    const neutralLegendColor = am5.color(0xF4D03F);  // Kuning yang lebih cerah
-    const negativeLegendColor = am5.color(0xE74C3C); // Merah
-
     legend.data.setAll([
-      { name: "Positive", color: positiveLegendColor },
-      { name: "Neutral", color: neutralLegendColor },
-      { name: "Negative", color: negativeLegendColor }
+      { name: "Positive", color: am5.color(0x2ECC71) }, // Hijau
+      { name: "Neutral", color: am5.color(0xF4D03F) },  // Kuning
+      { name: "Negative", color: am5.color(0xE74C3C) }  // Merah
     ]);
 
     // Animasi
