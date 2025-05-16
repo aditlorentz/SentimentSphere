@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,6 @@ import { Eye, EyeOff, User, Lock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-// Brain SVG image no longer used with the new design
 import nlpLogo from "../assets/logo-nlp.webp";
 import {
   Form,
@@ -24,45 +23,12 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-// AI and NLP images for the slideshow
-const aiImages = [
-  {
-    url: "https://images.unsplash.com/photo-1677442136019-21780ecad006?q=80&w=2532&auto=format&fit=crop",
-    alt: "AI neural network visualization",
-    caption: "Advanced neural network processing for sentiment analysis"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1701217761949-0a053a0ff409?q=80&w=2532&auto=format&fit=crop",
-    alt: "AI technology interface",
-    caption: "Next-generation NLP technology powering intelligent insights"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2465&auto=format&fit=crop",
-    alt: "Data visualization",
-    caption: "Transforming complex data into actionable intelligence"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1633419461186-7d40a38105ec?q=80&w=2070&auto=format&fit=crop",
-    alt: "AI robot face",
-    caption: "Gemini 2.0 Flash - The future of conversational AI"
-  }
-];
-
 export default function Login() {
   const { login } = useAuth();
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentImage, setCurrentImage] = useState(0);
-
-  // Auto-rotate AI images
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImage((prev) => (prev + 1) % aiImages.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -128,37 +94,12 @@ export default function Login() {
         
         <div className="flex-1 flex flex-col items-center justify-center">
           <div className="w-full max-w-lg">
-            {/* AI/NLP Image Slideshow */}
-            <div className="relative rounded-xl overflow-hidden shadow-xl mb-8 aspect-video bg-gray-100">
-              <img 
-                src={aiImages[currentImage].url}
-                alt={aiImages[currentImage].alt}
-                className="w-full h-full object-cover transition-opacity duration-500"
-              />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                <p className="text-white text-sm font-medium">
-                  {aiImages[currentImage].caption}
-                </p>
-              </div>
-            </div>
-            
-            {/* Image Slider Indicators */}
-            <div className="flex justify-center mt-4 space-x-2">
-              {aiImages.map((_, i) => (
-                <button 
-                  key={i} 
-                  className={`h-2 w-2 rounded-full transition-colors ${i === currentImage ? 'bg-indigo-600' : 'bg-gray-300'}`}
-                  onClick={() => setCurrentImage(i)}
-                />
-              ))}
-            </div>
-
             {/* NLP Technology Highlight */}
-            <div className="mt-8 p-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            <div className="mb-12 p-8 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl text-center">
+              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
                 Powered by Advanced NLP Technology
               </h3>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600">
                 Our sentiment analysis platform uses state-of-the-art natural language processing to transform complex text data into actionable insights.
               </p>
             </div>
