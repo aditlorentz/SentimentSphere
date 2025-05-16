@@ -95,6 +95,21 @@ const TopInsights = () => {
         </h1>
 
         <div className="grid grid-cols-1 gap-8">
+          {/* AI Analysis Card */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-xl font-medium text-gray-700 mb-4">
+                AI Analysis
+              </h2>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <AIInsightConclusion />
+                <Chatbot />
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Main Insights Card */}
           <Card>
             <CardContent className="p-6">
               <h2 className="text-xl font-medium text-gray-700 mb-4">
@@ -226,21 +241,6 @@ const TopInsights = () => {
             )}
             </CardContent>
           </Card>
-
-          <div className="grid grid-cols-1 gap-8">
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-medium text-gray-700 mb-4">
-                  AI Analysis
-                </h2>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <AIInsightConclusion />
-                  <Chatbot />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </main>
     </div>
