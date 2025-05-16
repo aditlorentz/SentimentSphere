@@ -152,7 +152,7 @@ export default function TopInsights() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {topInsights?.insights.map((insight, index) => (
+                  {topInsights?.insights.map((insight: TopInsight, index: number) => (
                     <TableRow key={insight.id} className="hover:bg-gray-50 transition-all duration-200">
                       <TableCell className="font-medium">{index + 1 + (page - 1) * 10}</TableCell>
                       <TableCell>{insight.location}</TableCell>
@@ -233,7 +233,7 @@ export default function TopInsights() {
             </Pagination>
             
             <div className="mt-4 text-sm text-gray-500 text-right">
-              Showing 1 to 10 of {topInsights?.totalCount} entries
+              Showing {insightsData && insightsData.data.length > 0 ? (page - 1) * 10 + 1 : 0} to {insightsData ? (page - 1) * 10 + insightsData.data.length : 0} of {insightsData?.total || 0} entries
             </div>
           </CardContent>
         </Card>
