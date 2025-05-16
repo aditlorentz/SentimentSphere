@@ -392,7 +392,7 @@ function ActionItemCard({ action }: { action: ActionItem }) {
               onClick={() => handleStatusChange("in-progress")}
               className={status === "in-progress" ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
-              Mark In Progress
+              Sedang Dikerjakan
             </Button>
             
             <Button 
@@ -401,11 +401,11 @@ function ActionItemCard({ action }: { action: ActionItem }) {
               onClick={() => handleStatusChange("completed")}
               className={status === "completed" ? "bg-green-600 hover:bg-green-700" : ""}
             >
-              Mark Complete
+              Sudah Selesai
             </Button>
             
             <Button size="sm" variant="ghost" className="flex items-center">
-              <Clipboard className="h-4 w-4 mr-1" /> Copy
+              <Clipboard className="h-4 w-4 mr-1" /> Salin
             </Button>
           </div>
         </div>
