@@ -11,6 +11,7 @@ import MyInsights from "@/pages/my-insights";
 import TopInsights from "@/pages/top-insights";
 import SmartAnalytics from "@/pages/smart-analytics";
 import Settings from "@/pages/settings";
+import ActionPage from "@/pages/action-page";
 
 
 import Sidebar from "@/components/layout/sidebar";
@@ -51,6 +52,11 @@ function Router() {
           <Route path="/settings">
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          </Route>
+          <Route path="/action-page">
+            <ProtectedRoute>
+              <ActionPage />
             </ProtectedRoute>
           </Route>
 

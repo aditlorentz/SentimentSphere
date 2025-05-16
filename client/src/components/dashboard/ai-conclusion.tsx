@@ -19,6 +19,7 @@ export default function AIInsightConclusion({
   const currentPage = pageContext || (() => {
     if (location.includes("top-insights")) return "top-insights";
     if (location.includes("smart-analytics")) return "analytics";
+    if (location.includes("action-page")) return "action-page";
     return "dashboard"; // default
   })();
 

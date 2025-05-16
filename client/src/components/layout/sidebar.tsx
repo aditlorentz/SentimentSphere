@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
-import { Brain, ChartLine, Star, BarChart3, Settings, BarChart2 } from "lucide-react";
+import { Brain, ChartLine, Star, BarChart3, Settings, ClipboardList, ActivitySquare } from "lucide-react";
 import nlpLogo from "../../assets/logo-nlp.webp";
 import { useQuery } from "@tanstack/react-query";
 
@@ -97,6 +97,9 @@ export default function Sidebar() {
           </SidebarItem>
           <SidebarItem href="/smart-analytics" icon={<Brain size={18} />}>
             Smart Analytics
+          </SidebarItem>
+          <SidebarItem href="/action-page" icon={<ActivitySquare size={18} />}>
+            Action Plan
           </SidebarItem>
           <SidebarItem href="/settings" icon={<Settings size={18} />}>
             Settings
