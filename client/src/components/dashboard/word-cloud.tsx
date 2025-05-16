@@ -129,11 +129,11 @@ const WordCloud: React.FC<WordCloudProps> = ({
     
     // Sort and limit data to prevent overcrowding
     const sortedData = [...cloudData].sort((a, b) => b.weight - a.weight);
-    const limitedData = sortedData.slice(0, 12); // Significantly reduce to only 12 words
+    const limitedData = sortedData.slice(0, 9); // Further reduce to only 9 words
     
-    // Define layout grid - 4 columns x 3 rows with more spacing
+    // Define layout grid - 3 columns x 3 rows with more spacing
     const rows = 3;
-    const cols = 4;
+    const cols = 3;
     
     return limitedData.map((item, index) => {
       // Calculate position in grid
