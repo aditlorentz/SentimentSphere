@@ -3,32 +3,69 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5map from '@amcharts/amcharts5/map';
 import am5geodata_indonesiaLow from '@amcharts/amcharts5-geodata/indonesiaLow';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
+import { useQuery } from '@tanstack/react-query';
 
-interface RegionData {
+interface MapGeoDataItem {
   id: string;
   name: string;
   value: number;
+  latitude: number;
+  longitude: number;
+  witel: string;
+  positiveCount: number;
+  negativeCount: number;
+  neutralCount: number;
+  dominantSentiment: string;
 }
 
 interface IndonesiaMapProps {
-  data?: RegionData[];
+  data?: MapGeoDataItem[];
   title?: string;
   width?: string;
   height?: string;
+  useApiData?: boolean;
 }
+
+// Warna untuk sentimen berbeda
+const SENTIMENT_COLORS = {
+  positive: 0x00B894, // Hijau
+  negative: 0xE74C3C, // Merah
+  neutral: 0xF1C40F   // Kuning
+};
 
 const IndonesiaMap: React.FC<IndonesiaMapProps> = ({ 
   data = [], 
   title = "Regional Insights", 
   width = '100%', 
-  height = '400px' 
+  height = '400px',
+  useApiData = true 
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<am5.Root | null>(null);
+  
+  // Ambil data dari API jika useApiData = true
+  const { data: apiData, isLoading, error } = useQuery({
+    queryKey: ['/api/map-geo-data'],
+    queryFn: async () => {
+      if (!useApiData) return null;
+      
+      const response = await fetch('/api/map-geo-data');
+      if (!response.ok) {
+        throw new Error('Failed to fetch map geo data');
+      }
+      
+      const result = await response.json();
+      return result.data as MapGeoDataItem[];
+    },
+    enabled: useApiData
+  });
+
+  // Tentukan data mana yang akan digunakan
+  const mapData = useApiData && apiData ? apiData : data;
 
   useLayoutEffect(() => {
-    // Pastikan DOM element tersedia
-    if (!chartRef.current) return;
+    // Pastikan DOM element tersedia dan ada data
+    if (!chartRef.current || (useApiData && isLoading)) return;
 
     // Bersihkan chart sebelumnya jika ada
     if (rootRef.current) {
@@ -64,69 +101,54 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
 
     // Set tampilan dasar polygon
     polygonSeries.mapPolygons.template.setAll({
-      tooltipText: "{name}: {value}",
+      tooltipText: "{name}\nTotal: {value}\nPositive: {positiveCount}\nNegative: {negativeCount}\nNeutral: {neutralCount}",
       interactive: true,
       fill: am5.color(0xEEEEEE),
       strokeWidth: 0.5,
       stroke: am5.color(0xFFFFFF)
     });
 
-    // Tambahkan heat rule untuk warna berdasarkan nilai
-    polygonSeries.set("heatRules", [{
-      target: polygonSeries.mapPolygons.template,
-      dataField: "value",
-      min: am5.color(0xCFE8FF),
-      max: am5.color(0x0984E3),
-      key: "fill"
-    }]);
-
-    // Siapkan data
-    const mapData = data.length > 0 ? data : [
-      { id: "ID-JK", name: "Jakarta", value: 42 },
-      { id: "ID-JB", name: "West Java", value: 35 },
-      { id: "ID-JI", name: "East Java", value: 28 },
-      { id: "ID-JT", name: "Central Java", value: 25 },
-      { id: "ID-SN", name: "South Sulawesi", value: 18 },
-      { id: "ID-BT", name: "Banten", value: 15 },
-      { id: "ID-SU", name: "North Sumatra", value: 12 },
-      { id: "ID-KT", name: "East Kalimantan", value: 10 }
+    // Data default jika tidak ada data
+    const defaultData = [
+      { id: "ID-JK", name: "Jakarta", value: 42, positiveCount: 25, negativeCount: 10, neutralCount: 7, dominantSentiment: "positive", latitude: -6.2, longitude: 106.8 },
+      { id: "ID-JB", name: "West Java", value: 35, positiveCount: 15, negativeCount: 15, neutralCount: 5, dominantSentiment: "neutral", latitude: -6.9, longitude: 107.6 },
+      { id: "ID-JI", name: "East Java", value: 28, positiveCount: 10, negativeCount: 15, neutralCount: 3, dominantSentiment: "negative", latitude: -7.5, longitude: 112.5 },
+      { id: "ID-JT", name: "Central Java", value: 25, positiveCount: 12, negativeCount: 8, neutralCount: 5, dominantSentiment: "positive", latitude: -7.0, longitude: 110.4 },
+      { id: "ID-SN", name: "South Sulawesi", value: 18, positiveCount: 5, negativeCount: 10, neutralCount: 3, dominantSentiment: "negative", latitude: -5.1, longitude: 119.4 },
+      { id: "ID-BT", name: "Banten", value: 15, positiveCount: 7, negativeCount: 5, neutralCount: 3, dominantSentiment: "positive", latitude: -6.1, longitude: 106.1 }
     ];
 
+    // Pilih data yang akan digunakan
+    const dataToUse = mapData.length > 0 ? mapData : defaultData;
+
     // Terapkan data ke polygon series
-    polygonSeries.data.setAll(mapData);
+    polygonSeries.data.setAll(dataToUse);
+
+    // Gunakan warna sesuai sentimen dominan
+    polygonSeries.mapPolygons.template.adapters.add("fill", (fill, target) => {
+      if (target.dataItem) {
+        const dataContext = target.dataItem.dataContext as any;
+        const sentiment = dataContext.dominantSentiment;
+        
+        if (sentiment && SENTIMENT_COLORS[sentiment]) {
+          // Tetapkan warna berdasarkan sentiment dengan opacity 0.7
+          return am5.color(SENTIMENT_COLORS[sentiment]).lighten(0.3);
+        }
+      }
+      return fill;
+    });
 
     // Buat point series untuk label angka
     const textSeries = chart.series.push(
-      am5map.MapPointSeries.new(root, {})
+      am5map.MapPointSeries.new(root, {
+        latitudeField: "latitude",
+        longitudeField: "longitude"
+      })
     );
-
-    // Definisikan posisi label untuk setiap provinsi
-    const labelPositions: Record<string, {latitude: number, longitude: number}> = {
-      "ID-JK": { latitude: -6.2, longitude: 106.8 },  // Jakarta
-      "ID-JB": { latitude: -6.9, longitude: 107.6 },  // West Java
-      "ID-JI": { latitude: -7.5, longitude: 112.5 },  // East Java
-      "ID-JT": { latitude: -7.0, longitude: 110.4 },  // Central Java
-      "ID-SN": { latitude: -5.1, longitude: 119.4 },  // South Sulawesi
-      "ID-BT": { latitude: -6.1, longitude: 106.1 },  // Banten
-      "ID-SU": { latitude: 3.6, longitude: 98.7 },    // North Sumatra
-      "ID-KT": { latitude: -0.5, longitude: 117.1 }   // East Kalimantan
-    };
-
-    // Buat data untuk text labels
-    const pointData = mapData.map(region => {
-      const position = labelPositions[region.id] || { latitude: 0, longitude: 0 };
-      return {
-        title: region.value.toString(),
-        latitude: position.latitude,
-        longitude: position.longitude
-      };
-    });
-
-    // Terapkan data ke text series
-    textSeries.data.setAll(pointData);
 
     // Konfigurasi tampilan label
     textSeries.bullets.push(() => {
+      // Buat circle background
       const circle = am5.Circle.new(root, {
         radius: 18,
         fill: am5.color(0xFFFFFF),
@@ -135,8 +157,9 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
         strokeWidth: 1
       });
 
+      // Buat text untuk nilai
       const text = am5.Label.new(root, {
-        text: "{title}",
+        text: "{value}",
         fontWeight: "bold",
         fill: am5.color(0x000000),
         centerX: am5.p50,
@@ -154,19 +177,23 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       });
     });
 
-    // Tambahkan legend
+    // Terapkan data ke text series
+    textSeries.data.setAll(dataToUse);
+
+    // Tambahkan legend untuk sentimen
     const legend = chart.children.push(
       am5.Legend.new(root, {
         x: am5.p50,
         centerX: am5.p50,
-        y: am5.percent(95)
+        y: am5.percent(95),
+        layout: root.horizontalLayout
       })
     );
 
     legend.data.setAll([
-      { name: "Highest", color: am5.color(0x0984E3) },
-      { name: "Medium", color: am5.color(0x74cced) },
-      { name: "Lowest", color: am5.color(0xCFE8FF) }
+      { name: "Positive", color: am5.color(SENTIMENT_COLORS.positive).lighten(0.3) },
+      { name: "Neutral", color: am5.color(SENTIMENT_COLORS.neutral).lighten(0.3) },
+      { name: "Negative", color: am5.color(SENTIMENT_COLORS.negative).lighten(0.3) }
     ]);
 
     // Animasi
@@ -178,14 +205,20 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
         rootRef.current.dispose();
       }
     };
-  }, [data]);
+  }, [mapData, isLoading, useApiData]);
 
   return (
     <div className="rounded-xl bg-white shadow-[0_10px_20px_rgba(0,0,0,0.05)] overflow-hidden">
       <div className="p-4 border-b border-gray-100">
         <h3 className="font-medium text-gray-800">{title}</h3>
       </div>
-      <div ref={chartRef} style={{ width, height }} />
+      {isLoading && useApiData ? (
+        <div className="flex items-center justify-center" style={{ width, height }}>
+          <div className="animate-pulse text-gray-400">Loading map data...</div>
+        </div>
+      ) : (
+        <div ref={chartRef} style={{ width, height }} />
+      )}
     </div>
   );
 };
