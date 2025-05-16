@@ -53,7 +53,7 @@ export function SentimentIndicator({
         style={{ backgroundColor: color }}
       />
       <span className="text-xs text-gray-500">
-        # {percentage}%
+        {label}: {percentage}%
       </span>
     </div>
   );
@@ -115,7 +115,7 @@ export function InsightStats({ views, comments }: InsightStatsProps) {
           <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
-        <span># {views}</span>
+        <span>Jumlah: {views}</span>
       </div>
       <div className="flex items-center space-x-1">
         <svg
@@ -132,7 +132,7 @@ export function InsightStats({ views, comments }: InsightStatsProps) {
         >
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
-        <span># {comments}</span>
+        <span>Total Feedback: {comments}</span>
       </div>
     </div>
   );
