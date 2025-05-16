@@ -129,27 +129,35 @@ const WordCloud: React.FC<WordCloudProps> = ({
     
     // Sort and limit data to prevent overcrowding
     const sortedData = [...cloudData].sort((a, b) => b.weight - a.weight);
-    const limitedData = sortedData.slice(0, 24); // Limit to 24 words
+    const limitedData = sortedData.slice(0, 12); // Significantly reduce to only 12 words
     
-    // Define layout grid - 6 columns x 4 rows
-    const rows = 4;
-    const cols = 6;
+    // Define layout grid - 4 columns x 3 rows with more spacing
+    const rows = 3;
+    const cols = 4;
     
     return limitedData.map((item, index) => {
       // Calculate position in grid
       const row = Math.floor(index / cols);
       const col = index % cols;
       
-      // Calculate position as percentage (with spacing between words)
-      const x = (col * (100 / cols)) + (100 / cols / 2);
-      const y = (row * (100 / rows)) + (100 / rows / 2);
+      // Calculate position as percentage with larger spacing between words
+      // Add substantial padding to avoid edges (15% on each side)
+      const padding = 15;
+      const availableWidth = 100 - (padding * 2);
+      const availableHeight = 100 - (padding * 2);
+      
+      const cellWidth = availableWidth / cols;
+      const cellHeight = availableHeight / rows;
+      
+      const x = padding + (col * cellWidth) + (cellWidth / 2);
+      const y = padding + (row * cellHeight) + (cellHeight / 2);
       
       // Get a consistent color for this word
       const color = getColor(item.tag);
       
-      // Calculate font size based on weight
+      // Calculate font size based on weight, but keep range smaller
       const maxWeight = Math.max(...limitedData.map(d => d.weight));
-      const minSize = 14;
+      const minSize = 16; // Slightly larger minimum size
       const maxSize = 22;
       const fontSize = minSize + ((item.weight / maxWeight) * (maxSize - minSize));
       
