@@ -6,9 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 interface WordCloudDataItem {
   wordInsight: string;
   totalCount: number;
-  positivePercentage: number;
-  neutralPercentage: number;
-  negativePercentage: number;
 }
 
 interface WordCloudProps {
@@ -21,6 +18,17 @@ interface WordCloudProps {
   title?: string;
   useRealData?: boolean;
 }
+
+// Predefined colors for words
+const COLORS = [
+  "#0984E3", // blue
+  "#00B894", // green
+  "#E84393", // pink
+  "#6C5CE7", // purple
+  "#FDCB6E", // yellow
+  "#E17055", // orange
+  "#2D3436"  // dark gray
+];
 
 const WordCloud: React.FC<WordCloudProps> = ({ 
   data, 
@@ -53,10 +61,7 @@ const WordCloud: React.FC<WordCloudProps> = ({
   const chartData = useRealData && apiData 
     ? apiData.map(item => ({
         tag: item.wordInsight,
-        weight: item.totalCount,
-        positivePercentage: item.positivePercentage,
-        neutralPercentage: item.neutralPercentage,
-        negativePercentage: item.negativePercentage
+        weight: item.totalCount
       }))
     : data || [];
 
@@ -76,7 +81,7 @@ const WordCloud: React.FC<WordCloudProps> = ({
     // Set themes
     root.setThemes([am5themes_Animated.new(root)]);
 
-    // Create a container for our content
+    // Create a container for words
     const container = root.container.children.push(
       am5.Container.new(root, {
         width: am5.percent(100),
@@ -85,215 +90,62 @@ const WordCloud: React.FC<WordCloudProps> = ({
       })
     );
 
-    // Create a container for the word cloud
-    const wordCloudContainer = container.children.push(
-      am5.Container.new(root, {
-        width: am5.percent(100),
-        height: am5.percent(100),
-        layout: root.horizontalLayout
-      })
-    );
-
-    // Create the control panel
-    const controlPanel = root.container.children.push(
-      am5.Container.new(root, {
-        x: am5.percent(95),
-        y: am5.percent(10),
-        layout: root.verticalLayout,
-        paddingRight: 10,
-        zIndex: 100
-      })
-    );
-
-    // Add controls for zoom
-    const zoomIn = controlPanel.children.push(
-      am5.Button.new(root, {
-        width: 30,
-        height: 30,
-        marginBottom: 10,
-        icon: am5.Graphics.new(root, {
-          svgPath: "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z",
-          fill: am5.color(0x0984E3),
-          width: 16,
-          height: 16,
-          centerX: am5.percent(50),
-          centerY: am5.percent(50)
-        }),
-        background: am5.RoundedRectangle.new(root, {
-          fill: am5.color(0xFFFFFF),
-          stroke: am5.color(0xDDDDDD),
-          cornerRadiusTL: 5,
-          cornerRadiusTR: 5,
-          cornerRadiusBL: 5,
-          cornerRadiusBR: 5
-        })
-      })
-    );
-
-    const zoomOut = controlPanel.children.push(
-      am5.Button.new(root, {
-        width: 30,
-        height: 30,
-        icon: am5.Graphics.new(root, {
-          svgPath: "M19 13H5v-2h14v2z",
-          fill: am5.color(0x0984E3),
-          width: 16,
-          height: 16,
-          centerX: am5.percent(50),
-          centerY: am5.percent(50)
-        }),
-        background: am5.RoundedRectangle.new(root, {
-          fill: am5.color(0xFFFFFF),
-          stroke: am5.color(0xDDDDDD),
-          cornerRadiusTL: 5,
-          cornerRadiusTR: 5,
-          cornerRadiusBL: 5,
-          cornerRadiusBR: 5
-        })
-      })
-    );
-
-    // Scale parameters
-    let currentScale = 1;
-    const minScale = 0.5;
-    const maxScale = 2;
-
-    // Function to distribute words in a cloud-like pattern
+    // Function to create a simple grid layout
     const renderWords = () => {
       // Clear existing words
-      wordCloudContainer.children.clear();
+      container.children.clear();
       
-      // Sort by weight to place more important words first
+      // Sort words by weight (for grid layout)
       const sortedData = [...chartData].sort((a, b) => b.weight - a.weight);
       
-      // Get the maximum weight for scale calculation
-      const maxWeight = Math.max(...sortedData.map(item => item.weight));
+      // Define grid layout
+      const COLS = 5;
+      const ROWS = 10;
+      const CELL_WIDTH = 100 / COLS;
+      const CELL_HEIGHT = 100 / ROWS;
       
-      // Helper function to determine color based on sentiment
-      const getColorBySentiment = (item: any) => {
-        const { positivePercentage, neutralPercentage, negativePercentage } = item;
+      // Helper function to get position in grid
+      const getPosition = (index: number) => {
+        const row = Math.floor(index / COLS);
+        const col = index % COLS;
         
-        if (positivePercentage > neutralPercentage && positivePercentage > negativePercentage) {
-          return am5.color(0x00B894); // Green for positive
-        } else if (neutralPercentage > positivePercentage && neutralPercentage > negativePercentage) {
-          return am5.color(0xF1C40F); // Yellow for neutral
-        } else {
-          return am5.color(0xE74C3C); // Red for negative
-        }
+        // Center each word in its cell with small random offset
+        const x = (col * CELL_WIDTH) + (CELL_WIDTH / 2) + (Math.random() * 8 - 4);
+        const y = (row * CELL_HEIGHT) + (CELL_HEIGHT / 2) + (Math.random() * 8 - 4);
+        
+        return { x, y };
       };
       
-      // Set up a grid layout for larger words
-      const grid = {
-        cols: 5,                   // Number of columns in the grid
-        rows: 4,                   // Number of rows in the grid
-        cellWidth: 100 / 5,        // Width of each cell as percentage of container
-        cellHeight: 100 / 4,       // Height of each cell
-        center: { x: 50, y: 50 }   // Center of the container
-      };
-      
-      // Get top words for grid layout
-      const topWords = sortedData.slice(0, grid.cols * grid.rows);
-      const otherWords = sortedData.slice(grid.cols * grid.rows);
-      
-      // Function to calculate grid position
-      const getGridPosition = (index: number) => {
-        const row = Math.floor(index / grid.cols);
-        const col = index % grid.cols;
+      // Add words to grid
+      sortedData.forEach((item, index) => {
+        // Get word position
+        const { x, y } = getPosition(index);
         
-        // Calculate x,y coordinates based on grid cell
-        const cellCenterX = (col * grid.cellWidth) + (grid.cellWidth / 2);
-        const cellCenterY = (row * grid.cellHeight) + (grid.cellHeight / 2);
+        // Get random color
+        const colorIndex = index % COLORS.length;
+        const color = COLORS[colorIndex];
         
-        // Add some randomization within the cell
-        const jitterX = (Math.random() - 0.5) * grid.cellWidth * 0.5;
-        const jitterY = (Math.random() - 0.5) * grid.cellHeight * 0.5;
-        
-        return {
-          x: cellCenterX + jitterX,
-          y: cellCenterY + jitterY
-        };
-      };
-      
-      // Position words in an organized grid with some randomness
-      topWords.forEach((item, index) => {
-        // Calculate font size based on weight - larger for top words
-        const minFontSize = 14;
-        const maxFontSize = 40;
-        const fontRange = maxFontSize - minFontSize;
-        const fontSize = minFontSize + (item.weight / maxWeight) * fontRange;
-        
-        // Get position from grid layout
-        const position = getGridPosition(index);
-        
-        // Get color based on sentiment
-        const textColor = getColorBySentiment(item);
-        
-        // Create word label
-        const label = wordCloudContainer.children.push(
+        // Create label for word
+        const label = container.children.push(
           am5.Label.new(root, {
             text: item.tag,
-            fontSize: fontSize,
+            fontSize: 16, // Fixed size font
             fontFamily: "Inter, sans-serif",
-            fontWeight: "600",
-            fill: textColor,
-            x: am5.percent(position.x),
-            y: am5.percent(position.y),
-            centerX: am5.p50,
-            centerY: am5.p50,
-            interactive: true
-          })
-        );
-        
-        // Add a subtle shadow effect to make words stand out more
-        label.set("shadowColor", am5.color(0x000000, 0.2));
-        label.set("shadowBlur", 3);
-        label.set("shadowOffsetX", 1);
-        label.set("shadowOffsetY", 1);
-      });
-      
-      // For remaining words, use a spiral layout around the edges
-      let angle = 0;
-      let radius = 25; // Start radius (percentage of container)
-      const angleStep = 0.8; // Larger step to space words further apart
-      
-      otherWords.forEach((item, index) => {
-        // Calculate font size based on weight - smaller for other words
-        const minFontSize = 8;
-        const maxFontSize = 18;
-        const fontRange = maxFontSize - minFontSize;
-        const fontSize = minFontSize + (item.weight / maxWeight) * fontRange;
-        
-        // Calculate position in spiral layout
-        angle += angleStep;
-        radius += 0.5;
-        const x = grid.center.x + radius * Math.cos(angle);
-        const y = grid.center.y + radius * Math.sin(angle);
-        
-        // Get color based on sentiment
-        const textColor = getColorBySentiment(item);
-        
-        // Create word label for other words
-        const label = wordCloudContainer.children.push(
-          am5.Label.new(root, {
-            text: item.tag,
-            fontSize: fontSize,
-            fontFamily: "Inter, sans-serif",
-            fontWeight: "400",
-            fill: textColor,
+            fill: am5.color(color),
             x: am5.percent(x),
             y: am5.percent(y),
             centerX: am5.p50,
-            centerY: am5.p50,
-            interactive: true
+            centerY: am5.p50
           })
         );
         
-        // Add hover and click effects
+        // Add hover effect
         label.states.create("hover", {
-          fill: am5.color(0x0984E3),
-          scale: 1.1
+          scale: 1.2,
+          fill: am5.color(COLORS[0])
         });
         
+        // Add interactivity
         label.events.on("pointerover", () => {
           label.states.applyAnimate("hover");
         });
@@ -301,68 +153,11 @@ const WordCloud: React.FC<WordCloudProps> = ({
         label.events.on("pointerout", () => {
           label.states.applyAnimate("default");
         });
-        
-        label.events.on("click", () => {
-          console.log(`Word clicked: ${item.tag}`);
-          // Add filtering logic here if needed
-        });
       });
     };
     
-    // Make container draggable
-    wordCloudContainer.set("draggable", true);
-    
-    // Initial render of words
+    // Render the word cloud
     renderWords();
-    
-    // Add zoom functionality to buttons
-    zoomIn.events.on("click", () => {
-      if (currentScale < maxScale) {
-        currentScale *= 1.2;
-        wordCloudContainer.animate({
-          key: "scale",
-          to: currentScale,
-          duration: 300,
-          easing: am5.ease.out(am5.ease.cubic)
-        });
-      }
-    });
-    
-    zoomOut.events.on("click", () => {
-      if (currentScale > minScale) {
-        currentScale *= 0.8;
-        wordCloudContainer.animate({
-          key: "scale",
-          to: currentScale,
-          duration: 300,
-          easing: am5.ease.out(am5.ease.cubic)
-        });
-      }
-    });
-    
-    // Add mouse wheel zoom
-    root.container.set("wheelable", true);
-    root.container.events.on("wheel", (ev) => {
-      if (ev.originalEvent) {
-        const delta = ev.originalEvent.deltaY;
-        if (delta < 0 && currentScale < maxScale) {
-          // Zoom in
-          currentScale = Math.min(currentScale * 1.1, maxScale);
-          wordCloudContainer.set("scale", currentScale);
-          ev.originalEvent.preventDefault();
-        } else if (delta > 0 && currentScale > minScale) {
-          // Zoom out
-          currentScale = Math.max(currentScale * 0.9, minScale);
-          wordCloudContainer.set("scale", currentScale);
-          ev.originalEvent.preventDefault();
-        }
-      }
-    });
-    
-    // Animate words in
-    wordCloudContainer.children.each((child) => {
-      child.appear(1000, 100);
-    });
 
     return () => {
       // Clean up on unmount
@@ -391,7 +186,7 @@ const WordCloud: React.FC<WordCloudProps> = ({
       <div className="p-4 border-b border-gray-100">
         <h3 className="font-medium text-gray-800">{title}</h3>
       </div>
-      <div ref={chartRef} style={{ width, height }} className="cursor-move" />
+      <div ref={chartRef} style={{ width, height }} />
     </div>
   );
 };
