@@ -104,7 +104,7 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       key: "fill"
     }]);
 
-    // Create point series for labels
+    // Simplified point series for map labels
     const pointSeries = chart.series.push(
       am5map.MapPointSeries.new(root, {
         latitudeField: "latitude",
@@ -112,17 +112,25 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       })
     );
 
-    // Create a circle bullet template
-    const circleTemplate = am5.Template.new({});
-
-    // Configure bullet appearance
-    pointSeries.bullets.push((root) => {
+    // Simplified bullet appearance for points
+    pointSeries.bullets.push(function() {
+      // Create a container for label and background
       const container = am5.Container.new(root, {});
-
-      // Add label with value
+      
+      // Create background circle for better visibility
+      const circle = container.children.push(
+        am5.Circle.new(root, {
+          radius: 22,
+          fill: am5.color(0xFFFFFF),
+          fillOpacity: 0.8,
+          strokeWidth: 1,
+          stroke: am5.color(0xCCCCCC)
+        })
+      );
+      
+      // Create the text label that will show the actual number
       const label = container.children.push(
         am5.Label.new(root, {
-          text: "{value}",
           centerX: am5.p50,
           centerY: am5.p50,
           fontSize: 14,
@@ -130,19 +138,23 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
           fill: am5.color(0x000000)
         })
       );
-
-      // Add background circle
-      const circle = container.children.push(
-        am5.Circle.new(root, {
-          radius: 22,
-          fill: am5.color(0xFFFFFF),
-          fillOpacity: 0.7,
-          centerX: am5.p50,
-          centerY: am5.p50,
-          layer: -1
-        })
-      );
-
+      
+      // This template function runs for each point in the data
+      pointSeries.events.on("datavalidated", function() {
+        pointSeries.bulletsContainer.children.each(function(bullet) {
+          if (bullet.dataItem) {
+            // Get the actual text element from the bullet's container
+            const labelElement = bullet.get("sprite").children.getIndex(1);
+            if (labelElement && bullet.dataItem.dataContext) {
+              // Set the text directly with the value from data
+              const value = bullet.dataItem.dataContext.value;
+              labelElement.set("text", value);
+            }
+          }
+        });
+      });
+      
+      // Return the container as the bullet
       return am5.Bullet.new(root, {
         sprite: container
       });
