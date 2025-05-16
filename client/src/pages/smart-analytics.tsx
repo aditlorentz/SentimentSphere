@@ -148,15 +148,23 @@ export default function SmartAnalytics() {
   const processedTrendInsights = useMemo(() => {
     if (!employeeInsightsData) return [];
     
-    // Ambil 10 data terbaru
-    return employeeInsightsData.slice(0, 10).map((insight: any) => ({
-      id: insight.id,
-      city: insight.location || "Unknown",
-      source: insight.sourceData || "N/A",
-      employee: insight.employeeName || "Anonymous",
-      sentiment: insight.sentimentText || insight.wordInsight || "N/A",
-      date: new Date(insight.createdAt).toLocaleString('id-ID')
-    }));
+    return employeeInsightsData.map((insight: any) => {
+      // Pastikan lokasi tidak "Unknown" jika kosong
+      let location = insight.location;
+      if (!location || location.trim() === '' || location === 'Unknown') {
+        // Jika tidak ada lokasi, coba pakai regional atau witel jika ada
+        location = insight.regional || insight.witel || "TREG";
+      }
+      
+      return {
+        id: insight.id,
+        city: location,
+        source: insight.sourceData || "N/A",
+        employee: insight.employeeName || "Anonymous",
+        sentiment: insight.sentimentText || insight.wordInsight || "N/A",
+        date: new Date(insight.createdAt).toLocaleString('id-ID')
+      };
+    });
   }, [employeeInsightsData]);
   
   // Persiapkan data untuk pie chart dari data statistik
