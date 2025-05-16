@@ -128,6 +128,19 @@ export default function SmartAnalytics() {
   const employeeInsightsData = employeeInsightsResponse?.data || [];
   const totalInsights = employeeInsightsResponse?.total || 0;
   const totalPages = Math.ceil(totalInsights / pageSize);
+  
+  // Query untuk data statistik sentiment
+  const { data: sentimentStats, isLoading: isLoadingStats } = useQuery({
+    queryKey: ['/api/postgres/stats'],
+    queryFn: async () => {
+      const response = await fetch('/api/postgres/stats');
+      if (!response.ok) {
+        throw new Error('Failed to fetch sentiment statistics');
+      }
+      const result = await response.json();
+      return result;
+    },
+  });
 
   const COLORS = ["#00B894", "#FF7675", "#FDCB6E"];
 
@@ -145,6 +158,17 @@ export default function SmartAnalytics() {
       date: new Date(insight.createdAt).toLocaleString('id-ID')
     }));
   }, [employeeInsightsData]);
+  
+  // Persiapkan data untuk pie chart dari data statistik
+  const pieChartData = useMemo(() => {
+    if (!sentimentStats) return [];
+    
+    return [
+      { name: "Positive", value: sentimentStats.positiveCount || 0 },
+      { name: "Negative", value: sentimentStats.negativeCount || 0 },
+      { name: "Neutral", value: sentimentStats.neutralCount || 0 }
+    ];
+  }, [sentimentStats]);
   
   if (isLoading || isLoadingInsights) {
     return (
@@ -431,45 +455,54 @@ export default function SmartAnalytics() {
                         <stop offset="100%" stopColor="#FDCB6E" />
                       </linearGradient>
                     </defs>
-                    <Pie
-                      data={data?.pieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      innerRadius={60}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="value"
-                      paddingAngle={5}
-                      cornerRadius={5}
-                      label={({ name, percent }) => {
-                        return `${name}: ${(percent * 100).toFixed(0)}%`;
-                      }}
-                      labelStyle={{ fontSize: 13, fontWeight: 500, fill: '#333' }}
-                    >
-                      {data?.pieData.map((entry, index) => {
-                        const gradientId = 
-                          entry.name === "Positive" ? "positiveGradient" : 
-                          entry.name === "Negative" ? "negativeGradient" : "neutralGradient";
-                        return (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={`url(#${gradientId})`} 
-                            stroke="#fff"
-                            strokeWidth={2}
-                            style={{ filter: 'drop-shadow(0px 2px 3px rgba(0,0,0,0.1))' }}
-                          />
-                        );
-                      })}
-                    </Pie>
+                    {isLoadingStats ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="animate-pulse text-gray-400">Loading sentiment data...</div>
+                      </div>
+                    ) : (
+                      <Pie
+                        data={pieChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        innerRadius={60}
+                        outerRadius={90}
+                        fill="#8884d8"
+                        dataKey="value"
+                        paddingAngle={5}
+                        cornerRadius={5}
+                        label={({ name, percent }) => {
+                          return `${name}: ${(percent * 100).toFixed(0)}%`;
+                        }}
+                      >
+                        {pieChartData.map((entry, index) => {
+                          const gradientId = 
+                            entry.name === "Positive" ? "positiveGradient" : 
+                            entry.name === "Negative" ? "negativeGradient" : "neutralGradient";
+                          return (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={`url(#${gradientId})`} 
+                              stroke="#fff"
+                              strokeWidth={2}
+                              style={{ filter: 'drop-shadow(0px 2px 3px rgba(0,0,0,0.1))' }}
+                            />
+                          );
+                        })}
+                      </Pie>
+                    )}
                     <Tooltip 
                       contentStyle={{ 
                         borderRadius: '8px', 
                         boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
                         border: 'none',
                         padding: '10px 14px',
-                      }} 
-                      formatter={(value, name) => [`${value} (${(value / data?.totalInsights! * 100).toFixed(1)}%)`, name]}
+                      }}
+                      formatter={(value, name) => {
+                        const total = sentimentStats?.totalInsights || 0;
+                        const percentage = total > 0 ? ((value as number) / total * 100).toFixed(1) : "0.0";
+                        return [`${value} (${percentage}%)`, name];
+                      }}
                       itemStyle={{ fontSize: '12px', padding: '2px 0' }}
                       labelStyle={{ fontWeight: 'bold', marginBottom: '5px' }}
                     />
