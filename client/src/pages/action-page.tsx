@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Chatbot from "@/components/dashboard/chatbot";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, AlertTriangle, Clipboard, Activity, TrendingUp, ThumbsUp } from "lucide-react";
+import { Check, AlertTriangle, Clipboard, Activity } from "lucide-react";
 
 
 interface ActionItem {
@@ -36,137 +36,13 @@ export default function ActionPage() {
     activeTab === "all" ? true : item.priority === activeTab
   ) || [];
 
-  // Calculate completion stats
-  const totalItems = actionItems?.length || 0;
-  const completedItems = actionItems?.filter(item => item.status === "completed").length || 0;
-  const inProgressItems = actionItems?.filter(item => item.status === "in-progress").length || 0;
-  const completionPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
 
   return (
     <div className="p-6 max-w-[1600px] mx-auto">
       <Header title="Program Action Plan" totalInsights={actionItems?.length || 0} />
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <Card className="shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-display font-semibold text-gray-800">Completion Progress</h3>
-                <p className="text-gray-500 text-sm mt-1">Overall action items status</p>
-              </div>
-              <div className="bg-blue-50 rounded-full p-3">
-                <Activity className="h-6 w-6 text-blue-500" />
-              </div>
-            </div>
-            
-            <div className="mt-6">
-              <div className="flex justify-between text-sm text-gray-500 mb-2">
-                <span>Progress</span>
-                <span>{completionPercentage}%</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-2.5">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-teal-500 h-2.5 rounded-full" 
-                  style={{ width: `${completionPercentage}%` }}
-                ></div>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-2 mt-4">
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-gray-500 text-xs">Not Started</p>
-                  <p className="text-gray-800 font-semibold">{totalItems - completedItems - inProgressItems}</p>
-                </div>
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="text-blue-500 text-xs">In Progress</p>
-                  <p className="text-gray-800 font-semibold">{inProgressItems}</p>
-                </div>
-                <div className="bg-green-50 p-3 rounded-lg">
-                  <p className="text-green-500 text-xs">Completed</p>
-                  <p className="text-gray-800 font-semibold">{completedItems}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-display font-semibold text-gray-800">Impact Distribution</h3>
-                <p className="text-gray-500 text-sm mt-1">By expected outcome</p>
-              </div>
-              <div className="bg-purple-50 rounded-full p-3">
-                <TrendingUp className="h-6 w-6 text-purple-500" />
-              </div>
-            </div>
-            
-            <div className="mt-6">
-              <div className="flex items-center mb-3">
-                <span className="w-24 text-sm text-gray-500">High Impact</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full">
-                  <div className="h-2 bg-purple-500 rounded-full" style={{ width: '65%' }}></div>
-                </div>
-                <span className="ml-3 text-sm font-medium text-gray-700">65%</span>
-              </div>
-              
-              <div className="flex items-center mb-3">
-                <span className="w-24 text-sm text-gray-500">Medium Impact</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full">
-                  <div className="h-2 bg-blue-500 rounded-full" style={{ width: '25%' }}></div>
-                </div>
-                <span className="ml-3 text-sm font-medium text-gray-700">25%</span>
-              </div>
-              
-              <div className="flex items-center">
-                <span className="w-24 text-sm text-gray-500">Low Impact</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full">
-                  <div className="h-2 bg-teal-500 rounded-full" style={{ width: '10%' }}></div>
-                </div>
-                <span className="ml-3 text-sm font-medium text-gray-700">10%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-display font-semibold text-gray-800">Improvement Potential</h3>
-                <p className="text-gray-500 text-sm mt-1">Expected sentiment boost</p>
-              </div>
-              <div className="bg-green-50 rounded-full p-3">
-                <ThumbsUp className="h-6 w-6 text-green-500" />
-              </div>
-            </div>
-            
-            <div className="mt-6">
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-2xl font-semibold text-gray-800">+15%</p>
-                  <p className="text-gray-500 text-xs mt-1">Positive</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-2xl font-semibold text-gray-800">-12%</p>
-                  <p className="text-gray-500 text-xs mt-1">Negative</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-2xl font-semibold text-gray-800">-3%</p>
-                  <p className="text-gray-500 text-xs mt-1">Neutral</p>
-                </div>
-              </div>
-              
-              <div className="mt-4 p-4 bg-teal-50 rounded-lg border border-teal-100">
-                <p className="text-sm text-teal-800 leading-relaxed">
-                  Implementing all high priority recommendations is projected to improve overall sentiment 
-                  by 15%, particularly in the areas of workplace facilities and employee recognition.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+
 
       <div className="mb-6">
         <Card>
