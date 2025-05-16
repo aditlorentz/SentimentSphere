@@ -40,7 +40,8 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
     queryKey: [`/api/postgres/insights/word/${insight.title}`, showDetails],
     queryFn: async () => {
       if (!showDetails) return null;
-      const response = await fetch(`/api/postgres/insights/word/${encodeURIComponent(insight.title)}`);
+      // Request up to 100 items to ensure we get all data available
+      const response = await fetch(`/api/postgres/insights/word/${encodeURIComponent(insight.title)}?limit=100`);
       if (!response.ok) throw new Error('Failed to fetch insight details');
       return response.json();
     },
@@ -204,7 +205,7 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
                   </div>
                   
                   <h4 className="text-sm font-medium mb-2">Sentence Detail</h4>
-                  <div className="overflow-auto max-h-60 border rounded-md">
+                  <div className="overflow-auto max-h-[500px] border rounded-md">
                     <div className="divide-y divide-gray-200">
                       {insightDetails.data.map((item: any) => (
                         <div key={`sentence-${item.id}`} className="p-3 hover:bg-gray-50">
