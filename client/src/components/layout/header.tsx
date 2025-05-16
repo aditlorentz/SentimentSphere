@@ -38,6 +38,11 @@ interface HeaderProps {
   totalInsights?: number;
   showFilters?: boolean;
   
+  // Control visibility of specific filters
+  showSourceFilter?: boolean;
+  showSurveyFilter?: boolean;
+  showDateFilter?: boolean;
+  
   // Filter values
   sourceValue?: string;
   surveyValue?: string;
@@ -63,6 +68,9 @@ export default function Header({
   title,
   totalInsights = 101,
   showFilters = true,
+  showSourceFilter = true,
+  showSurveyFilter = true,
+  showDateFilter = true,
   sourceValue = "all",
   surveyValue = "all",
   dateRangeValue,
@@ -117,113 +125,119 @@ export default function Header({
           </div>
 
           {/* Source Filter */}
-          <div className="relative w-full sm:w-auto">
-            <Select 
-              value={source} 
-              onValueChange={(value) => {
-                if (onSourceChange) onSourceChange(value);
-              }}
-            >
-              <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
-                <div className="flex items-center">
-                  <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
-                  <SelectValue placeholder="Source" className="text-sm truncate" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sources</SelectItem>
-                {sourceOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {showSourceFilter && (
+            <div className="relative w-full sm:w-auto">
+              <Select 
+                value={source} 
+                onValueChange={(value) => {
+                  if (onSourceChange) onSourceChange(value);
+                }}
+              >
+                <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
+                  <div className="flex items-center">
+                    <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                    <SelectValue placeholder="Source" className="text-sm truncate" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  {sourceOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Date Range Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="w-full sm:w-auto min-w-[140px] sm:min-w-[230px] justify-start bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto"
-              >
-                <CalendarIcon className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
-                <span className="text-sm font-normal truncate">
-                  {dateRange && dateRange.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
-                      </>
+          {showDateFilter && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full sm:w-auto min-w-[140px] sm:min-w-[230px] justify-start bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto"
+                >
+                  <CalendarIcon className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                  <span className="text-sm font-normal truncate">
+                    {dateRange && dateRange.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
+                        </>
+                      ) : (
+                        format(dateRange.from, "MMM d, yyyy")
+                      )
                     ) : (
-                      format(dateRange.from, "MMM d, yyyy")
-                    )
-                  ) : (
-                    "Select date range"
-                  )}
-                </span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <div className="overflow-hidden">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={(range) => {
-                    if (onDateRangeChange) onDateRangeChange(range);
-                  }}
-                  initialFocus
-                  numberOfMonths={2}
-                  defaultMonth={dateRange?.from || new Date()}
-                  className="p-2"
-                />
-                <div className="p-3 border-t border-border flex justify-between items-center">
-                  <div className="text-sm text-muted-foreground">
-                    Select a date range
-                  </div>
-                  <Button 
-                    size="sm" 
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs rounded-full px-3"
-                    onClick={() => {
-                      if (onDateRangeChange) {
-                        onDateRangeChange({
-                          from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
-                          to: today
-                        } as DateRange);
-                      }
+                      "Select date range"
+                    )}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="overflow-hidden">
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={(range) => {
+                      if (onDateRangeChange) onDateRangeChange(range);
                     }}
-                  >
-                    Last 30 Days
-                  </Button>
+                    initialFocus
+                    numberOfMonths={2}
+                    defaultMonth={dateRange?.from || new Date()}
+                    className="p-2"
+                  />
+                  <div className="p-3 border-t border-border flex justify-between items-center">
+                    <div className="text-sm text-muted-foreground">
+                      Select a date range
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs rounded-full px-3"
+                      onClick={() => {
+                        if (onDateRangeChange) {
+                          onDateRangeChange({
+                            from: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()),
+                            to: today
+                          } as DateRange);
+                        }
+                      }}
+                    >
+                      Last 30 Days
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
+          )}
 
           {/* Survey Type Filter */}
-          <div className="relative w-full sm:w-auto">
-            <Select 
-              value={survey} 
-              onValueChange={(value) => {
-                if (onSurveyChange) onSurveyChange(value);
-              }}
-            >
-              <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
-                <div className="flex items-center">
-                  <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
-                  <SelectValue placeholder="Location" className="text-sm truncate" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Locations</SelectItem>
-                {surveyOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {showSurveyFilter && (
+            <div className="relative w-full sm:w-auto">
+              <Select 
+                value={survey} 
+                onValueChange={(value) => {
+                  if (onSurveyChange) onSurveyChange(value);
+                }}
+              >
+                <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
+                  <div className="flex items-center">
+                    <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                    <SelectValue placeholder="Location" className="text-sm truncate" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Locations</SelectItem>
+                  {surveyOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Word Insight Filter - NEW */}
           <div className="relative w-full sm:w-auto">
