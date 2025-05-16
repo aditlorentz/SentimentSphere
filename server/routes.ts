@@ -22,6 +22,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register survey dashboard regeneration routes
   registerSummaryRegenerationRoutes(app);
   
+  // API untuk mendapatkan ringkasan data berdasarkan wilayah (witel)
+  app.get("/api/region-summary", async (req: Request, res: Response) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          witel,
+          COUNT(*) as total_count,
+          SUM(CASE WHEN sentimen = 'positif' THEN 1 ELSE 0 END) as positive_count,
+          SUM(CASE WHEN sentimen = 'negatif' THEN 1 ELSE 0 END) as negative_count,
+          SUM(CASE WHEN sentimen = 'netral' THEN 1 ELSE 0 END) as neutral_count,
+          CASE 
+            WHEN SUM(CASE WHEN sentimen = 'positif' THEN 1 ELSE 0 END) > SUM(CASE WHEN sentimen = 'negatif' THEN 1 ELSE 0 END) 
+                AND SUM(CASE WHEN sentimen = 'positif' THEN 1 ELSE 0 END) > SUM(CASE WHEN sentimen = 'netral' THEN 1 ELSE 0 END) 
+                THEN 'Positif'
+            WHEN SUM(CASE WHEN sentimen = 'negatif' THEN 1 ELSE 0 END) > SUM(CASE WHEN sentimen = 'positif' THEN 1 ELSE 0 END) 
+                AND SUM(CASE WHEN sentimen = 'negatif' THEN 1 ELSE 0 END) > SUM(CASE WHEN sentimen = 'netral' THEN 1 ELSE 0 END) 
+                THEN 'Negatif'
+            ELSE 'Netral'
+          END as majority_sentiment
+        FROM 
+          employee_insights
+        GROUP BY 
+          witel
+        ORDER BY 
+          total_count DESC
+        LIMIT 25
+      `);
+      
+      res.json({ success: true, data: result.rows });
+    } catch (error) {
+      console.error("Error fetching region summary:", error);
+      res.status(500).json({ success: false, message: "Failed to fetch region summary data" });
+    }
+  });
+  
   // Endpoint untuk top word insights
   app.get("/api/top-word-insights", async (req: Request, res: Response) => {
     try {
