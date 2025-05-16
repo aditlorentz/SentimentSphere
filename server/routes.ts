@@ -377,6 +377,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Action recommendations endpoint
+  app.get("/api/action-recommendations", async (req: Request, res: Response) => {
+    try {
+      // Mock data for action recommendations
+      // In a real implementation, this would be generated based on analysis of negative sentiment data
+      const actionItems = [
+        {
+          id: 1,
+          program: "Fasilitas Kerja",
+          issues: "Banyak keluhan tentang ruang kerja yang kurang nyaman dan peralatan kantor yang terbatas atau sudah usang, mengakibatkan produktivitas yang menurun.",
+          recommendations: "Lakukan audit fasilitas kerja di seluruh kantor dan prioritaskan pembaruan peralatan kerja terutama kursi ergonomis dan komputer. Buat program 'Workplace 2.0' dengan ruang kolaborasi yang lebih baik.",
+          impact: 9,
+          effort: 7,
+          priority: "high",
+          status: "not-started"
+        },
+        {
+          id: 2,
+          program: "Program Mentoring",
+          issues: "Implementasi program mentoring belum merata di semua divisi dan kurangnya struktur formal serta pengukuran efektivitas program.",
+          recommendations: "Implementasikan platform mentoring digital dengan sistem matching, jadwal terstruktur, dan metrik kesuksesan yang jelas. Berikan insentif bagi mentor dan pengakuan untuk partisipasi aktif.",
+          impact: 8,
+          effort: 5,
+          priority: "high",
+          status: "not-started"
+        },
+        {
+          id: 3,
+          program: "Penilaian Kinerja",
+          issues: "Sistem penilaian kinerja saat ini dianggap tidak transparan dan subjektif, menimbulkan ketidakpuasan karyawan terutama pada saat evaluasi tahunan.",
+          recommendations: "Kembangkan sistem penilaian berbasis OKR (Objectives and Key Results) dengan feedback 360 derajat. Tingkatkan transparansi proses dan tambahkan sesi coaching regular.",
+          impact: 8,
+          effort: 6,
+          priority: "high",
+          status: "not-started"
+        },
+        {
+          id: 4,
+          program: "Ruang Kerja",
+          issues: "Layout kantor yang tidak mendukung kolaborasi dan fokus kerja, serta kurangnya ruang istirahat yang memadai.",
+          recommendations: "Redesain ruang kerja dengan konsep activity-based working yang menyediakan area untuk fokus, kolaborasi, dan istirahat. Tambahkan elemen natural dan perbaiki pencahayaan.",
+          impact: 7,
+          effort: 8,
+          priority: "medium",
+          status: "not-started"
+        },
+        {
+          id: 5,
+          program: "Kesehatan Mental",
+          issues: "Peningkatan stres kerja dan kurangnya dukungan untuk kesehatan mental karyawan, terutama di departemen dengan beban kerja tinggi.",
+          recommendations: "Luncurkan program kesehatan mental komprehensif dengan akses ke konselor profesional, workshop management stres, dan pelatihan mindfulness. Edukasi manager tentang tanda-tanda stres berlebih.",
+          impact: 9,
+          effort: 4,
+          priority: "medium",
+          status: "not-started"
+        },
+        {
+          id: 6,
+          program: "Employee Recognition",
+          issues: "Program penghargaan karyawan yang tidak konsisten dan kurangnya pengakuan untuk kontribusi non-finansial.",
+          recommendations: "Implementasikan platform recognition digital dengan sistem poin yang dapat ditukarkan dengan reward. Adakan Employee Appreciation Day bulanan dengan highlight kontribusi unik karyawan.",
+          impact: 7,
+          effort: 3,
+          priority: "medium",
+          status: "in-progress"
+        },
+        {
+          id: 7,
+          program: "Program Pensiun",
+          issues: "Kurangnya pemahaman karyawan tentang program pensiun dan benefit jangka panjang yang tersedia.",
+          recommendations: "Selenggarakan sesi edukasi finansial dan perencanaan pensiun. Buat dashboard personal untuk monitoring status pensiun dan proyeksi benefit. Pertimbangkan opsi pensiun yang lebih fleksibel.",
+          impact: 6,
+          effort: 4,
+          priority: "low",
+          status: "not-started"
+        },
+        {
+          id: 8,
+          program: "Flexible Working",
+          issues: "Kebijakan kerja fleksibel yang belum sepenuhnya diterapkan secara konsisten di semua departemen dan level.",
+          recommendations: "Standardisasi kebijakan flexible working dengan panduan jelas. Latih manager untuk mengelola tim remote dengan efektif. Sediakan toolkit productivity untuk remote working.",
+          impact: 8,
+          effort: 3,
+          priority: "low",
+          status: "completed"
+        }
+      ];
+      
+      res.json(actionItems);
+    } catch (error) {
+      console.error("Error fetching action recommendations:", error);
+      res.status(500).json({ message: "Failed to fetch action recommendations" });
+    }
+  });
+
   // AI Summary generation endpoint
   app.get("/api/ai-summary", async (req: Request, res: Response) => {
     try {
