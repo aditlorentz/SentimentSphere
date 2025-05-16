@@ -1,74 +1,94 @@
 import Header from "@/components/layout/header";
-import { SentimentCategoryCard } from "@/components/cards/insight-card";
+import { SentimentCategoryCard, InsightData } from "@/components/cards/insight-card";
 import Chatbot from "@/components/dashboard/chatbot";
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import { InsightData } from "@/components/cards/insight-card";
+import { useEffect, useState } from "react";
 
 export default function MyInsights() {
-  // Fetch insights data
-  const { data: insights, isLoading } = useQuery({
-    queryKey: ['/api/my-insights'],
-    queryFn: async () => {
-      // This would normally be fetched from the API
-      return new Promise<{
-        neutral: InsightData[];
-        negative: InsightData[];
-        positive: InsightData[];
-      }>((resolve) => {
-        setTimeout(() => {
-          resolve({
-            neutral: [
-              {
-                id: 1,
-                title: "masukan remote working",
-                neutralPercentage: 55,
-                negativePercentage: 5,
-                positivePercentage: 40,
-                views: 125,
-                comments: 5,
-              },
-              {
-                id: 2,
-                title: "kritik konstruktif",
-                neutralPercentage: 45,
-                negativePercentage: 10,
-                positivePercentage: 45,
-                views: 88,
-                comments: 7,
-              },
-            ],
-            negative: [
-              {
-                id: 4,
-                title: "kritik konstruktif",
-                neutralPercentage: 8,
-                negativePercentage: 89,
-                positivePercentage: 3,
-                views: 189,
-                comments: 16,
-              },
-            ],
-            positive: [
-              {
-                id: 6,
-                title: "bonus tahunan hc",
-                neutralPercentage: 33,
-                negativePercentage: 0,
-                positivePercentage: 67,
-                views: 75,
-                comments: 3,
-              },
-            ],
-          });
-        }, 500);
-      });
-    },
+  // State untuk menyimpan insights yang dipin
+  const [pinnedInsights, setPinnedInsights] = useState<{
+    neutral: InsightData[];
+    negative: InsightData[];
+    positive: InsightData[];
+  }>({
+    neutral: [],
+    negative: [],
+    positive: []
   });
+  
+  // State untuk loading
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Load pinned insights from localStorage
+  useEffect(() => {
+    const loadPinnedInsights = () => {
+      setIsLoading(true);
+      
+      const pinnedInsightsStr = localStorage.getItem('pinnedInsights');
+      
+      if (pinnedInsightsStr) {
+        try {
+          const allPinnedInsights: InsightData[] = JSON.parse(pinnedInsightsStr);
+          
+          // Kategorikan insights berdasarkan sentimen dominan
+          const categorized = {
+            neutral: [] as InsightData[],
+            negative: [] as InsightData[],
+            positive: [] as InsightData[]
+          };
+          
+          allPinnedInsights.forEach(insight => {
+            const { neutralPercentage, negativePercentage, positivePercentage } = insight;
+            
+            // Tentukan sentimen dominan
+            if (neutralPercentage >= negativePercentage && neutralPercentage >= positivePercentage) {
+              categorized.neutral.push(insight);
+            } else if (negativePercentage >= neutralPercentage && negativePercentage >= positivePercentage) {
+              categorized.negative.push(insight);
+            } else {
+              categorized.positive.push(insight);
+            }
+          });
+          
+          setPinnedInsights(categorized);
+        } catch (e) {
+          console.error('Error parsing pinned insights:', e);
+        }
+      }
+      
+      setIsLoading(false);
+    };
+    
+    loadPinnedInsights();
+    
+    // Add event listener untuk mendeteksi perubahan di localStorage dari tab lain
+    window.addEventListener('storage', loadPinnedInsights);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', loadPinnedInsights);
+    };
+  }, []);
 
   const handleRemoveInsight = (id: number) => {
-    console.log(`Removing insight with ID: ${id}`);
-    // In a real app, we would call API and then invalidate the query
+    // Get existing pinned insights
+    const existingPinnedString = localStorage.getItem('pinnedInsights');
+    
+    if (existingPinnedString) {
+      try {
+        const pinnedInsights = JSON.parse(existingPinnedString);
+        // Remove insight with matching id
+        const updatedPinnedInsights = pinnedInsights.filter((insight: InsightData) => insight.id !== id);
+        // Save back to localStorage
+        localStorage.setItem('pinnedInsights', JSON.stringify(updatedPinnedInsights));
+        
+        // Trigger storage event for this tab (since storage events only trigger in other tabs)
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {
+        console.error('Error removing pinned insight:', e);
+      }
+    }
   };
 
   if (isLoading) {
@@ -112,26 +132,26 @@ export default function MyInsights() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <SentimentCategoryCard
-            title="Netral Insight"
-            badge={69}
+            title="Netral"
+            badge={pinnedInsights.neutral.length}
             type="neutral"
-            insights={insights?.neutral || []}
+            insights={pinnedInsights.neutral}
             onRemoveInsight={handleRemoveInsight}
           />
           
           <SentimentCategoryCard
-            title="Negative Insight"
-            badge={7}
+            title="Negatif"
+            badge={pinnedInsights.negative.length}
             type="negative"
-            insights={insights?.negative || []}
+            insights={pinnedInsights.negative}
             onRemoveInsight={handleRemoveInsight}
           />
           
           <SentimentCategoryCard
-            title="Positif Insight"
-            badge={15}
+            title="Positif"
+            badge={pinnedInsights.positive.length}
             type="positive"
-            insights={insights?.positive || []}
+            insights={pinnedInsights.positive}
             onRemoveInsight={handleRemoveInsight}
           />
         </div>
