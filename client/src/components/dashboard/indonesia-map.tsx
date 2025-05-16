@@ -94,7 +94,7 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
 
     // Set tampilan dasar polygon
     polygonSeries.mapPolygons.template.setAll({
-      tooltipText: "{name}\nTotal: {value}\nPositive: {positiveCount}\nNegative: {negativeCount}\nNeutral: {neutralCount}",
+      tooltipText: "[bold]{name}[/]\nWitel: {witel}\n[green]Positif: {positiveCount}[/]\n[red]Negatif: {negativeCount}[/]\n[gold]Netral: {neutralCount}[/]\nTotal: {value}",
       interactive: true,
       fill: am5.color(0xEEEEEE),
       strokeWidth: 0.5,
@@ -172,13 +172,30 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
 
     // Konfigurasi tampilan label
     textSeries.bullets.push(() => {
-      // Buat circle background
+      // Buat circle background dengan warna berdasarkan sentimen dominan
       const circle = am5.Circle.new(root, {
         radius: 18,
         fill: am5.color(0xFFFFFF),
         fillOpacity: 0.8,
         stroke: am5.color(0xCCCCCC),
         strokeWidth: 1
+      });
+
+      // Tambahkan adapter untuk warna background lingkaran berdasarkan sentimen dominan
+      circle.adapters.add("fill", function(fill, target) {
+        const dataContext = target.dataItem?.dataContext;
+        if (dataContext) {
+          const sentiment = dataContext.dominantSentiment;
+          
+          if (sentiment === "positive") {
+            return am5.color(0x7DCEA0); // Hijau muda
+          } else if (sentiment === "negative") {
+            return am5.color(0xF5B7B1); // Merah muda
+          } else if (sentiment === "neutral") {
+            return am5.color(0xF9E79F); // Kuning muda
+          }
+        }
+        return fill;
       });
 
       // Buat text untuk nilai
