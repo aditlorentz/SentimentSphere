@@ -26,7 +26,7 @@ export default function AIInsightConclusion({
           <h2 className="text-xl font-display font-semibold text-black tracking-tight">
             AI Instant Conclusion
           </h2>
-          <span className="bg-blue-100 text-secondary text-xs font-medium px-2 py-1 rounded-full">
+          <span className="bg-blue-900 text-white text-xs font-medium px-2 py-1 rounded-full">
             AI
           </span>
         </div>
