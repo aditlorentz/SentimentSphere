@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useRef, useEffect, useState } from 'react';
 import * as am5 from '@amcharts/amcharts5';
+import * as am5wc from '@amcharts/amcharts5/wc';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import { useQuery } from '@tanstack/react-query';
 
@@ -69,111 +70,150 @@ const WordCloud: React.FC<WordCloudProps> = ({
       rootRef.current.dispose();
     }
 
-    // Create a simpler visualization for the word cloud since we can't use internal modules
+    // Create root element
     const root = am5.Root.new(chartRef.current);
     rootRef.current = root;
 
     // Set themes
     root.setThemes([am5themes_Animated.new(root)]);
 
-    // Create container for the tags
-    const container = root.container.children.push(
-      am5.Container.new(root, {
-        width: am5.percent(100),
-        height: am5.percent(100),
-        layout: root.horizontalLayout
+    // Create series
+    const series = root.container.children.push(
+      am5wc.WordCloud.new(root, {
+        minFontSize: 10,
+        maxFontSize: 40,
+        minWordLength: 2,
+        text: chartData.map(item => item.tag).join(' '),
+        randomness: 0.5,
+        calculateWeight: (word: string) => {
+          // Find the corresponding data item for this word
+          const dataItem = chartData.find(item => item.tag === word);
+          return dataItem ? dataItem.weight : 1;
+        },
+        categoryField: "tag",
+        valueField: "weight",
+        colors: am5.ColorSet.new(root, {}),
+        fillModifier: () => {
+          // Empty function so that we can set colors manually in the processor
+        }
       })
     );
 
-    // Function to determine color based on sentiment
-    const getColorFromSentiment = (item: any) => {
-      // Default color for non-real data
-      if (!useRealData || !('positivePercentage' in item)) {
-        return am5.color(0x333333);
-      }
-      
-      // Determine the dominant sentiment
-      const { positivePercentage, neutralPercentage, negativePercentage } = item;
-      
-      if (positivePercentage > neutralPercentage && positivePercentage > negativePercentage) {
-        // Green for positive (darker green for higher percentage)
-        return am5.color(0x00B894); // Primary positive color
-      } else if (neutralPercentage > positivePercentage && neutralPercentage > negativePercentage) {
-        // Yellow for neutral
-        return am5.color(0xF1C40F); // Primary neutral color
-      } else {
-        // Red for negative
-        return am5.color(0xE74C3C); // Primary negative color
-      }
-    };
-
-    // Function to distribute words in a cloud-like pattern
-    const renderWords = () => {
-      // Clear existing words
-      container.children.clear();
-      
-      // Sort by weight to place more important words first
-      const sortedData = [...chartData].sort((a, b) => b.weight - a.weight);
-      
-      // Set positions in a circular pattern
-      sortedData.forEach((item, index) => {
-        // Calculate font size based on weight
-        const minSize = 10;
-        const maxSize = 36;
-        const range = maxSize - minSize;
-        const maxWeight = Math.max(...chartData.map(item => item.weight));
-        const fontSize = minSize + (item.weight / maxWeight) * range;
-        
-        // Calculate position (spiral-like arrangement)
-        const angle = index * 0.35; // Controls spiral tightness
-        const radius = index * 3; // Controls spiral size
-        const x = Math.cos(angle) * radius + 50; // Center x percentage
-        const y = Math.sin(angle) * radius + 50; // Center y percentage
-        
-        // Determine color based on sentiment
-        const fillColor = getColorFromSentiment(item);
-        
-        // Create a text element for the word
-        const label = container.children.push(
-          am5.Label.new(root, {
-            x: am5.percent(x),
-            y: am5.percent(y),
-            centerX: am5.percent(50),
-            centerY: am5.percent(50),
-            text: item.tag,
-            fontSize: fontSize,
-            fill: fillColor,
-            fontFamily: "Inter, sans-serif",
-            fontWeight: "500",
-            oversizedBehavior: "wrap"
-          })
-        );
-        
-        // Make labels interactive
-        label.events.on("click", function() {
-          console.log(`Tag clicked: ${item.tag}`);
-          // Handle click event here (e.g., filter data by tag)
-        });
-        
-        label.events.on("pointerover", function() {
-          label.set("fill", am5.color(0x0984E3));
-          label.set("scale", 1.1);
-        });
-        
-        label.events.on("pointerout", function() {
-          label.set("fill", fillColor);
-          label.set("scale", 1);
-        });
-      });
-    };
-    
-    // Initial render
-    renderWords();
-    
-    // Make labels animate in
-    container.children.each((child) => {
-      child.appear(1000, 100);
+    // Set up rotation for the words
+    series.labels.template.setAll({
+      paddingTop: 5,
+      paddingBottom: 5,
+      paddingLeft: 5,
+      paddingRight: 5,
+      fontFamily: "Inter, sans-serif",
+      cursorOverStyle: "pointer",
+      oversizedBehavior: "fit"
     });
+
+    // Add some interactivity
+    series.labels.template.adapters.add("fill", (fill, target: any) => {
+      const dataItem = chartData.find(item => item.tag === target.dataItem?.get("category"));
+      
+      if (dataItem) {
+        const { positivePercentage, neutralPercentage, negativePercentage } = dataItem;
+        
+        if (positivePercentage > neutralPercentage && positivePercentage > negativePercentage) {
+          // Green for positive
+          return am5.color(0x00B894);
+        } else if (neutralPercentage > positivePercentage && neutralPercentage > negativePercentage) {
+          // Yellow for neutral
+          return am5.color(0xF1C40F);
+        } else {
+          // Red for negative
+          return am5.color(0xE74C3C);
+        }
+      }
+      
+      return fill;
+    });
+
+    // Add hover effect
+    series.labels.template.states.create("hover", {
+      fill: am5.color(0x0984E3),
+      scale: 1.1
+    });
+
+    // Add click interaction
+    series.labels.template.events.on("click", (ev) => {
+      const category = ev.target.dataItem?.get("category");
+      if (category) {
+        console.log(`Clicked on word: ${category}`);
+        // You can add filtering logic here
+      }
+    });
+
+    // Create data
+    const seriesData = chartData.map(item => ({
+      tag: item.tag,
+      weight: item.weight
+    }));
+    
+    // Add data
+    series.data.setAll(seriesData);
+
+    // Add zoom capability
+    root.container.set("wheelable", true);
+    const zoomOut = root.container.children.push(am5.Button.new(root, {
+      x: am5.p100,
+      y: 0,
+      paddingTop: 10,
+      paddingRight: 10,
+      icon: am5.Graphics.new(root, {
+        svgPath: "M19 13H5v-2h14v2z",
+        fill: am5.color(0x000000)
+      })
+    }));
+    
+    const zoomIn = root.container.children.push(am5.Button.new(root, {
+      x: am5.p100,
+      y: 30,
+      paddingTop: 10,
+      paddingRight: 10,
+      icon: am5.Graphics.new(root, {
+        svgPath: "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z",
+        fill: am5.color(0x000000)
+      })
+    }));
+    
+    zoomOut.events.on("click", function() {
+      if (series.width() > 200) {
+        series.animate({
+          key: "width",
+          to: series.width() * 0.8,
+          duration: 500,
+          easing: am5.ease.out(am5.ease.cubic)
+        });
+        series.animate({
+          key: "height",
+          to: series.height() * 0.8,
+          duration: 500,
+          easing: am5.ease.out(am5.ease.cubic)
+        });
+      }
+    });
+    
+    zoomIn.events.on("click", function() {
+      series.animate({
+        key: "width",
+        to: series.width() * 1.2,
+        duration: 500,
+        easing: am5.ease.out(am5.ease.cubic)
+      });
+      series.animate({
+        key: "height",
+        to: series.height() * 1.2,
+        duration: 500,
+        easing: am5.ease.out(am5.ease.cubic)
+      });
+    });
+
+    // Make chart responsive
+    series.appear(1000, 100);
 
     return () => {
       // Clean up on unmount
@@ -202,7 +242,7 @@ const WordCloud: React.FC<WordCloudProps> = ({
       <div className="p-4 border-b border-gray-100">
         <h3 className="font-medium text-gray-800">{title}</h3>
       </div>
-      <div ref={chartRef} style={{ width, height }} />
+      <div ref={chartRef} style={{ width, height }} className="cursor-move" />
     </div>
   );
 };
