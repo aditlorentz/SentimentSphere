@@ -38,88 +38,49 @@ export default function TopInsights() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(5);
 
-  const { data: topInsights, isLoading } = useQuery({
-    queryKey: ['/api/top-insights', page],
+  // Fetch data from employee_insights table with pagination
+  const { data: insightsData, isLoading } = useQuery({
+    queryKey: ['/api/postgres/insights', page],
     queryFn: async () => {
-      // This would normally be fetched from the API
-      return new Promise<{
-        insights: TopInsight[];
-        totalCount: number;
-        wordCloudData: Array<{ tag: string; weight: number }>;
-      }>((resolve) => {
-        setTimeout(() => {
-          resolve({
-            insights: [
-              {
-                id: 1,
-                location: "Ketapang",
-                source: "Bud HC",
-                employee: "M*** K***",
-                sentiment: "Saya ingin memberika...",
-                date: "2024-08-18 22:44:53"
-              },
-              {
-                id: 2,
-                location: "Marus",
-                source: "Bud HC",
-                employee: "S*** P***",
-                sentiment: "Berikut adalah tangg...",
-                date: "2024-12-01 16:42:00"
-              },
-              {
-                id: 3,
-                location: "Tambun",
-                source: "HR",
-                employee: "V*** S***",
-                sentiment: "Dengan berat hati sa...",
-                date: "2025-03-28 07:45:56"
-              },
-              {
-                id: 4,
-                location: "Bekasi",
-                source: "Bud HC",
-                employee: "R*** D***",
-                sentiment: "Berikut adalah tangg...",
-                date: "2025-01-10 23:15:22"
-              },
-              {
-                id: 5,
-                location: "Sorong",
-                source: "IT",
-                employee: "L*** S***",
-                sentiment: "Saya ingin menyampai...",
-                date: "2025-03-19 22:41:47"
-              },
-              {
-                id: 6,
-                location: "Tebing Tinggi",
-                source: "Bud HC",
-                employee: "J*** A***",
-                sentiment: "Saya ingin memberika...",
-                date: "2025-02-02 04:12:35"
-              }
-            ],
-            totalCount: 500,
-            // Word cloud data for amCharts
-            wordCloudData: [
-              { tag: "program", weight: 80 },
-              { tag: "karyawan", weight: 65 },
-              { tag: "peserta", weight: 42 },
-              { tag: "materi", weight: 48 },
-              { tag: "proses", weight: 35 },
-              { tag: "evaluasi", weight: 30 },
-              { tag: "manajemen", weight: 25 },
-              { tag: "perusahaan", weight: 20 },
-              { tag: "pengembangan", weight: 15 },
-              { tag: "implementasi", weight: 12 },
-              { tag: "kebijakan", weight: 10 },
-              { tag: "administrasi", weight: 8 }
-            ]
-          });
-        }, 500);
-      });
+      const limit = 10; // Display 10 insights per page
+      const response = await fetch(`/api/postgres/insights?page=${page}&limit=${limit}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch insights');
+      }
+      
+      const data = await response.json();
+      return data;
     },
   });
+  
+  // Prepare data for the component
+  const topInsights = insightsData ? {
+    insights: insightsData.data.map((item: any) => ({
+      id: item.id,
+      location: item.kota || 'Unknown',
+      source: item.sourceData || 'Unknown',
+      employee: item.employeeName ? `${item.employeeName.substring(0, 1)}*** ${item.employeeName.substring(item.employeeName.length - 1)}***` : 'Unknown',
+      sentiment: item.sentenceInsight ? `${item.sentenceInsight.substring(0, 20)}...` : item.sentimen,
+      date: item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0].replace(/-/g, '/') : 'Unknown'
+    })),
+    totalCount: Number(insightsData.total) || 0,
+    // Word cloud data for amCharts - using the top word insights
+    wordCloudData: [
+      { tag: "program", weight: 80 },
+      { tag: "karyawan", weight: 65 },
+      { tag: "peserta", weight: 42 },
+      { tag: "materi", weight: 48 },
+      { tag: "proses", weight: 35 },
+      { tag: "evaluasi", weight: 30 },
+      { tag: "manajemen", weight: 25 },
+      { tag: "perusahaan", weight: 20 },
+      { tag: "pengembangan", weight: 15 },
+      { tag: "implementasi", weight: 12 },
+      { tag: "kebijakan", weight: 10 },
+      { tag: "administrasi", weight: 8 }
+    ]
+  } : null;
 
   useEffect(() => {
     if (topInsights?.totalCount) {
