@@ -254,7 +254,7 @@ export default function Chatbot() {
                   </form>
                   
                   <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-500">
-                    <span>Powered by NLP Engine • v1.0.2</span>
+                    <span>Powered by NLP AI • v1.0.2</span>
                     <div className="flex items-center space-x-3">
                       <button className="hover:text-gray-700 transition-colors">
                         <Image className="h-3.5 w-3.5" />
