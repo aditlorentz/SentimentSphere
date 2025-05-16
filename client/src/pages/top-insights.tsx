@@ -37,83 +37,13 @@ interface TopInsight {
 export default function TopInsights() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(5);
-  const [sourceFilter, setSourceFilter] = useState<string>("all");
-  const [wordInsightFilter, setWordInsightFilter] = useState<string>("all");
-  const [dateRange, setDateRange] = useState<any>(undefined);
-  
-  // Options for source filter based on backend data
-  const sourceOptions = [
-    { label: "Email HC", value: "Email HC" },
-    { label: "Bot HC", value: "Bot HC" },
-    { label: "Instagram HC", value: "Instagram HC" },
-    { label: "Diarium", value: "Diarium" },
-    { label: "Komplain Helpdesk HC", value: "Komplain Helpdesk HC" },
-    { label: "Berita HC", value: "Berita HC" }
-  ];
-  
-  // Word Insight options based on top insights data
-  const wordInsightOptions = [
-    { label: "Program Wellness", value: "Program Wellness" },
-    { label: "Fasilitas Kerja", value: "Fasilitas Kerja" },
-    { label: "Employee Recognition", value: "Employee Recognition" },
-    { label: "Pelatihan Digital", value: "Pelatihan Digital" },
-    { label: "Program Mentoring", value: "Program Mentoring" },
-    { label: "Flexible Working", value: "Flexible Working" },
-    { label: "Penilaian Kinerja", value: "Penilaian Kinerja" },
-    { label: "Ruang Kerja", value: "Ruang Kerja" },
-    { label: "Kesehatan Mental", value: "Kesehatan Mental" }
-  ];
 
-  // Handler functions for filters
-  const handleSourceChange = (value: string) => {
-    setSourceFilter(value);
-    setPage(1); // Reset to page 1 when filter changes
-  };
-
-  const handleWordInsightChange = (value: string) => {
-    setWordInsightFilter(value);
-    setPage(1); // Reset to page 1 when filter changes
-  };
-
-  const handleDateRangeChange = (range: any) => {
-    setDateRange(range);
-    setPage(1); // Reset to page 1 when filter changes
-  };
-
-  const handleResetFilters = () => {
-    setSourceFilter("all");
-    setWordInsightFilter("all");
-    setDateRange(undefined);
-    setPage(1);
-  };
-
-  // Fetch data from employee_insights table with pagination and filters
+  // Fetch data from employee_insights table with pagination
   const { data: insightsData, isLoading } = useQuery({
-    queryKey: ['/api/postgres/insights', page, sourceFilter, wordInsightFilter, dateRange],
+    queryKey: ['/api/postgres/insights', page],
     queryFn: async () => {
       const limit = 10; // Display 10 insights per page
-      
-      // Build query parameters
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', limit.toString());
-      
-      // Add filters if not 'all'
-      if (sourceFilter !== 'all') {
-        params.append('sourceData', sourceFilter);
-      }
-      
-      if (wordInsightFilter !== 'all') {
-        params.append('wordInsight', wordInsightFilter);
-      }
-      
-      // Add date range filter if available
-      if (dateRange?.from && dateRange?.to) {
-        params.append('from', dateRange.from.toISOString());
-        params.append('to', dateRange.to.toISOString());
-      }
-      
-      const response = await fetch(`/api/postgres/insights?${params.toString()}`);
+      const response = await fetch(`/api/postgres/insights?page=${page}&limit=${limit}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch insights');
@@ -174,22 +104,7 @@ export default function TopInsights() {
 
   return (
     <div className="flex-1 overflow-x-hidden">
-      <Header 
-        title="Top Insights" 
-        totalInsights={topInsights?.totalCount || 0}
-        showFilters={true}
-        showSourceFilter={true}
-        showDateFilter={true}
-        sourceValue={sourceFilter}
-        wordInsightValue={wordInsightFilter}
-        dateRangeValue={dateRange}
-        sourceOptions={sourceOptions}
-        wordInsightOptions={wordInsightOptions}
-        onSourceChange={handleSourceChange}
-        onWordInsightChange={handleWordInsightChange}
-        onDateRangeChange={handleDateRangeChange}
-        onResetFilters={handleResetFilters}
-      />
+      <Header title="Top Insights" />
       
       <div className="p-6">
         <AIInsightConclusion content={aiConclusionText} />
