@@ -2,12 +2,12 @@ import express, { type Express, NextFunction } from "express";
 import type { Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, surveyDashboardSummary } from "@shared/schema";
+import { insertUserSchema, surveyDashboardSummary, employeeInsights } from "@shared/schema";
 import { topWordInsights } from "@shared/schema-top-insights";
 import { registerSummaryRegenerationRoutes } from "./api-generate-summary";
 import { compareSync, hashSync } from "bcryptjs";
 import { db } from "./db";
-import { sql } from "drizzle-orm";
+import { sql, desc } from "drizzle-orm";
 
 // Simple middleware to log requests
 const logRequests = (req: Request, res: Response, next: NextFunction) => {
@@ -373,6 +373,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         message: "Failed to fetch word cloud data",
         error: error.message
+      });
+    }
+  });
+
+  // AI Summary generation endpoint
+  app.get("/api/ai-summary", async (req: Request, res: Response) => {
+    try {
+      // Get stats for positives and negatives
+      const stats = await db.select({
+        totalInsights: sql`COUNT(*)`,
+        positiveCount: sql`SUM(CASE WHEN sentimen = 'positif' THEN 1 ELSE 0 END)`,
+        negativeCount: sql`SUM(CASE WHEN sentimen = 'negatif' THEN 1 ELSE 0 END)`,
+        neutralCount: sql`SUM(CASE WHEN sentimen = 'netral' THEN 1 ELSE 0 END)`,
+      }).from(employeeInsights).then(rows => rows[0]);
+
+      // Get top insights
+      const topWords = await db
+        .select()
+        .from(topWordInsights)
+        .orderBy(sql`${topWordInsights.totalCount} DESC`)
+        .limit(10);
+
+      // Get sources
+      const sources = await db
+        .select({
+          source: employeeInsights.sourceData,
+          count: sql<number>`COUNT(*)`
+        })
+        .from(employeeInsights)
+        .groupBy(employeeInsights.sourceData)
+        .orderBy(sql`COUNT(*) DESC`)
+        .limit(5)
+        .then(rows => rows.map(row => row.source));
+
+      // Prepare data for AI summary
+      const summaryData = {
+        totalEmployees: 633, // Fixed count as requested
+        totalInsights: Number(stats.totalInsights),
+        totalPositive: Number(stats.positiveCount),
+        totalNegative: Number(stats.negativeCount),
+        topInsights: topWords,
+        sources
+      };
+
+      // Generate AI summary
+      const summary = await generateAISummary(summaryData);
+      
+      res.json({ summary });
+    } catch (error) {
+      console.error("Error generating AI summary:", error);
+      res.status(500).json({ 
+        error: "Failed to generate AI summary",
+        summary: "Terjadi kesalahan saat memproses ringkasan AI. Silakan coba lagi nanti."
       });
     }
   });

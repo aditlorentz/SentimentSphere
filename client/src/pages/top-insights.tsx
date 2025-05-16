@@ -107,7 +107,7 @@ export default function TopInsights() {
       <Header title="Top Insights" />
       
       <div className="p-6">
-        <AIInsightConclusion content={aiConclusionText} />
+        <AIInsightConclusion />
         
         <Card className="mb-6">
           <CardContent className="p-6">

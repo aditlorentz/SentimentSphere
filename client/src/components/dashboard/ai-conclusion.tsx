@@ -1,20 +1,41 @@
-import { X } from "lucide-react";
-import { useState } from "react";
+import { X, RefreshCw } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface AIInsightConclusionProps {
-  content: string;
   onClose?: () => void;
 }
 
 export default function AIInsightConclusion({
-  content,
   onClose,
 }: AIInsightConclusionProps) {
   const [isVisible, setIsVisible] = useState(true);
 
+  // Fetch AI summary from the API
+  const { 
+    data, 
+    isLoading, 
+    isError, 
+    error, 
+    refetch 
+  } = useQuery({
+    queryKey: ['/api/ai-summary'],
+    queryFn: async () => {
+      const response = await fetch('/api/ai-summary');
+      if (!response.ok) {
+        throw new Error('Failed to fetch AI summary');
+      }
+      return response.json();
+    },
+  });
+
   const handleClose = () => {
     setIsVisible(false);
     if (onClose) onClose();
+  };
+
+  const handleRefresh = () => {
+    refetch();
   };
 
   if (!isVisible) return null;
@@ -27,17 +48,41 @@ export default function AIInsightConclusion({
             AI Instant Conclusion
           </h2>
           <span className="bg-blue-900 text-white text-xs font-medium px-2 py-1 rounded-full">
-            AI
+            Gemini Flash 2.0
           </span>
         </div>
-        <button
-          className="text-gray-400 hover:text-gray-500"
-          onClick={handleClose}
-        >
-          <X className="h-5 w-5" />
-        </button>
+        <div className="flex space-x-2">
+          <button
+            className="text-gray-400 hover:text-gray-500"
+            onClick={handleRefresh}
+            title="Refresh conclusion"
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            className="text-gray-400 hover:text-gray-500"
+            onClick={handleClose}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </div>
-      <p className="text-gray-600 text-sm">{content}</p>
+      
+      {isLoading ? (
+        <div className="text-gray-600 text-sm flex items-center">
+          <div className="h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2"></div>
+          Menghasilkan kesimpulan cerdas dengan Gemini Flash 2.0...
+        </div>
+      ) : isError ? (
+        <div className="text-red-500 text-sm">
+          Terjadi kesalahan saat memuat kesimpulan AI: {error instanceof Error ? error.message : 'Unknown error'}
+        </div>
+      ) : (
+        <p className="text-gray-700 text-sm leading-relaxed">
+          {data?.summary || "Tidak ada kesimpulan yang tersedia saat ini."}
+        </p>
+      )}
     </div>
   );
 }
