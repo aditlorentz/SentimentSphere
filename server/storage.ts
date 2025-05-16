@@ -188,6 +188,7 @@ export class DatabaseStorage implements IStorage {
     positiveCount: number,
     negativeCount: number,
     neutralCount: number,
+    uniqueEmployeeCount: number,
     bySource: {source: string, count: number}[],
     byWitel: {witel: string, count: number}[],
     byWord: {word: string, count: number}[]
