@@ -197,6 +197,35 @@ export default function SurveyDashboard() {
     // In a real app, we would call an API and then invalidate the query
   };
   
+  // Handler for pinning insights to My Insights
+  const handlePinInsight = (insight: InsightData) => {
+    // Get existing pinned insights from localStorage
+    const existingPinnedString = localStorage.getItem('pinnedInsights');
+    let pinnedInsights: InsightData[] = [];
+    
+    if (existingPinnedString) {
+      try {
+        pinnedInsights = JSON.parse(existingPinnedString);
+      } catch (e) {
+        console.error('Error parsing pinned insights from localStorage', e);
+      }
+    }
+    
+    // Check if insight is already pinned
+    const isPinned = pinnedInsights.some(item => item.id === insight.id);
+    
+    if (isPinned) {
+      // If already pinned, remove it
+      pinnedInsights = pinnedInsights.filter(item => item.id !== insight.id);
+    } else {
+      // Otherwise, add it to pinned insights
+      pinnedInsights.push(insight);
+    }
+    
+    // Save back to localStorage
+    localStorage.setItem('pinnedInsights', JSON.stringify(pinnedInsights));
+  };
+  
   // Overall loading state
   const isLoading = insightsLoading || statsLoading || summaryLoading;
   

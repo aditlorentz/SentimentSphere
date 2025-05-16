@@ -1,4 +1,4 @@
-import { X, Info } from "lucide-react";
+import { X, Info, Pin, Bookmark } from "lucide-react";
 import { 
   ProgressBar, 
   SentimentMetrics, 
@@ -29,11 +29,14 @@ export interface InsightData {
 interface InsightItemProps {
   insight: InsightData;
   onRemove?: (id: number) => void;
+  onPin?: (insight: InsightData) => void;
+  isPinned?: boolean;
 }
 
-export function InsightItem({ insight, onRemove }: InsightItemProps) {
+export function InsightItem({ insight, onRemove, onPin, isPinned = false }: InsightItemProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedInsight, setSelectedInsight] = useState<string | null>(null);
+  const [pinned, setPinned] = useState(isPinned);
   
   // Fetch detailed data from employee_insights when dialog is opened
   const { data: insightDetails, isLoading } = useQuery({
@@ -66,29 +69,30 @@ export function InsightItem({ insight, onRemove }: InsightItemProps) {
             >
               <Info className="h-4 w-4" />
             </button>
-            <button 
-              className="text-gray-400 hover:text-blue-600"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onRemove) onRemove(insight.id);
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-pin"
+            {onPin && (
+              <button 
+                className={`${pinned ? 'text-blue-500' : 'text-gray-400'} hover:text-blue-600`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPinned(!pinned);
+                  if (onPin) onPin(insight);
+                }}
+                title={pinned ? "Hapus dari My Insights" : "Simpan ke My Insights"}
               >
-                <line x1="12" x2="12" y1="17" y2="22" />
-                <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 16.24Z" />
-              </svg>
-            </button>
+                <Bookmark className={`h-4 w-4 ${pinned ? 'fill-current' : ''}`} />
+              </button>
+            )}
+            {onRemove && (
+              <button 
+                className="text-gray-400 hover:text-blue-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onRemove) onRemove(insight.id);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
         
