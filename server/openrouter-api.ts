@@ -8,9 +8,13 @@ export async function generateAISummary(data: any): Promise<string> {
       throw new Error('Gemini API key is not configured');
     }
 
-    // Prepare the prompt with the dashboard data
-    const prompt = `
-Berdasarkan data berikut ini, buatlah ringkasan singkat dalam 1 paragraf yang menjelaskan insight utama:
+    // Get the page context (if provided)
+    const pageContext = data.pageContext || 'Survey Dashboard';
+    const promptPrefix = data.promptPrefix || '';
+
+    // Prepare the prompt with the dashboard data, customized based on page
+    let prompt = `
+${promptPrefix}buatlah ringkasan singkat dalam 1 paragraf yang menjelaskan insight utama dari halaman ${pageContext}:
 
 - Total Karyawan: ${data.totalEmployees}
 - Total Insights: ${data.totalInsights}
@@ -19,9 +23,22 @@ Berdasarkan data berikut ini, buatlah ringkasan singkat dalam 1 paragraf yang me
 - Sentimen Netral: ${data.totalInsights - data.totalPositive - data.totalNegative} (${(((data.totalInsights - data.totalPositive - data.totalNegative) / data.totalInsights) * 100).toFixed(1)}%)
 - Top Insights: ${data.topInsights.map((item: any) => `${item.wordInsight} (${item.totalCount})`).join(', ')}
 - Sumber Utama: ${data.sources.join(', ')}
-
-Jelaskan insight utama, tren sentimen yang menonjol, dan berikan satu rekomendasi berdasarkan data ini. Tulis dalam bahasa semi-formal dan ringkas.
 `;
+
+    // Add page-specific additional context to prompt
+    if (pageContext === 'Top Insights' && data.topInsightsDistribution) {
+      prompt += `- ${data.topInsightsDistribution}\n`;
+      prompt += `\nFokuskan analisis pada Top 10 insights yang ditampilkan di halaman ini dan jelaskan bagaimana insights ini mempengaruhi keseluruhan sentimen. Berikan rekomendasi terkait Top Insights.`;
+    } 
+    else if (pageContext === 'Smart Analytics' && data.trends) {
+      prompt += `- Tren Utama: ${data.trends.join(', ')}\n`;
+      prompt += `\nFokuskan analisis pada tren utama yang terlihat dari data dan pola sentimen berdasarkan waktu. Berikan rekomendasi strategis berdasarkan analytics.`;
+    }
+    else {
+      prompt += `\nJelaskan insight utama, tren sentimen yang menonjol, dan berikan satu rekomendasi berdasarkan data dashboard ini.`;
+    }
+
+    prompt += ` Tulis dalam bahasa semi-formal dan ringkas.`;
 
     try {
       const geminiResponse = await axios.post(
