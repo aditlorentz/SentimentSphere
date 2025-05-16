@@ -7,7 +7,7 @@ import { Eye, EyeOff, User, Lock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import brainSvg from "../assets/brain-neural.svg";
+// Brain SVG image no longer used with the new design
 import nlpLogo from "../assets/logo-nlp.webp";
 import {
   Form,
@@ -24,22 +24,27 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-// Testimonials for the slideshow
-const testimonials = [
+// AI and NLP images for the slideshow
+const aiImages = [
   {
-    quote: "The NLP capabilities have transformed how we process and understand customer feedback. The accuracy and speed of analysis have improved our response time significantly.",
-    author: "Dr. Sarah Chen",
-    title: "AI Research Lead"
+    url: "https://images.unsplash.com/photo-1677442136019-21780ecad006?q=80&w=2532&auto=format&fit=crop",
+    alt: "AI neural network visualization",
+    caption: "Advanced neural network processing for sentiment analysis"
   },
   {
-    quote: "Implementing this NLP platform helped us identify customer sentiment trends that would have otherwise gone unnoticed. It's been a game changer for our product development.",
-    author: "Michael Rodriguez",
-    title: "Product Manager"
+    url: "https://images.unsplash.com/photo-1701217761949-0a053a0ff409?q=80&w=2532&auto=format&fit=crop",
+    alt: "AI technology interface",
+    caption: "Next-generation NLP technology powering intelligent insights"
   },
   {
-    quote: "The insights derived from the sentiment analysis have directly contributed to a 24% increase in customer satisfaction scores over the last quarter.",
-    author: "Jennifer Wilson",
-    title: "Customer Experience Director"
+    url: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2465&auto=format&fit=crop",
+    alt: "Data visualization",
+    caption: "Transforming complex data into actionable intelligence"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1633419461186-7d40a38105ec?q=80&w=2070&auto=format&fit=crop",
+    alt: "AI robot face",
+    caption: "Gemini 2.0 Flash - The future of conversational AI"
   }
 ];
 
@@ -49,13 +54,13 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [currentImage, setCurrentImage] = useState(0);
 
-  // Auto-rotate testimonials
+  // Auto-rotate AI images
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 8000);
+      setCurrentImage((prev) => (prev + 1) % aiImages.length);
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -123,40 +128,39 @@ export default function Login() {
         
         <div className="flex-1 flex flex-col items-center justify-center">
           <div className="w-full max-w-lg">
-            <img 
-              src={brainSvg}
-              alt="Brain with neural connections"
-              className="w-full h-auto object-contain mb-12"
-            />
-            
-            <div className="relative">
-              <div className="text-5xl text-indigo-200 absolute top-0 left-0 transform -translate-x-6 -translate-y-8">
-                "
-              </div>
-              
-              <div className="min-h-[180px] transition-opacity duration-500">
-                <p className="text-gray-700 text-lg mb-4">
-                  {testimonials[currentTestimonial].quote}
+            {/* AI/NLP Image Slideshow */}
+            <div className="relative rounded-xl overflow-hidden shadow-xl mb-8 aspect-video bg-gray-100">
+              <img 
+                src={aiImages[currentImage].url}
+                alt={aiImages[currentImage].alt}
+                className="w-full h-full object-cover transition-opacity duration-500"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                <p className="text-white text-sm font-medium">
+                  {aiImages[currentImage].caption}
                 </p>
-                <div className="text-right">
-                  <p className="font-semibold">{testimonials[currentTestimonial].author}</p>
-                  <p className="text-gray-500 text-sm">{testimonials[currentTestimonial].title}</p>
-                </div>
-              </div>
-              
-              <div className="text-5xl text-indigo-200 absolute bottom-0 right-0 transform translate-x-2 translate-y-4">
-                "
               </div>
             </div>
             
-            <div className="flex justify-center mt-8 space-x-2">
-              {testimonials.map((_, i) => (
+            {/* Image Slider Indicators */}
+            <div className="flex justify-center mt-4 space-x-2">
+              {aiImages.map((_, i) => (
                 <button 
                   key={i} 
-                  className={`h-2 w-2 rounded-full transition-colors ${i === currentTestimonial ? 'bg-indigo-600' : 'bg-gray-300'}`}
-                  onClick={() => setCurrentTestimonial(i)}
+                  className={`h-2 w-2 rounded-full transition-colors ${i === currentImage ? 'bg-indigo-600' : 'bg-gray-300'}`}
+                  onClick={() => setCurrentImage(i)}
                 />
               ))}
+            </div>
+
+            {/* NLP Technology Highlight */}
+            <div className="mt-8 p-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                Powered by Advanced NLP Technology
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Our sentiment analysis platform uses state-of-the-art natural language processing to transform complex text data into actionable insights.
+              </p>
             </div>
           </div>
         </div>
