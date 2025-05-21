@@ -122,8 +122,8 @@ export default function Login() {
     <div className="min-h-screen flex flex-col md:flex-row bg-white">
       {/* Left section with AI/NLP slideshow */}
       <div className="md:w-1/2 bg-white p-0 m-0 flex flex-col relative">
-        {/* Logo positioned absolutely on top of slideshow */}
-        <div className="absolute top-4 left-6 z-10">
+        {/* Logo with frosted glass effect */}
+        <div className="absolute top-4 left-6 z-10 backdrop-blur-md bg-white/40 p-3 rounded-xl shadow-lg border border-white/50">
           <img 
             src={nlpLogo} 
             alt="NLP Logo" 
