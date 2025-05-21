@@ -50,6 +50,7 @@ interface HeaderProps {
   surveyValue?: string;
   dateRangeValue?: DateRange;
   wordInsightValue?: string;
+  wordInsightValues?: string[];
   // Filter options
   sourceOptions?: SelectOption[];
   surveyOptions?: SelectOption[];
@@ -60,6 +61,7 @@ interface HeaderProps {
   onSurveyChange?: (value: string) => void;
   onDateRangeChange?: (range: DateRange | undefined) => void;
   onWordInsightChange?: (value: string) => void;
+  onWordInsightValuesChange?: (values: string[]) => void;
 
   onResetFilters?: () => void;
 }
@@ -75,6 +77,7 @@ export default function Header({
   surveyValue = "all",
   dateRangeValue,
   wordInsightValue = "all",
+  wordInsightValues = [],
 
   sourceOptions = [],
   surveyOptions = [],
@@ -83,6 +86,7 @@ export default function Header({
   onSurveyChange,
   onDateRangeChange,
   onWordInsightChange,
+  onWordInsightValuesChange,
   onResetFilters,
 }: HeaderProps) {
   const [location] = useLocation();
@@ -238,30 +242,46 @@ export default function Header({
             </div>
           )}
 
-          {/* Word Insight Filter - NEW */}
+          {/* Word Insight Filter - MULTI SELECT WITH CHECKLIST */}
           <div className="relative w-full sm:w-auto">
-            <Select 
-              value={wordInsightValue} 
-              onValueChange={(value) => {
-                if (onWordInsightChange) onWordInsightChange(value);
+            <MultiSelect
+              options={[{ value: "all", label: "All Topics" }, ...wordInsightOptions.map(option => ({ value: option.value, label: option.label }))]}
+              selectedValues={wordInsightValues}
+              onValueChange={(values) => {
+                if (onWordInsightValuesChange) onWordInsightValuesChange(values);
               }}
-            >
-              <SelectTrigger className="w-full min-w-[140px] bg-white border-gray-200 rounded-full shadow-sm pl-3 pr-2 py-1 h-auto">
-                <div className="flex items-center">
-                  <Filter className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
-                  <SelectValue placeholder="Topic" className="text-sm truncate" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Topics</SelectItem>
-                {wordInsightOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Select Topics"
+              className="w-full min-w-[140px]"
+            />
           </div>
+          
+          {/* Selected filters badges */}
+          {wordInsightValues && wordInsightValues.length > 0 && !wordInsightValues.includes("all") && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {wordInsightValues.map(value => {
+                const option = wordInsightOptions.find(opt => opt.value === value);
+                return option ? (
+                  <Badge 
+                    key={value} 
+                    variant="blue"
+                    className="flex items-center gap-1 py-1 px-2"
+                  >
+                    {option.label}
+                    <button 
+                      className="ml-1 rounded-full hover:bg-blue-200 w-4 h-4 inline-flex items-center justify-center"
+                      onClick={() => {
+                        if (onWordInsightValuesChange) {
+                          onWordInsightValuesChange(wordInsightValues.filter(v => v !== value));
+                        }
+                      }}
+                    >
+                      <X className="h-3 w-3 text-blue-700" />
+                    </button>
+                  </Badge>
+                ) : null;
+              })}
+            </div>
+          )}
 
 
 

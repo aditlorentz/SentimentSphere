@@ -58,6 +58,7 @@ export default function SurveyDashboard() {
   const [survey, setSurvey] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [wordInsight, setWordInsight] = useState<string>("all");
+  const [wordInsightValues, setWordInsightValues] = useState<string[]>([]); // Multiple word insights
   const [sentiment, setSentiment] = useState<string>("all");
   
   // Fetch insights
@@ -91,8 +92,19 @@ export default function SurveyDashboard() {
       queryString += `&survey=${encodeURIComponent(survey)}`;
     }
     
+    // Handle single word insight filter
     if (wordInsight && wordInsight !== 'all') {
       queryString += `&wordInsight=${encodeURIComponent(wordInsight)}`;
+    }
+    
+    // Handle multiple word insights filter
+    if (wordInsightValues && wordInsightValues.length > 0) {
+      // Skip if "all" is selected
+      if (!wordInsightValues.includes('all')) {
+        wordInsightValues.forEach((value) => {
+          queryString += `&wordInsights[]=${encodeURIComponent(value)}`;
+        });
+      }
     }
     
     if (sentiment && sentiment !== 'all') {
@@ -121,7 +133,7 @@ export default function SurveyDashboard() {
     data: SurveyDashboardSummary[];
     total: string;
   }>({
-    queryKey: ['/api/survey-dashboard/summary', { source, survey, dateRange, wordInsight, sentiment }],
+    queryKey: ['/api/survey-dashboard/summary', { source, survey, dateRange, wordInsight, wordInsightValues, sentiment }],
     queryFn: async () => {
       const response = await fetch(buildQueryString());
       if (!response.ok) {
@@ -161,9 +173,16 @@ export default function SurveyDashboard() {
         comments: 0
       };
       
-      // Apply wordInsight filter
+      // Apply single wordInsight filter
       if (wordInsight !== "all" && item.wordInsight !== wordInsight) {
         return; // Skip this item if it doesn't match the wordInsight filter
+      }
+      
+      // Apply multiple wordInsight filter
+      if (wordInsightValues.length > 0 && !wordInsightValues.includes("all")) {
+        if (!wordInsightValues.includes(item.wordInsight)) {
+          return; // Skip this item if it doesn't match any of the selected wordInsights
+        }
       }
       
       // Apply sentiment filter
@@ -259,7 +278,24 @@ export default function SurveyDashboard() {
   };
   
   const handleWordInsightChange = (value: string) => {
+    // Jika menggunakan single select, reset multiple select
     setWordInsight(value);
+    setWordInsightValues([]);
+  };
+  
+  const handleWordInsightValuesChange = (values: string[]) => {
+    // Jika menggunakan multiple select, reset single select
+    setWordInsightValues(values);
+    
+    // Jika pilihan termasuk "all", kosongkan yang lain
+    if (values.includes("all")) {
+      setWordInsightValues(["all"]);
+    }
+    
+    // Reset single select jika multi select aktif
+    if (values.length > 0) {
+      setWordInsight("all");
+    }
   };
   
   const handleSentimentChange = (value: string) => {
@@ -272,6 +308,7 @@ export default function SurveyDashboard() {
     setSurvey("all");
     setDateRange(undefined);
     setWordInsight("all");
+    setWordInsightValues([]);
     setSentiment("all");
   };
   
@@ -292,13 +329,13 @@ export default function SurveyDashboard() {
         onSurveyChange={handleSurveyChange}
         onDateRangeChange={handleDateRangeChange}
         onWordInsightChange={handleWordInsightChange}
-        onSentimentChange={handleSentimentChange}
+        onWordInsightValuesChange={handleWordInsightValuesChange}
         onResetFilters={handleResetFilters}
         sourceValue={source}
         surveyValue={survey}
         dateRangeValue={dateRange}
         wordInsightValue={wordInsight}
-        sentimentValue={sentiment}
+        wordInsightValues={wordInsightValues}
         // Pass source options based on stats data
         sourceOptions={stats?.bySource.map(s => ({ 
           label: `${s.source} (${s.count})`, 
