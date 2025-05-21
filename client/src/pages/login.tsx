@@ -120,9 +120,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white">
-      {/* Left section with Brain image and testimonial */}
-      <div className="md:w-1/2 bg-white p-6 flex flex-col">
-        <div className="flex items-center space-x-2 mb-8">
+      {/* Left section with AI/NLP slideshow */}
+      <div className="md:w-1/2 bg-white p-0 m-0 flex flex-col relative">
+        {/* Logo positioned absolutely on top of slideshow */}
+        <div className="absolute top-4 left-6 z-10">
           <img 
             src={nlpLogo} 
             alt="NLP Logo" 
@@ -130,34 +131,35 @@ export default function Login() {
           />
         </div>
         
-        <div className="flex-1 flex flex-col items-center justify-center py-4">
-          <div className="w-full max-w-4xl">
-            {/* AI/NLP Image Slideshow - Made full size */}
-            <div className="relative rounded-xl overflow-hidden shadow-xl bg-gray-100" style={{ height: '80vh', maxHeight: '650px' }}>
+        {/* Full height slideshow with no margins/padding */}
+        <div className="h-screen w-full flex items-center justify-center">
+          <div className="h-full w-full relative">
+            {/* AI/NLP Image Slideshow - Taking full section height */}
+            <div className="absolute inset-0 w-full h-full">
               <img 
                 src={aiImages[currentImage].src}
                 alt={aiImages[currentImage].alt}
                 className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
               />
               
-              {/* Quote Overlay - Adjusted position and size */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent py-8 px-6">
-                <p className="text-white text-xl font-medium">
+              {/* Quote Overlay - Large, prominent */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent pt-24 pb-12 px-8">
+                <p className="text-white text-2xl font-medium">
                   {aiImages[currentImage].quote}
                 </p>
+                
+                {/* Image Slider Dots - placed inside overlay */}
+                <div className="flex justify-center mt-8 space-x-4">
+                  {aiImages.map((_, i) => (
+                    <button 
+                      key={i} 
+                      className={`h-4 w-4 rounded-full transition-colors ${i === currentImage ? 'bg-indigo-600' : 'bg-white/70'}`}
+                      onClick={() => setCurrentImage(i)}
+                      aria-label={`View ${aiImages[i].alt}`}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-            
-            {/* Image Slider Dots */}
-            <div className="flex justify-center mt-6 space-x-3">
-              {aiImages.map((_, i) => (
-                <button 
-                  key={i} 
-                  className={`h-3 w-3 rounded-full transition-colors ${i === currentImage ? 'bg-indigo-600' : 'bg-gray-300'}`}
-                  onClick={() => setCurrentImage(i)}
-                  aria-label={`View ${aiImages[i].alt}`}
-                />
-              ))}
             </div>
           </div>
         </div>
