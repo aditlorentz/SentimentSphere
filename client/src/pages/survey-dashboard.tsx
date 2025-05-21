@@ -336,6 +336,7 @@ export default function SurveyDashboard() {
         dateRangeValue={dateRange}
         wordInsightValue={wordInsight}
         wordInsightValues={wordInsightValues}
+        // Hapus onSentimentChange dan sentimentValue karena tidak ada di tipe HeaderProps
         // Pass source options based on stats data
         sourceOptions={stats?.bySource.map(s => ({ 
           label: `${s.source} (${s.count})`, 
