@@ -98,7 +98,8 @@ Variasi seed: ${randomSeed}. ${randomVariation}
             }
           ],
           temperature: 0.7,
-          max_tokens: 500
+          max_tokens: 300,  // Mengurangi max_tokens agar respons lebih singkat dan cepat
+          stream: false     // Pastikan tidak streaming
         },
         {
           headers: {
@@ -110,18 +111,36 @@ Variasi seed: ${randomSeed}. ${randomVariation}
         }
       );
 
-      // Ekstrak konten yang dihasilkan dari respon OpenRouter
-      if (openrouterResponse.data && 
-          openrouterResponse.data.choices && 
-          openrouterResponse.data.choices.length > 0 && 
-          openrouterResponse.data.choices[0].message &&
-          openrouterResponse.data.choices[0].message.content) {
-        return openrouterResponse.data.choices[0].message.content;
-      } else {
-        // Fallback jika format respons tidak sesuai
-        console.log('Unexpected OpenRouter API response format:', JSON.stringify(openrouterResponse.data));
-        throw new Error('Unexpected OpenRouter API response format');
+      console.log('OpenRouter response:', JSON.stringify(openrouterResponse.data, null, 2));
+
+      // Ekstrak konten yang dihasilkan dari respon OpenRouter dengan penanganan yang lebih baik
+      if (openrouterResponse.data && openrouterResponse.data.choices && openrouterResponse.data.choices.length > 0) {
+        const choice = openrouterResponse.data.choices[0];
+        
+        // Cek jika ada message dengan content
+        if (choice.message && choice.message.content && choice.message.content.trim()) {
+          return choice.message.content.trim();
+        }
+        
+        // Jika ada text property (format alternatif)
+        if (choice.text && choice.text.trim()) {
+          return choice.text.trim();
+        }
+
+        // Cek jika ada property lain yang mungkin berisi teks respons
+        if (choice.content && choice.content.trim()) {
+          return choice.content.trim();
+        }
       }
+      
+      // Jika tidak ada format yang cocok, coba ambil dari respons langsung
+      if (typeof openrouterResponse.data === 'string' && openrouterResponse.data.trim()) {
+        return openrouterResponse.data.trim();
+      }
+      
+      // Fallback jika format respons tidak sesuai
+      console.log('Unexpected OpenRouter API response format:', JSON.stringify(openrouterResponse.data));
+      throw new Error('Unexpected OpenRouter API response format');
     } catch (apiError) {
       console.error('OpenRouter API error:', apiError);
       throw apiError;
