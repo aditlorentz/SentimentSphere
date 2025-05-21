@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useState } from "react";
-import { ChevronDown, RefreshCcw, Calendar as CalendarIcon, Filter, Layers, LogOut } from "lucide-react";
+import { ChevronDown, RefreshCcw, Calendar as CalendarIcon, Filter, Layers, LogOut, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
@@ -25,6 +25,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MultiSelect, type MultiSelectOption } from "@/components/ui/multi-select";
+import { Badge } from "@/components/ui/badge";
 
 // We've replaced HeaderFilter with more modern Select and Popover components
 
