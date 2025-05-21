@@ -53,8 +53,15 @@ export async function generateAISummary(data: any): Promise<string> {
     // Pilih hint variasi secara random
     const randomVariation = variationHints[Math.floor(Math.random() * variationHints.length)];
     
-    // Prepare the prompt with the dashboard data, customized based on page
-    let prompt = `
+    // Handle custom prompt if provided
+    let prompt;
+    
+    if (data.customPrompt) {
+      // Jika ada custom prompt (untuk testing)
+      prompt = data.customPrompt;
+    } else {
+      // Prepare the prompt with the dashboard data, customized based on page
+      prompt = `
 ${promptPrefix}buatlah ringkasan singkat dalam 1 paragraf yang menjelaskan insight utama dari halaman ${pageContext} sebagai NLP AI:
 
 - Total Karyawan: ${data.totalEmployees}
@@ -67,6 +74,7 @@ ${promptPrefix}buatlah ringkasan singkat dalam 1 paragraf yang menjelaskan insig
 
 Variasi seed: ${randomSeed}. ${randomVariation}
 `;
+    }
 
     // Kita sudah menginisialisasi filter info di atas
     
