@@ -6,8 +6,8 @@ import { insertUserSchema, surveyDashboardSummary, employeeInsights } from "@sha
 import { topWordInsights } from "@shared/schema-top-insights";
 import { registerSummaryRegenerationRoutes } from "./api-generate-summary";
 import { compareSync, hashSync } from "bcryptjs";
-import { db } from "./db";
-import { sql, desc } from "drizzle-orm";
+import { db, pool } from "./db";
+import { sql, desc, and, eq, inArray } from "drizzle-orm";
 
 // Simple middleware to log requests
 const logRequests = (req: Request, res: Response, next: NextFunction) => {
@@ -477,24 +477,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get page parameter from query
       const page = req.query.page as string || 'dashboard';
-
-      // Get stats for positives and negatives
-      const stats = await db.select({
+      
+      // Get filter parameters from query
+      const wordInsight = req.query.wordInsight as string;
+      const wordInsightsArray = req.query["wordInsights[]"] as string[] || [];
+      const source = req.query.source as string;
+      const survey = req.query.survey as string;
+      const seed = req.query.seed as string;
+      
+      // Build filter for the database query
+      let whereClause = '';
+      const params: any[] = [];
+      
+      if (wordInsight && wordInsight !== 'all') {
+        whereClause += 'word_insight = $' + (params.length + 1);
+        params.push(wordInsight);
+      }
+      
+      if (wordInsightsArray.length > 0 && !wordInsightsArray.includes('all')) {
+        if (whereClause) whereClause += ' AND ';
+        whereClause += 'word_insight IN (';
+        wordInsightsArray.forEach((word, index) => {
+          whereClause += index === 0 ? '$' + (params.length + 1) : ', $' + (params.length + 1);
+          params.push(word);
+        });
+        whereClause += ')';
+      }
+      
+      if (source && source !== 'all') {
+        if (whereClause) whereClause += ' AND ';
+        whereClause += 'source_data = $' + (params.length + 1);
+        params.push(source);
+      }
+      
+      if (survey && survey !== 'all') {
+        if (whereClause) whereClause += ' AND ';
+        whereClause += 'location = $' + (params.length + 1);
+        params.push(survey);
+      }
+      
+      // Build the stats query with filter
+      let statsQuery = `
+        SELECT 
+          COUNT(*) as total_insights,
+          SUM(CASE WHEN sentimen = 'positif' THEN 1 ELSE 0 END) as positive_count,
+          SUM(CASE WHEN sentimen = 'negatif' THEN 1 ELSE 0 END) as negative_count,
+          SUM(CASE WHEN sentimen = 'netral' THEN 1 ELSE 0 END) as neutral_count
+        FROM employee_insights
+      `;
+      
+      if (whereClause) {
+        statsQuery += ' WHERE ' + whereClause;
+      }
+      
+      // Use Drizzle ORM instead of raw queries
+      let query = db.select({
         totalInsights: sql`COUNT(*)`,
         positiveCount: sql`SUM(CASE WHEN sentimen = 'positif' THEN 1 ELSE 0 END)`,
         negativeCount: sql`SUM(CASE WHEN sentimen = 'negatif' THEN 1 ELSE 0 END)`,
         neutralCount: sql`SUM(CASE WHEN sentimen = 'netral' THEN 1 ELSE 0 END)`,
-      }).from(employeeInsights).then(rows => rows[0]);
-
-      // Get top insights
-      const topWords = await db
-        .select()
-        .from(topWordInsights)
-        .orderBy(sql`${topWordInsights.totalCount} DESC`)
+      }).from(employeeInsights);
+      
+      // Apply filters if any
+      const filters = [];
+      if (wordInsight && wordInsight !== 'all') {
+        filters.push(eq(employeeInsights.wordInsight, wordInsight));
+      }
+      
+      if (wordInsightsArray.length > 0 && !wordInsightsArray.includes('all')) {
+        filters.push(inArray(employeeInsights.wordInsight, wordInsightsArray));
+      }
+      
+      if (source && source !== 'all') {
+        filters.push(eq(employeeInsights.sourceData, source));
+      }
+      
+      if (survey && survey !== 'all') {
+        filters.push(eq(employeeInsights.location, survey));
+      }
+      
+      if (filters.length > 0) {
+        query = query.where(and(...filters));
+      }
+      
+      const stats = await query.then(rows => rows[0]);
+      
+      // Get top insights with filters
+      let topInsightsQuery = db
+        .select({
+          wordInsight: employeeInsights.wordInsight,
+          totalCount: sql<number>`COUNT(*)`
+        })
+        .from(employeeInsights)
+        .groupBy(employeeInsights.wordInsight)
+        .orderBy(sql`COUNT(*) DESC`)
         .limit(10);
-
-      // Get sources
-      const sources = await db
+        
+      if (filters.length > 0) {
+        topInsightsQuery = topInsightsQuery.where(and(...filters));
+      }
+      
+      const topWords = await topInsightsQuery.then(rows => 
+        rows.map(row => ({
+          wordInsight: row.wordInsight,
+          totalCount: row.totalCount
+        }))
+      );
+      
+      // Get sources with filters
+      let sourcesQuery = db
         .select({
           source: employeeInsights.sourceData,
           count: sql<number>`COUNT(*)`
@@ -502,17 +593,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(employeeInsights)
         .groupBy(employeeInsights.sourceData)
         .orderBy(sql`COUNT(*) DESC`)
-        .limit(5)
-        .then(rows => rows.map(row => row.source));
+        .limit(5);
+        
+      if (filters.length > 0) {
+        sourcesQuery = sourcesQuery.where(and(...filters));
+      }
+      
+      const sources = await sourcesQuery.then(rows => 
+        rows.map(row => row.source)
+      );
+      
+      // If no data found with these filters
+      if (Number(stats.totalInsights) === 0) {
+        return res.json({ 
+          summary: "Tidak ada data yang memenuhi kriteria filter yang dipilih. Silakan coba dengan filter lain."
+        });
+      }
 
-      // Base data for all pages
+      // Base data for all pages with filter data
       const baseData = {
         totalEmployees: 633, // Fixed count as requested
         totalInsights: Number(stats.totalInsights),
         totalPositive: Number(stats.positiveCount),
         totalNegative: Number(stats.negativeCount),
         topInsights: topWords,
-        sources
+        sources,
+        filters: {
+          wordInsight,
+          wordInsights: wordInsightsArray,
+          source,
+          survey
+        },
+        seed
       };
 
       // Prepare data for AI summary based on page

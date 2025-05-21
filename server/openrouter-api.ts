@@ -68,20 +68,22 @@ ${promptPrefix}buatlah ringkasan singkat dalam 1 paragraf yang menjelaskan insig
 Variasi seed: ${randomSeed}. ${randomVariation}
 `;
 
+    // Kita sudah menginisialisasi filter info di atas
+    
     // Add page-specific additional context to prompt
     if (pageContext === 'Top Insights' && data.topInsightsDistribution) {
-      prompt += `- ${data.topInsightsDistribution}\n`;
-      prompt += `\nFokuskan analisis pada Top 10 insights yang ditampilkan di halaman ini dan jelaskan bagaimana insights ini mempengaruhi keseluruhan sentimen. Berikan rekomendasi terkait Top Insights.`;
+      prompt += `- ${data.topInsightsDistribution}\n${filterInfo}`;
+      prompt += `\nFokuskan analisis pada Top 10 insights yang ditampilkan di halaman ini dan jelaskan bagaimana insights ini mempengaruhi keseluruhan sentimen. Berikan rekomendasi terkait Top Insights sebagai Gemini 2.0.`;
     } 
     else if (pageContext === 'Smart Analytics' && data.trends) {
-      prompt += `- Tren Utama: ${data.trends.join(', ')}\n`;
-      prompt += `\nFokuskan analisis pada tren utama yang terlihat dari data dan pola sentimen berdasarkan waktu. Berikan rekomendasi strategis berdasarkan analytics.`;
+      prompt += `- Tren Utama: ${data.trends.join(', ')}\n${filterInfo}`;
+      prompt += `\nFokuskan analisis pada tren utama yang terlihat dari data dan pola sentimen berdasarkan waktu. Berikan rekomendasi strategis berdasarkan analytics sebagai Gemini 2.0.`;
     }
     else {
-      prompt += `\nJelaskan insight utama, tren sentimen yang menonjol, dan berikan satu rekomendasi berdasarkan data dashboard ini.`;
+      prompt += `${filterInfo}\nJelaskan insight utama, tren sentimen yang menonjol, dan berikan satu rekomendasi berdasarkan data dashboard ini sebagai Gemini 2.0.`;
     }
 
-    prompt += ` Tulis dalam bahasa semi-formal dan ringkas.`;
+    prompt += ` Tulis dalam bahasa semi-formal dan ringkas. Variasi seed: ${randomSeed}. ${randomVariation}`;
 
     try {
       const geminiResponse = await axios.post(
