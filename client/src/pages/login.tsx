@@ -169,14 +169,10 @@ export default function Login() {
               className="h-16" // Logo size increased
             />
           </div>
-          <div className="relative">
-            <span className="text-[10px] font-serif text-indigo-700 mt-0.5 px-2.5 py-0.5 border-b border-indigo-300 bg-gradient-to-r from-white to-blue-50 tracking-wider shadow-sm italic">
+          <div className="mt-1">
+            <div className="text-[11px] font-sans text-slate-600 tracking-widest uppercase font-medium bg-gradient-to-r from-slate-50 to-indigo-50 py-0.5 px-1 text-center">
               MVP Version
-            </span>
-            <span className="absolute -top-1 -right-1 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-            </span>
+            </div>
           </div>
         </div>
         
