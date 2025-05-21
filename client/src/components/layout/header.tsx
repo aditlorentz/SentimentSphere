@@ -255,33 +255,7 @@ export default function Header({
             />
           </div>
           
-          {/* Selected filters badges */}
-          {wordInsightValues && wordInsightValues.length > 0 && !wordInsightValues.includes("all") && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {wordInsightValues.map(value => {
-                const option = wordInsightOptions.find(opt => opt.value === value);
-                return option ? (
-                  <Badge 
-                    key={value} 
-                    variant="blue"
-                    className="flex items-center gap-1 py-1 px-2"
-                  >
-                    {option.label}
-                    <button 
-                      className="ml-1 rounded-full hover:bg-blue-200 w-4 h-4 inline-flex items-center justify-center"
-                      onClick={() => {
-                        if (onWordInsightValuesChange) {
-                          onWordInsightValuesChange(wordInsightValues.filter(v => v !== value));
-                        }
-                      }}
-                    >
-                      <X className="h-3 w-3 text-blue-700" />
-                    </button>
-                  </Badge>
-                ) : null;
-              })}
-            </div>
-          )}
+
 
 
 
