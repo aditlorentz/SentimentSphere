@@ -135,20 +135,20 @@ export default function Login() {
                 className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
               />
               
-              {/* Quote Overlay - Enhanced contrast and styling */}
+              {/* Quote Overlay - More elegant with smaller text */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent pt-32 pb-14 px-10">
-                <div className="backdrop-blur-sm bg-black/20 p-6 rounded-lg border-l-4 border-indigo-500 shadow-xl max-w-2xl mx-auto">
-                  <p className="text-white text-2xl font-medium leading-relaxed">
+                <div className="backdrop-blur-sm bg-black/20 p-5 rounded-lg border-l-2 border-indigo-500 shadow-xl max-w-xl mx-auto">
+                  <p className="text-white text-xl font-normal leading-relaxed tracking-wide">
                     {aiImages[currentImage].quote}
                   </p>
                 </div>
                 
-                {/* Image Slider Dots - placed inside overlay with enhanced styling */}
-                <div className="flex justify-center mt-8 space-x-4">
+                {/* Image Slider Lines - replacing dots with more elegant lines */}
+                <div className="flex justify-center mt-10 space-x-3">
                   {aiImages.map((_, i) => (
                     <button 
                       key={i} 
-                      className={`h-4 w-4 rounded-full transition-all duration-300 ${i === currentImage ? 'bg-indigo-500 scale-125 shadow-lg shadow-indigo-500/50' : 'bg-white/70 hover:bg-white'}`}
+                      className={`h-0.5 transition-all duration-300 ${i === currentImage ? 'w-10 bg-white' : 'w-6 bg-white/40 hover:bg-white/70'}`}
                       onClick={() => setCurrentImage(i)}
                       aria-label={`View ${aiImages[i].alt}`}
                     />
