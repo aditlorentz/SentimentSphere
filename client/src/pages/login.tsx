@@ -135,18 +135,20 @@ export default function Login() {
                 className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
               />
               
-              {/* Quote Overlay - Large, prominent */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent pt-24 pb-12 px-8">
-                <p className="text-white text-2xl font-medium">
-                  {aiImages[currentImage].quote}
-                </p>
+              {/* Quote Overlay - Enhanced contrast and styling */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent pt-32 pb-14 px-10">
+                <div className="backdrop-blur-sm bg-black/20 p-6 rounded-lg border-l-4 border-indigo-500 shadow-xl max-w-2xl mx-auto">
+                  <p className="text-white text-2xl font-medium leading-relaxed">
+                    {aiImages[currentImage].quote}
+                  </p>
+                </div>
                 
-                {/* Image Slider Dots - placed inside overlay */}
+                {/* Image Slider Dots - placed inside overlay with enhanced styling */}
                 <div className="flex justify-center mt-8 space-x-4">
                   {aiImages.map((_, i) => (
                     <button 
                       key={i} 
-                      className={`h-4 w-4 rounded-full transition-colors ${i === currentImage ? 'bg-indigo-600' : 'bg-white/70'}`}
+                      className={`h-4 w-4 rounded-full transition-all duration-300 ${i === currentImage ? 'bg-indigo-500 scale-125 shadow-lg shadow-indigo-500/50' : 'bg-white/70 hover:bg-white'}`}
                       onClick={() => setCurrentImage(i)}
                       aria-label={`View ${aiImages[i].alt}`}
                     />
@@ -166,9 +168,9 @@ export default function Login() {
             <img 
               src={nlpLogo} 
               alt="NLP Logo" 
-              className="h-20" // Logo size further increased
+              className="h-28" // Logo size significantly increased
             />
-            <div className="text-[11px] font-sans text-slate-600 tracking-widest uppercase font-medium bg-gradient-to-r from-slate-50 to-indigo-50 py-0.5 px-3 text-center -mt-1">
+            <div className="text-[11px] font-sans text-slate-600 tracking-widest uppercase font-semibold bg-gradient-to-r from-slate-50 to-indigo-50 py-0.5 px-3 text-center -mt-1.5 rounded-sm shadow-sm">
               MVP Version
             </div>
           </div>
