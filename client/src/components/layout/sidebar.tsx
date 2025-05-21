@@ -70,14 +70,14 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-white shadow-neu flex-shrink-0 flex flex-col h-screen sticky top-0">
-      <div className="p-4 border-b border-gray-100 flex flex-col items-center justify-center">
-        <div className="relative flex flex-col items-center">
+      <div className="p-4 flex items-center justify-start">
+        <div className="relative flex items-center">
           <img 
             src={nlpLogo} 
             alt="NLP Logo" 
-            className="h-14"
+            className="h-11"
           />
-          <div className="mt-1 bg-slate-100 px-3 py-0.5 rounded-md">
+          <div className="ml-2 bg-slate-100 px-3 py-0.5 rounded-md">
             <p className="text-slate-600 text-xs tracking-widest font-semibold uppercase">
               MVP Version
             </p>
@@ -85,7 +85,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
           MASTER DATA
         </p>
