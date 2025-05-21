@@ -162,15 +162,13 @@ export default function Login() {
       <div className="md:w-1/2 bg-white flex items-center justify-center p-6 md:p-12 relative">
         {/* Logo with elegant MVP version tag */}
         <div className="absolute top-6 right-6 z-10 flex flex-col items-center">
-          <div className="p-2">
+          <div className="flex flex-col items-center">
             <img 
               src={nlpLogo} 
               alt="NLP Logo" 
-              className="h-16" // Logo size increased
+              className="h-20" // Logo size further increased
             />
-          </div>
-          <div className="mt-1">
-            <div className="text-[11px] font-sans text-slate-600 tracking-widest uppercase font-medium bg-gradient-to-r from-slate-50 to-indigo-50 py-0.5 px-1 text-center">
+            <div className="text-[11px] font-sans text-slate-600 tracking-widest uppercase font-medium bg-gradient-to-r from-slate-50 to-indigo-50 py-0.5 px-3 text-center -mt-1">
               MVP Version
             </div>
           </div>
