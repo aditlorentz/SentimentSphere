@@ -30,22 +30,34 @@ export function MultiSelect({
   maxDisplay = 2
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
+  const [localSelectedValues, setLocalSelectedValues] = React.useState<string[]>(selectedValues);
+  
+  // Sync localSelectedValues when selectedValues prop changes
+  React.useEffect(() => {
+    setLocalSelectedValues(selectedValues);
+  }, [selectedValues]);
 
   const handleSelect = (value: string) => {
-    if (selectedValues.includes(value)) {
-      onValueChange(selectedValues.filter(v => v !== value));
+    // Update local state only, don't trigger parent update
+    if (localSelectedValues.includes(value)) {
+      setLocalSelectedValues(localSelectedValues.filter(v => v !== value));
     } else {
-      onValueChange([...selectedValues, value]);
+      setLocalSelectedValues([...localSelectedValues, value]);
     }
   };
 
   const clearAll = () => {
-    onValueChange([]);
-    setOpen(false);
+    setLocalSelectedValues([]);
   };
 
   const selectAll = () => {
-    onValueChange(options.map(option => option.value));
+    setLocalSelectedValues(options.map(option => option.value));
+  };
+  
+  const applyFilters = () => {
+    // Update parent state only when Apply button is clicked
+    onValueChange(localSelectedValues);
+    setOpen(false);
   };
 
   const displayValues = React.useMemo(() => {
@@ -100,7 +112,7 @@ export function MultiSelect({
               >
                 <Checkbox 
                   id={`option-${option.value}`}
-                  checked={selectedValues.includes(option.value)}
+                  checked={localSelectedValues.includes(option.value)}
                   onCheckedChange={() => handleSelect(option.value)}
                   className="border-gray-300"
                 />
@@ -117,7 +129,7 @@ export function MultiSelect({
         <div className="p-2 border-t flex justify-end">
           <Button 
             size="sm" 
-            onClick={() => setOpen(false)}
+            onClick={applyFilters}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs rounded-full"
           >
             Apply Filters
