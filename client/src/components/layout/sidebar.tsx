@@ -70,15 +70,19 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-white shadow-neu flex-shrink-0 flex flex-col h-screen sticky top-0">
-      <div className="p-4 border-b border-gray-100 flex items-center">
-        <img 
-          src={nlpLogo} 
-          alt="NLP Logo" 
-          className="h-10"
-        />
-        <h1 className="font-display text-xl font-semibold ml-3 text-black">
-          NLP Insight
-        </h1>
+      <div className="p-4 border-b border-gray-100 flex flex-col items-center justify-center">
+        <div className="relative flex flex-col items-center">
+          <img 
+            src={nlpLogo} 
+            alt="NLP Logo" 
+            className="h-14"
+          />
+          <div className="mt-1 bg-slate-100 px-3 py-0.5 rounded-md">
+            <p className="text-slate-600 text-xs tracking-widest font-semibold">
+              MVP VERSION
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="p-4 border-b border-gray-100">
