@@ -2,10 +2,10 @@ import axios from 'axios';
 
 export async function generateAISummary(data: any): Promise<string> {
   try {
-    const geminiApiKey = process.env.GEMINI_API_KEY;
+    const openrouterApiKey = process.env.OPENROUTER_API_KEY;
     
-    if (!geminiApiKey) {
-      throw new Error('Gemini API key is not configured');
+    if (!openrouterApiKey) {
+      throw new Error('OpenRouter API key is not configured');
     }
 
     // Get the page context (if provided)
@@ -73,58 +73,57 @@ Variasi seed: ${randomSeed}. ${randomVariation}
     // Add page-specific additional context to prompt
     if (pageContext === 'Top Insights' && data.topInsightsDistribution) {
       prompt += `- ${data.topInsightsDistribution}\n${filterInfo}`;
-      prompt += `\nFokuskan analisis pada Top 10 insights yang ditampilkan di halaman ini dan jelaskan bagaimana insights ini mempengaruhi keseluruhan sentimen. Berikan rekomendasi terkait Top Insights sebagai Gemini 2.0.`;
+      prompt += `\nFokuskan analisis pada Top 10 insights yang ditampilkan di halaman ini dan jelaskan bagaimana insights ini mempengaruhi keseluruhan sentimen. Berikan rekomendasi terkait Top Insights.`;
     } 
     else if (pageContext === 'Smart Analytics' && data.trends) {
       prompt += `- Tren Utama: ${data.trends.join(', ')}\n${filterInfo}`;
-      prompt += `\nFokuskan analisis pada tren utama yang terlihat dari data dan pola sentimen berdasarkan waktu. Berikan rekomendasi strategis berdasarkan analytics sebagai Gemini 2.0.`;
+      prompt += `\nFokuskan analisis pada tren utama yang terlihat dari data dan pola sentimen berdasarkan waktu. Berikan rekomendasi strategis berdasarkan analytics.`;
     }
     else {
-      prompt += `${filterInfo}\nJelaskan insight utama, tren sentimen yang menonjol, dan berikan satu rekomendasi berdasarkan data dashboard ini sebagai Gemini 2.0.`;
+      prompt += `${filterInfo}\nJelaskan insight utama, tren sentimen yang menonjol, dan berikan satu rekomendasi berdasarkan data dashboard ini.`;
     }
 
     prompt += ` Tulis dalam bahasa semi-formal dan ringkas. Variasi seed: ${randomSeed}. ${randomVariation}`;
 
     try {
-      const geminiResponse = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`,
+      // OpenRouter API request
+      const openrouterResponse = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
         {
-          contents: [
+          model: "qwen/qwen3-30b-a3b:free",
+          messages: [
             {
-              parts: [
-                {
-                  text: prompt
-                }
-              ]
+              role: "user",
+              content: prompt
             }
           ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500
-          }
+          temperature: 0.7,
+          max_tokens: 500
         },
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openrouterApiKey}`,
+            'HTTP-Referer': 'https://replit.com',
+            'X-Title': 'NLP AI Dashboard'
           }
         }
       );
 
-      // Ekstrak konten yang dihasilkan dari respon
-      if (geminiResponse.data && 
-          geminiResponse.data.candidates && 
-          geminiResponse.data.candidates.length > 0 && 
-          geminiResponse.data.candidates[0].content &&
-          geminiResponse.data.candidates[0].content.parts &&
-          geminiResponse.data.candidates[0].content.parts.length > 0) {
-        return geminiResponse.data.candidates[0].content.parts[0].text;
+      // Ekstrak konten yang dihasilkan dari respon OpenRouter
+      if (openrouterResponse.data && 
+          openrouterResponse.data.choices && 
+          openrouterResponse.data.choices.length > 0 && 
+          openrouterResponse.data.choices[0].message &&
+          openrouterResponse.data.choices[0].message.content) {
+        return openrouterResponse.data.choices[0].message.content;
       } else {
         // Fallback jika format respons tidak sesuai
-        console.log('Unexpected Gemini API response format:', JSON.stringify(geminiResponse.data));
-        throw new Error('Unexpected Gemini API response format');
+        console.log('Unexpected OpenRouter API response format:', JSON.stringify(openrouterResponse.data));
+        throw new Error('Unexpected OpenRouter API response format');
       }
     } catch (apiError) {
-      console.error('Gemini API error:', apiError);
+      console.error('OpenRouter API error:', apiError);
       throw apiError;
     }
 
