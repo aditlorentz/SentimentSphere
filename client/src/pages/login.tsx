@@ -27,27 +27,27 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-// AI/NLP images for the slideshow
+// AI/NLP images for the slideshow with enhanced quotes
 const aiImages = [
   {
     src: haraldImage,
     alt: "NLP Text Analysis",
-    quote: "Analisis Sentimen: Mengubah teks feedback karyawan menjadi insight yang bermakna"
+    quote: "Analisis Sentimen: Mengubah teks feedback karyawan menjadi insight bermakna yang dapat ditindaklanjuti untuk perbaikan organisasi"
   },
   {
     src: markusImage,
     alt: "AI Programming",
-    quote: "Dashboard Interaktif: Visualisasi data dengan peta heatmap dan wordcloud"
+    quote: "Dashboard Interaktif: Visualisasi data kompleks dengan peta heatmap regional dan wordcloud dinamis untuk pemahaman lebih mendalam"
   },
   {
     src: shubhamDhageImage,
     alt: "Neural Network",
-    quote: "Smart Analytics: Deteksi tren sentimen dan identifikasi area peningkatan"
+    quote: "Smart Analytics: Deteksi tren sentimen otomatis dan identifikasi area peningkatan prioritas dengan analisis multidimensi"
   },
   {
     src: shubhamSharanImage,
     alt: "Data Visualization",
-    quote: "AI Chatbot: Rekomendasi cepat dengan teknologi Gemini 2.0 Flash"
+    quote: "AI Chatbot: Rekomendasi solusi cepat dan akurat dengan teknologi NLP AI yang canggih untuk respons segera"
   }
 ];
 
@@ -59,11 +59,11 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
   
-  // Auto-rotate images
+  // Auto-rotate images with longer duration
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImage((prev) => (prev + 1) % aiImages.length);
-    }, 5000); // Change image every 5 seconds
+    }, 10000); // Change image every 10 seconds for better readability of longer quotes
     
     return () => clearInterval(interval);
   }, []);
