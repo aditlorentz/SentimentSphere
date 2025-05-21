@@ -12,9 +12,50 @@ export async function generateAISummary(data: any): Promise<string> {
     const pageContext = data.pageContext || 'Survey Dashboard';
     const promptPrefix = data.promptPrefix || '';
 
+    // Get filter info for the prompt (if any)
+    let filterInfo = "";
+    
+    if (data.filters) {
+      const filters = [];
+      
+      // Add filter details to the prompt
+      if (data.filters.wordInsight && data.filters.wordInsight !== 'all') {
+        filters.push(`topik "${data.filters.wordInsight}"`);
+      }
+      
+      if (data.filters.wordInsights && data.filters.wordInsights.length > 0) {
+        filters.push(`topik ${data.filters.wordInsights.map((w: string) => `"${w}"`).join(', ')}`);
+      }
+      
+      if (data.filters.source && data.filters.source !== 'all') {
+        filters.push(`sumber "${data.filters.source}"`);
+      }
+      
+      if (data.filters.survey && data.filters.survey !== 'all') {
+        filters.push(`lokasi "${data.filters.survey}"`);
+      }
+      
+      if (filters.length > 0) {
+        filterInfo = `\nData telah difilter berdasarkan ${filters.join(' dan ')}.`;
+      }
+    }
+    
+    // Add random variation to make each result unique
+    const randomSeed = data.seed || Math.random().toString(36).substring(2, 10);
+    const variationHints = [
+      "Berikan insight yang berbeda dari yang sebelumnya.",
+      "Fokus pada aspek-aspek baru yang mungkin terlewatkan.",
+      "Eksplorasi insight yang mungkin tidak langsung terlihat.",
+      "Berikan perspektif baru tentang data ini.",
+      "Fokus pada rekomendasi yang actionable dan spesifik."
+    ];
+    
+    // Pilih hint variasi secara random
+    const randomVariation = variationHints[Math.floor(Math.random() * variationHints.length)];
+    
     // Prepare the prompt with the dashboard data, customized based on page
     let prompt = `
-${promptPrefix}buatlah ringkasan singkat dalam 1 paragraf yang menjelaskan insight utama dari halaman ${pageContext}:
+${promptPrefix}buatlah ringkasan singkat dalam 1 paragraf yang menjelaskan insight utama dari halaman ${pageContext} sebagai NLP AI:
 
 - Total Karyawan: ${data.totalEmployees}
 - Total Insights: ${data.totalInsights}
@@ -22,7 +63,9 @@ ${promptPrefix}buatlah ringkasan singkat dalam 1 paragraf yang menjelaskan insig
 - Sentimen Negatif: ${data.totalNegative} (${((data.totalNegative / data.totalInsights) * 100).toFixed(1)}%)
 - Sentimen Netral: ${data.totalInsights - data.totalPositive - data.totalNegative} (${(((data.totalInsights - data.totalPositive - data.totalNegative) / data.totalInsights) * 100).toFixed(1)}%)
 - Top Insights: ${data.topInsights.map((item: any) => `${item.wordInsight} (${item.totalCount})`).join(', ')}
-- Sumber Utama: ${data.sources.join(', ')}
+- Sumber Utama: ${data.sources.join(', ')}${filterInfo}
+
+Variasi seed: ${randomSeed}. ${randomVariation}
 `;
 
     // Add page-specific additional context to prompt

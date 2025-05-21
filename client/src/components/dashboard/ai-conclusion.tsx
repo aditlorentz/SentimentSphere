@@ -6,11 +6,18 @@ import { useLocation } from "wouter";
 interface AIInsightConclusionProps {
   onClose?: () => void;
   pageContext?: string; // Optional custom page context
+  filterData?: {
+    wordInsight?: string; 
+    wordInsightValues?: string[];
+    source?: string;
+    survey?: string;
+  }; // Current filter values
 }
 
 export default function AIInsightConclusion({
   onClose,
   pageContext,
+  filterData,
 }: AIInsightConclusionProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [location] = useLocation();
@@ -23,6 +30,9 @@ export default function AIInsightConclusion({
     return "dashboard"; // default
   })();
 
+  // Add a random seed to trigger a different result on each refresh
+  const randomSeed = Math.random().toString(36).substring(2, 10);
+
   // Fetch AI summary from the API with page context
   const { 
     data, 
@@ -31,9 +41,37 @@ export default function AIInsightConclusion({
     error, 
     refetch 
   } = useQuery({
-    queryKey: ['/api/ai-summary', currentPage],
+    queryKey: ['/api/ai-summary', currentPage, filterData, randomSeed],
     queryFn: async () => {
-      const response = await fetch(`/api/ai-summary?page=${currentPage}`);
+      // Build the query string with filter data
+      let queryString = `/api/ai-summary?page=${currentPage}&seed=${randomSeed}`;
+      
+      if (filterData) {
+        // Add single word insight filter if available
+        if (filterData.wordInsight && filterData.wordInsight !== 'all') {
+          queryString += `&wordInsight=${encodeURIComponent(filterData.wordInsight)}`;
+        }
+        
+        // Add multiple wordInsightValues if available
+        if (filterData.wordInsightValues && filterData.wordInsightValues.length > 0 && 
+            !filterData.wordInsightValues.includes('all')) {
+          filterData.wordInsightValues.forEach(value => {
+            queryString += `&wordInsights[]=${encodeURIComponent(value)}`;
+          });
+        }
+        
+        // Add source filter if available
+        if (filterData.source && filterData.source !== 'all') {
+          queryString += `&source=${encodeURIComponent(filterData.source)}`;
+        }
+        
+        // Add survey filter if available
+        if (filterData.survey && filterData.survey !== 'all') {
+          queryString += `&survey=${encodeURIComponent(filterData.survey)}`;
+        }
+      }
+      
+      const response = await fetch(queryString);
       if (!response.ok) {
         throw new Error('Failed to fetch AI summary');
       }
