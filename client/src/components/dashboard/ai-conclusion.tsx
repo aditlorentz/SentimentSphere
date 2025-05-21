@@ -129,7 +129,7 @@ export default function AIInsightConclusion({
           Terjadi kesalahan saat memuat kesimpulan AI: {error instanceof Error ? error.message : 'Unknown error'}
         </div>
       ) : (
-        <p className="text-gray-700 text-sm leading-relaxed">
+        <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
           {data?.summary || "Tidak ada kesimpulan yang tersedia saat ini."}
         </p>
       )}
