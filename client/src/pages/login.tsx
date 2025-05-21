@@ -131,9 +131,9 @@ export default function Login() {
         </div>
         
         <div className="flex-1 flex flex-col items-center justify-center py-4">
-          <div className="w-full max-w-3xl">
-            {/* AI/NLP Image Slideshow - Made larger */}
-            <div className="relative rounded-xl overflow-hidden shadow-xl mb-8 bg-gray-100" style={{ height: '65vh', maxHeight: '500px' }}>
+          <div className="w-full max-w-4xl">
+            {/* AI/NLP Image Slideshow - Made full size */}
+            <div className="relative rounded-xl overflow-hidden shadow-xl bg-gray-100" style={{ height: '80vh', maxHeight: '650px' }}>
               <img 
                 src={aiImages[currentImage].src}
                 alt={aiImages[currentImage].alt}
@@ -142,14 +142,14 @@ export default function Login() {
               
               {/* Quote Overlay - Adjusted position and size */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent py-8 px-6">
-                <p className="text-white text-lg font-medium">
+                <p className="text-white text-xl font-medium">
                   {aiImages[currentImage].quote}
                 </p>
               </div>
             </div>
             
             {/* Image Slider Dots */}
-            <div className="flex justify-center mb-6 space-x-3">
+            <div className="flex justify-center mt-6 space-x-3">
               {aiImages.map((_, i) => (
                 <button 
                   key={i} 
@@ -158,16 +158,6 @@ export default function Login() {
                   aria-label={`View ${aiImages[i].alt}`}
                 />
               ))}
-            </div>
-            
-            {/* NLP Technology Highlight */}
-            <div className="p-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl text-center">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Powered by Advanced NLP Technology
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Transform complex feedback data into actionable organizational insights with our cutting-edge sentiment analysis platform.
-              </p>
             </div>
           </div>
         </div>
