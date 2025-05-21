@@ -122,14 +122,7 @@ export default function Login() {
     <div className="min-h-screen flex flex-col md:flex-row bg-white">
       {/* Left section with AI/NLP slideshow */}
       <div className="md:w-1/2 bg-white p-0 m-0 flex flex-col relative">
-        {/* Logo with frosted glass effect */}
-        <div className="absolute top-4 left-6 z-10 backdrop-blur-md bg-white/40 p-3 rounded-xl shadow-lg border border-white/50">
-          <img 
-            src={nlpLogo} 
-            alt="NLP Logo" 
-            className="h-12"
-          />
-        </div>
+        {/* Logo removed from left side and moved to right side */}
         
         {/* Full height slideshow with no margins/padding */}
         <div className="h-screen w-full flex items-center justify-center">
@@ -166,7 +159,19 @@ export default function Login() {
       </div>
 
       {/* Right section with login form */}
-      <div className="md:w-1/2 bg-white flex items-center justify-center p-6 md:p-12">
+      <div className="md:w-1/2 bg-white flex items-center justify-center p-6 md:p-12 relative">
+        {/* Logo with alpha tag placed on the right side */}
+        <div className="absolute top-6 right-6 z-10 flex flex-col items-center">
+          <div className="backdrop-blur-md bg-white/40 p-3 rounded-xl shadow-lg border border-white/50">
+            <img 
+              src={nlpLogo} 
+              alt="NLP Logo" 
+              className="h-12"
+            />
+          </div>
+          <span className="text-xs font-bold text-indigo-600 mt-1 bg-white/70 px-2 py-0.5 rounded-md">alpha</span>
+        </div>
+        
         <div className="w-full max-w-md">
           <h2 className="text-3xl font-display font-bold mb-2 text-black tracking-tight">Login</h2>
           <p className="text-gray-600 mb-8">Enter your credentials to login</p>
