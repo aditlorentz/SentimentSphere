@@ -64,7 +64,7 @@ function useTopWordInsights() {
 
 export default function Sidebar() {
   // Menggunakan fungsi query untuk mendapatkan data top word insights
-  const { data: topWordInsights, isLoading } = useTopWordInsights();
+  const { data: topWordInsights = [], isLoading } = useTopWordInsights();
   
   console.log('Top insights in Sidebar:', topWordInsights);
 
@@ -78,8 +78,8 @@ export default function Sidebar() {
             className="h-14"
           />
           <div className="mt-1 bg-slate-100 px-3 py-0.5 rounded-md">
-            <p className="text-slate-600 text-xs tracking-widest font-semibold">
-              MVP VERSION
+            <p className="text-slate-600 text-xs tracking-widest font-semibold uppercase">
+              MVP Version
             </p>
           </div>
         </div>
