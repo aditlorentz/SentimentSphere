@@ -75,10 +75,10 @@ export default function Sidebar() {
           <img 
             src={nlpLogo} 
             alt="NLP Logo" 
-            className="h-11"
+            className="h-14"
           />
-          <div className="ml-2 bg-slate-100 px-3 py-0.5 rounded-md">
-            <p className="text-slate-600 text-xs tracking-widest font-semibold uppercase">
+          <div className="ml-2 bg-slate-100 px-2 py-0.5 rounded-md">
+            <p className="text-slate-600 text-[10px] tracking-widest font-semibold uppercase">
               MVP Version
             </p>
           </div>
