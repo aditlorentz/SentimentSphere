@@ -160,16 +160,22 @@ export default function Login() {
 
       {/* Right section with login form */}
       <div className="md:w-1/2 bg-white flex items-center justify-center p-6 md:p-12 relative">
-        {/* Logo with alpha tag placed on the right side */}
+        {/* Logo with elegant Alpha version tag */}
         <div className="absolute top-6 right-6 z-10 flex flex-col items-center">
-          <div className="backdrop-blur-md bg-white/40 p-3 rounded-xl shadow-lg border border-white/50">
+          <div className="p-2">
             <img 
               src={nlpLogo} 
               alt="NLP Logo" 
               className="h-12"
             />
           </div>
-          <span className="text-xs font-bold text-indigo-600 mt-1 bg-white/70 px-2 py-0.5 rounded-md">alpha</span>
+          <div className="relative">
+            <span className="text-xs text-indigo-600 mt-0.5 px-4 py-1 border border-indigo-200 rounded-full bg-gradient-to-r from-indigo-50 to-blue-50 font-medium tracking-wider shadow-sm uppercase">Alpha Release</span>
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+            </span>
+          </div>
         </div>
         
         <div className="w-full max-w-md">
