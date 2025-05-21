@@ -130,30 +130,30 @@ export default function Login() {
           />
         </div>
         
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="w-full max-w-lg">
-            {/* AI/NLP Image Slideshow */}
-            <div className="relative rounded-xl overflow-hidden shadow-xl mb-8 aspect-video bg-gray-100">
+        <div className="flex-1 flex flex-col items-center justify-center py-4">
+          <div className="w-full max-w-3xl">
+            {/* AI/NLP Image Slideshow - Made larger */}
+            <div className="relative rounded-xl overflow-hidden shadow-xl mb-8 bg-gray-100" style={{ height: '65vh', maxHeight: '500px' }}>
               <img 
                 src={aiImages[currentImage].src}
                 alt={aiImages[currentImage].alt}
                 className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
               />
               
-              {/* Quote Overlay */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                <p className="text-white font-medium">
+              {/* Quote Overlay - Adjusted position and size */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent py-8 px-6">
+                <p className="text-white text-lg font-medium">
                   {aiImages[currentImage].quote}
                 </p>
               </div>
             </div>
             
             {/* Image Slider Dots */}
-            <div className="flex justify-center mb-8 space-x-2">
+            <div className="flex justify-center mb-6 space-x-3">
               {aiImages.map((_, i) => (
                 <button 
                   key={i} 
-                  className={`h-2 w-2 rounded-full transition-colors ${i === currentImage ? 'bg-indigo-600' : 'bg-gray-300'}`}
+                  className={`h-3 w-3 rounded-full transition-colors ${i === currentImage ? 'bg-indigo-600' : 'bg-gray-300'}`}
                   onClick={() => setCurrentImage(i)}
                   aria-label={`View ${aiImages[i].alt}`}
                 />
