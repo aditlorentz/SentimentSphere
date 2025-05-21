@@ -355,7 +355,14 @@ export default function SurveyDashboard() {
       />
       
       <div className="p-6">
-        <AIInsightConclusion />
+        <AIInsightConclusion 
+          filterData={{
+            wordInsight,
+            wordInsightValues,
+            source,
+            survey
+          }}
+        />
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <SentimentCategoryCard

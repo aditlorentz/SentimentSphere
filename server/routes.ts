@@ -485,50 +485,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const survey = req.query.survey as string;
       const seed = req.query.seed as string;
       
-      // Build filter for the database query
-      let whereClause = '';
-      const params: any[] = [];
-      
-      if (wordInsight && wordInsight !== 'all') {
-        whereClause += 'word_insight = $' + (params.length + 1);
-        params.push(wordInsight);
-      }
-      
-      if (wordInsightsArray.length > 0 && !wordInsightsArray.includes('all')) {
-        if (whereClause) whereClause += ' AND ';
-        whereClause += 'word_insight IN (';
-        wordInsightsArray.forEach((word, index) => {
-          whereClause += index === 0 ? '$' + (params.length + 1) : ', $' + (params.length + 1);
-          params.push(word);
-        });
-        whereClause += ')';
-      }
-      
-      if (source && source !== 'all') {
-        if (whereClause) whereClause += ' AND ';
-        whereClause += 'source_data = $' + (params.length + 1);
-        params.push(source);
-      }
-      
-      if (survey && survey !== 'all') {
-        if (whereClause) whereClause += ' AND ';
-        whereClause += 'location = $' + (params.length + 1);
-        params.push(survey);
-      }
-      
-      // Build the stats query with filter
-      let statsQuery = `
-        SELECT 
-          COUNT(*) as total_insights,
-          SUM(CASE WHEN sentimen = 'positif' THEN 1 ELSE 0 END) as positive_count,
-          SUM(CASE WHEN sentimen = 'negatif' THEN 1 ELSE 0 END) as negative_count,
-          SUM(CASE WHEN sentimen = 'netral' THEN 1 ELSE 0 END) as neutral_count
-        FROM employee_insights
-      `;
-      
-      if (whereClause) {
-        statsQuery += ' WHERE ' + whereClause;
-      }
+      // Build filter for the database query using Drizzle
+      const conditions = [];
       
       // Use Drizzle ORM instead of raw queries
       let query = db.select({
