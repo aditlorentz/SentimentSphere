@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import SurveyDashboard from "@/pages/survey-dashboard";
@@ -12,6 +12,7 @@ import TopInsights from "@/pages/top-insights";
 import SmartAnalytics from "@/pages/smart-analytics";
 import Settings from "@/pages/settings";
 import ActionPage from "@/pages/action-page";
+import { PageSkeletonLoader } from "@/components/ui/skeleton-loader";
 
 
 import Sidebar from "@/components/layout/sidebar";
@@ -21,47 +22,62 @@ import ProtectedRoute from "@/components/auth/protected-route";
 function Router() {
   const [location] = useLocation();
   const isLoginPage = location === "/login" || location === "/";
+  const [isChangingPage, setIsChangingPage] = useState(false);
+  
+  // Handle page transition with loading effect
+  useEffect(() => {
+    setIsChangingPage(true);
+    const timer = setTimeout(() => {
+      setIsChangingPage(false);
+    }, 800);
+    
+    return () => clearTimeout(timer);
+  }, [location]);
 
   return (
     <div className={`${!isLoginPage ? "flex min-h-screen" : ""}`}>
       {!isLoginPage && <Sidebar />}
       <div className={!isLoginPage ? "flex-1 flex flex-col relative h-screen overflow-y-auto" : "w-full"}>
-        <Switch>
-          <Route path="/" component={Login} />
-          <Route path="/login" component={Login} />
-          <Route path="/survey-dashboard">
-            <ProtectedRoute>
-              <SurveyDashboard />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/my-insights">
-            <ProtectedRoute>
-              <MyInsights />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/top-insights">
-            <ProtectedRoute>
-              <TopInsights />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/smart-analytics">
-            <ProtectedRoute>
-              <SmartAnalytics />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/settings">
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/action-page">
-            <ProtectedRoute>
-              <ActionPage />
-            </ProtectedRoute>
-          </Route>
+        {isChangingPage && !isLoginPage ? (
+          <PageSkeletonLoader />
+        ) : (
+          <Switch>
+            <Route path="/" component={Login} />
+            <Route path="/login" component={Login} />
+            <Route path="/survey-dashboard">
+              <ProtectedRoute>
+                <SurveyDashboard />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/my-insights">
+              <ProtectedRoute>
+                <MyInsights />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/top-insights">
+              <ProtectedRoute>
+                <TopInsights />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/smart-analytics">
+              <ProtectedRoute>
+                <SmartAnalytics />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/settings">
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/action-page">
+              <ProtectedRoute>
+                <ActionPage />
+              </ProtectedRoute>
+            </Route>
 
-          <Route component={NotFound} />
-        </Switch>
+            <Route component={NotFound} />
+          </Switch>
+        )}
       </div>
     </div>
   );

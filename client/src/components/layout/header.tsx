@@ -109,7 +109,7 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200 py-4 px-6 flex flex-col lg:flex-row lg:items-center lg:justify-between shadow-sm">
-      <h1 className="text-2xl font-display font-bold text-black tracking-tight">{title}</h1>
+      <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent tracking-tight drop-shadow-sm">{title}</h1>
 
       {showFilters && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:flex lg:flex-wrap items-center gap-3 mt-4 lg:mt-0 pb-2 lg:pb-0">
