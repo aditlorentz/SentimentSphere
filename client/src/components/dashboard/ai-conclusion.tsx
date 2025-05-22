@@ -1,16 +1,7 @@
-import { X, RefreshCw, MessageSquare } from "lucide-react";
+import { X, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 interface AIInsightConclusionProps {
   onClose?: () => void;
@@ -30,10 +21,6 @@ export default function AIInsightConclusion({
 }: AIInsightConclusionProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [location] = useLocation();
-  const [testPrompt, setTestPrompt] = useState<string>("");
-  const [testResponse, setTestResponse] = useState<string>("");
-  const [isTestLoading, setIsTestLoading] = useState<boolean>(false);
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   
   // Determine page context from current route if not explicitly provided
   const currentPage = pageContext || (() => {
@@ -45,34 +32,6 @@ export default function AIInsightConclusion({
 
   // Add a random seed to trigger a different result on each refresh
   const randomSeed = Math.random().toString(36).substring(2, 10);
-  
-  // Handle test prompt submission
-  const handleTestPrompt = async () => {
-    if (!testPrompt.trim()) return;
-    
-    setIsTestLoading(true);
-    try {
-      const response = await fetch('/api/test-ai-prompt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ prompt: testPrompt })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to process test prompt');
-      }
-      
-      const data = await response.json();
-      setTestResponse(data.summary);
-    } catch (error) {
-      console.error('Error testing prompt:', error);
-      setTestResponse('Terjadi kesalahan saat memproses prompt. Silakan coba lagi.');
-    } finally {
-      setIsTestLoading(false);
-    }
-  };
 
   // Fetch AI summary from the API with page context
   const { 
@@ -143,51 +102,6 @@ export default function AIInsightConclusion({
           </span>
         </div>
         <div className="flex space-x-2">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <button
-                className="text-gray-400 hover:text-gray-500"
-                title="Test AI with custom prompt"
-              >
-                <MessageSquare className="h-5 w-5" />
-              </button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Test AI dengan prompt khusus</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <Input
-                  placeholder="Ketik prompt Anda di sini..."
-                  value={testPrompt}
-                  onChange={(e) => setTestPrompt(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !isTestLoading) {
-                      handleTestPrompt();
-                    }
-                  }}
-                />
-                <Button 
-                  className="w-full" 
-                  onClick={handleTestPrompt}
-                  disabled={isTestLoading || !testPrompt.trim()}
-                >
-                  {isTestLoading ? (
-                    <>
-                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Memproses...
-                    </>
-                  ) : 'Kirim Prompt'}
-                </Button>
-                {testResponse && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-md">
-                    <h4 className="font-medium mb-2">Hasil:</h4>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{testResponse}</p>
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
           <button
             className="text-gray-400 hover:text-gray-500"
             onClick={handleRefresh}
@@ -215,7 +129,7 @@ export default function AIInsightConclusion({
           Terjadi kesalahan saat memuat kesimpulan AI: {error instanceof Error ? error.message : 'Unknown error'}
         </div>
       ) : (
-        <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+        <p className="text-gray-700 text-sm leading-relaxed">
           {data?.summary || "Tidak ada kesimpulan yang tersedia saat ini."}
         </p>
       )}

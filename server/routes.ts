@@ -472,37 +472,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint untuk testing AI dengan prompt khusus
-  app.post("/api/test-ai-prompt", async (req: Request, res: Response) => {
-    try {
-      const { prompt } = req.body;
-      
-      if (!prompt) {
-        return res.status(400).json({ error: "Prompt is required" });
-      }
-      
-      // Gunakan OpenRouter API untuk mendapatkan respons
-      const summary = await generateAISummary({
-        customPrompt: prompt,
-        totalEmployees: 633,
-        totalInsights: 633,
-        totalPositive: 310,
-        totalNegative: 293,
-        topInsights: [],
-        sources: ["Bot HC", "Instagram HC", "Diarium", "Komplain Helpdesk HC", "Berita HC"],
-        pageContext: "Test"
-      });
-      
-      res.json({ summary });
-    } catch (error) {
-      console.error("Error testing AI prompt:", error);
-      res.status(500).json({ 
-        error: "Failed to process AI prompt", 
-        summary: "Terjadi kesalahan saat memproses prompt AI. Silakan coba lagi nanti." 
-      });
-    }
-  });
-  
   // AI Summary generation endpoint
   app.get("/api/ai-summary", async (req: Request, res: Response) => {
     try {
